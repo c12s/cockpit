@@ -1,0 +1,19 @@
+constellations:
+  version: v1
+  kind: NodeConfigs
+  regions:
+    - region1
+    - region2
+  clusters:
+    - cluster1
+    - cluster2
+  labels:
+    - l1:v1
+    - l2:v2
+    - l3:v3
+  data:
+    file: 
+     - path/tofile.env
+    env:
+     - NESTO:VAL
+     - NESTO2:VAL2

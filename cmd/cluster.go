@@ -19,12 +19,6 @@ func checkAction(flag string) {
 var ClusterCmd = &cobra.Command{
 	Use: "cluster",
 	Run: func(cmd *cobra.Command, args []string) {
-		// if Verbose {
-		// 	fmt.Println("About to greet friends from Mars...")
-		// }
-		// lang := cmd.Flag("lang").Value.String()
-		// fmt.Printf("%s Mars :)\n", greeting(lang))
-
 		flag := cmd.Flag("list").Value.String()
 		checkAction(flag)
 

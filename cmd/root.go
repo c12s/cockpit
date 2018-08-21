@@ -12,6 +12,7 @@ func init() {
 
 	RootCmd.AddCommand(ClusterCmd)
 	RootCmd.AddCommand(MutateCmd)
+	RootCmd.AddCommand(RegionCmd)
 }
 
 var RootCmd = &cobra.Command{
@@ -19,6 +20,6 @@ var RootCmd = &cobra.Command{
 	Short: "This is simple short desc",
 	Long:  `This is simple longer desc`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Done!")
+		fmt.Println("Please provide some of avalible commands or type help for help")
 	},
 }

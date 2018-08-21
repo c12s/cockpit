@@ -9,9 +9,21 @@ import (
 	"os"
 )
 
+func kind(file *model.MutateFile) {
+	switch file.Content.Kind {
+	case "NodeConfig": //add some configs to all present nodes based on labels in some region/cluster
+		fmt.Println("NodeConfig file", file)
+	case "NodeAction": // put some action to the all present nodes in some region/cluster like update,restart bash commands etc...
+	case "NodeSecret": //add some secrets to all present nodes based on labels in some region/cluster
+
+	}
+}
+
 var MutateCmd = &cobra.Command{
 	Use:   "mutate",
 	Short: "Mutate state of the constallations",
+	Long:  "change all data inside regions, clusters and nodes",
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		file := cmd.Flag("file").Value.String()
 
@@ -21,7 +33,7 @@ var MutateCmd = &cobra.Command{
 				fmt.Println(err.Error())
 			}
 
-			fmt.Println(f)
+			kind(f)
 		} else {
 			fmt.Println("File not exists")
 		}
@@ -29,7 +41,7 @@ var MutateCmd = &cobra.Command{
 }
 
 func mutateFile(n ...string) (*model.MutateFile, error) {
-	path := "config.yml"
+	path := ""
 	if len(n) > 0 {
 		path = n[0]
 	}

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/c12s/cockpit/cmd/model"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -12,7 +13,20 @@ import (
 func kind(file *model.MutateFile) {
 	switch file.Content.Kind {
 	case "NodeConfig": //add some configs to all present nodes based on labels in some region/cluster
-		fmt.Println("NodeConfig file", file)
+		// fmt.Println("NodeConfig file", file)
+		// fmt.Println(file.Content.Version)
+		// fmt.Println(file.Content.Kind)
+		// fmt.Println(file.Content.Payload)
+		// fmt.Println(file.Content.Selector)
+		// fmt.Println(file.Content.Region)
+
+		data, err := helper.FileToJSON(&file.Content)
+		if err != nil {
+			fmt.Println(err)
+		} else {
+			fmt.Println("JSON\n", data)
+		}
+
 	case "NodeAction": // put some action to the all present nodes in some region/cluster like update,restart bash commands etc...
 	case "NodeSecret": //add some secrets to all present nodes based on labels in some region/cluster
 

@@ -1,22 +1,26 @@
 constellations:
   version: v1
   kind: NodeConfig
-  payload:
+  payload: # May contains [file | env | action]
     file:
-      - path/tofile.env
+      - path/to/file.env
     env:
       - NESTO:VAL
       - NESTO2:VAL2
+    action:
+      - git update && git pull
+      - git add .
+      - git commit
   strategy:
-    type: AtOnce
-    update: all
+    type: AtOnce # AtOnce | RollingUpdate
+    update: all # [all | number] | [percentage of clustr nodes]
   selector:
     labels:
       l1: v1
       l2: v2
       l3: v3
     compare:
-      kind: all
+      kind: all # all | any
   region:
     region1:
       cluster:

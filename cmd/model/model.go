@@ -4,26 +4,25 @@ type MutateFile struct {
 	Content Constellations `yaml:"constellations"`
 }
 
+// Model for parsing yml file
 type Constellations struct {
-	Version  string              `yaml:"version"`
-	Kind     string              `yaml:"kind"`
-	Payload  map[string][]string `yaml:"payload"`
-	Strategy map[string]string   `yaml:"strategy"`
-	Selector Selection           `yaml:"selector"`
-	Region   map[string]Region   `yaml:"region"`
+	Version  string                       `yaml:"version"`
+	Kind     string                       `yaml:"kind"`
+	Payload  map[string][]string          `yaml:"payload"`
+	Strategy map[string]string            `yaml:"strategy"`
+	Selector map[string]map[string]string `yaml:"selector"`
+	Region   map[string]Region            `yaml:"region"`
 }
 
 type Region struct {
-	Cluster map[string]Cluster `yaml:"cluster"`
+	Strategy map[string]string            `yaml:"strategy"`
+	Payload  map[string][]string          `yaml:"payload"`
+	Selector map[string]map[string]string `yaml:"selector"`
+	Cluster  map[string]Cluster           `yaml:"cluster"`
 }
 
 type Cluster struct {
-	Strategy map[string]string   `yaml:"strategy"`
-	Payload  map[string][]string `yaml:"payload"`
-	Selector Selection           `yaml:"selector"`
-}
-
-type Selection struct {
-	Labels  map[string]string `yaml:"labels"`
-	Compare map[string]string `yaml:"compare"`
+	Strategy map[string]string            `yaml:"strategy"`
+	Payload  map[string][]string          `yaml:"payload"`
+	Selector map[string]map[string]string `yaml:"selector"`
 }

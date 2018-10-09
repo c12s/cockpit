@@ -11,8 +11,12 @@ import (
 	"strings"
 )
 
-func keyNotOK(key string) bool {
-	for _, item := range helper.Configs_payloads {
+func sendToLunar(data string) {
+	fmt.Println("JSON\n", data)
+}
+
+func keyNotOK(key string, test []string) bool {
+	for _, item := range test {
 		if key == item {
 			return true
 		}
@@ -20,11 +24,11 @@ func keyNotOK(key string) bool {
 	return false
 }
 
-func in(payload map[string][]string) error {
-	payloads := strings.Join(helper.Configs_payloads, ", ")
+func in(payload map[string][]string, test []string) error {
+	payloads := strings.Join(test, ", ")
 	var inside = false
 
-	for _, item := range helper.Configs_payloads {
+	for _, item := range test {
 		if _, ok := payload[item]; ok {
 			inside = true
 		} else {
@@ -33,15 +37,15 @@ func in(payload map[string][]string) error {
 	}
 
 	for key, _ := range payload {
-		if !keyNotOK(key) {
-			return errors.New(fmt.Sprintf("Error: Allowed payloads for Configs are %s", payloads))
+		if !keyNotOK(key, test) {
+			return errors.New(fmt.Sprintf("Error1: Allowed payloads for this artifact are %s", payloads))
 		}
 	}
 
 	if inside {
 		return nil
 	}
-	return errors.New(fmt.Sprintf("Error: Allowed payloads for Configs %s not presented", payloads))
+	return errors.New(fmt.Sprintf("Error2: Allowed payloads for this artifact %s not presented", payloads))
 }
 
 func splitter(entries []string) error {
@@ -63,7 +67,7 @@ func files(files []string) error {
 }
 
 func validateConfigsPayload(payload map[string][]string) error {
-	err := in(payload)
+	err := in(payload, helper.Configs_payloads)
 	if err != nil {
 		return err
 	}
@@ -80,8 +84,16 @@ func validateConfigsPayload(payload map[string][]string) error {
 	return nil
 }
 
+func validateActionsPayload(payload map[string][]string) error {
+	err := in(payload, helper.Actions_payloads)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func mutateConfigs(file *model.MutateFile) {
-	err = validateConfigsPayload(file.Content.Payload)
+	err := validateConfigsPayload(file.Content.Payload)
 	if err != nil {
 		fmt.Println(err)
 	} else {
@@ -90,12 +102,36 @@ func mutateConfigs(file *model.MutateFile) {
 			fmt.Println(err)
 			return
 		}
-		fmt.Println("JSON\n", data)
+		sendToLunar(data)
 	}
 }
 
 func mutateActions(file *model.MutateFile) {
+	err := validateActionsPayload(file.Content.Payload)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		data, err := helper.FileToJSON(&file.Content)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		sendToLunar(data)
+	}
+}
 
+func mutateSecrets(file *model.MutateFile) {
+	err := validateConfigsPayload(file.Content.Payload)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		data, err := helper.FileToJSON(&file.Content)
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		sendToLunar(data)
+	}
 }
 
 func kind(file *model.MutateFile) {
@@ -107,8 +143,19 @@ func kind(file *model.MutateFile) {
 		mutateActions(file)
 
 	case helper.SECRETS: //add some secrets to all present nodes based on labels in some region/cluster
+		mutateSecrets(file)
+
 	case helper.NAMESPACES:
 	}
+}
+
+func namespaces(file *model.NMutateFile) {
+	data, err := helper.FileToJSON(&file.Content)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	sendToLunar(data)
 }
 
 func mutateFile(n ...string) (*model.MutateFile, error) {
@@ -123,6 +170,26 @@ func mutateFile(n ...string) (*model.MutateFile, error) {
 	}
 
 	var f model.MutateFile
+	err = yaml.Unmarshal(yamlFile, &f)
+	if err != nil {
+		return nil, err
+	}
+
+	return &f, nil
+}
+
+func mutateNFile(n ...string) (*model.NMutateFile, error) {
+	path := ""
+	if len(n) > 0 {
+		path = n[0]
+	}
+
+	yamlFile, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var f model.NMutateFile
 	err = yaml.Unmarshal(yamlFile, &f)
 	if err != nil {
 		return nil, err

@@ -41,12 +41,12 @@ var NamespacesMutateCmd = &cobra.Command{
 		file := cmd.Flag("file").Value.String()
 
 		if _, err := os.Stat(file); err == nil {
-			f, err := mutateFile(file)
+			f, err := mutateNFile(file)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 
-			kind(f)
+			namespaces(f)
 		} else {
 			fmt.Println("File not exists")
 		}

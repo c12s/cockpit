@@ -150,8 +150,8 @@ func kind(file *model.MutateFile) {
 }
 
 func namespaces(file *model.NMutateFile) {
-	if file.Name == "" {
-		fmt.Println(error.New("Error: Name must be provided, for Namespace artifact!"))
+	if file.Content.Name == "" {
+		fmt.Println(errors.New("Error: Name must be provided, for Namespace artifact!"))
 	} else {
 		data, err := helper.FileToJSON(&file.Content)
 		if err != nil {

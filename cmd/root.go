@@ -7,12 +7,13 @@ import (
 
 func init() {
 	ConfigsMutateCmd.Flags().StringP("file", "f", "", "mutate region, cluster, nod and/or job with new configurations provided in yml file")
-
 	SecretsMutateCmd.Flags().StringP("file", "f", "", "mutate region, cluster, nod and/or job with new secrets provided in yml file")
-
 	ActionsMutateCmd.Flags().StringP("file", "f", "", "mutate region, cluster, nod and/or job with new actions provided in yml file")
-
 	NamespacesMutateCmd.Flags().StringP("file", "f", "", "mutate system with new namespace provided in yml file")
+
+	LoginCmd.Flags().StringP("username", "u", "", "provide username to login to system")
+	LoginCmd.Flags().StringP("password", "p", "", "provide password to login to system")
+	InitCmd.Flags().StringP("address", "a", "", "provide service ip address, so CLI can comunicate with rest of the system")
 
 	ConfigsCmd.AddCommand(ConfigsGetCmd)
 	ConfigsCmd.AddCommand(ConfigsMutateCmd)
@@ -29,6 +30,11 @@ func init() {
 	NamespacesCmd.AddCommand(NamespacesGetCmd)
 	NamespacesCmd.AddCommand(NamespacesMutateCmd)
 	RootCmd.AddCommand(NamespacesCmd)
+
+	ContextCmd.AddCommand(InitCmd)
+	ContextCmd.AddCommand(LoginCmd)
+	ContextCmd.AddCommand(LogoutCmd)
+	RootCmd.AddCommand(ContextCmd)
 }
 
 var RootCmd = &cobra.Command{

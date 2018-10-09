@@ -14,15 +14,15 @@ func timestamp() int64 {
 	return time.Now().UnixNano()
 }
 
-func inside(key string) bool {
-	for _, item := range allowed_payloads {
-		if key == item {
-			return true
-		}
-	}
+// func inside(key string) bool {
+// 	for _, item := range allowed_payloads {
+// 		if key == item {
+// 			return true
+// 		}
+// 	}
 
-	return false
-}
+// 	return false
+// }
 
 func constructFileKey(path string) string {
 	name := filepath.Base(path)
@@ -69,6 +69,7 @@ func convertFile(file *model.Constellations) *request.MutateRequest {
 		Request:   "user_name_email_or_something_else",
 		Timestamp: timestamp(),
 		Regions:   regions,
+		Namespace: file.Namespace,
 	}
 }
 

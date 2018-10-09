@@ -1,57 +1,114 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/c12s/cockpit/cmd/model"
-	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 	"io/ioutil"
 	"os"
+	"strings"
 )
 
-func kind(file *model.MutateFile) {
-	switch file.Content.Kind {
-	case "NodeConfig": //add some configs to all present nodes based on labels in some region/cluster
-		// fmt.Println("NodeConfig file", file)
-		// fmt.Println(file.Content.Version)
-		// fmt.Println(file.Content.Kind)
-		// fmt.Println(file.Content.Payload)
-		// fmt.Println(file.Content.Selector)
-		// fmt.Println(file.Content.Region)
+func keyNotOK(key string) bool {
+	for _, item := range helper.Configs_payloads {
+		if key == item {
+			return true
+		}
+	}
+	return false
+}
 
+func in(payload map[string][]string) error {
+	payloads := strings.Join(helper.Configs_payloads, ", ")
+	var inside = false
+
+	for _, item := range helper.Configs_payloads {
+		if _, ok := payload[item]; ok {
+			inside = true
+		} else {
+			inside = false
+		}
+	}
+
+	for key, _ := range payload {
+		if !keyNotOK(key) {
+			return errors.New(fmt.Sprintf("Error: Allowed payloads for Configs are %s", payloads))
+		}
+	}
+
+	if inside {
+		return nil
+	}
+	return errors.New(fmt.Sprintf("Error: Allowed payloads for Configs %s not presented", payloads))
+}
+
+func splitter(entries []string) error {
+	for _, entry := range entries {
+		if len(strings.Split(entry, "=")) == 1 {
+			return errors.New(fmt.Sprintf("Error: entry %s not in the right format KEY=VALUE", entry))
+		}
+	}
+	return nil
+}
+
+func files(files []string) error {
+	for _, file := range files {
+		if _, err := os.Stat(file); os.IsNotExist(err) {
+			return errors.New(fmt.Sprintf("Error: File %s does not exists", file))
+		}
+	}
+	return nil
+}
+
+func validateConfigsPayload(payload map[string][]string) error {
+	err := in(payload)
+	if err != nil {
+		return err
+	}
+
+	err = splitter(payload[helper.ENV])
+	if err != nil {
+		return err
+	}
+
+	err = files(payload[helper.FILES])
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func mutateConfigs(file *model.MutateFile) {
+	err = validateConfigsPayload(file.Content.Payload)
+	if err != nil {
+		fmt.Println(err)
+	} else {
 		data, err := helper.FileToJSON(&file.Content)
 		if err != nil {
 			fmt.Println(err)
-		} else {
-			fmt.Println("JSON\n", data)
+			return
 		}
-
-	case "NodeAction": // put some action to the all present nodes in some region/cluster like update,restart bash commands etc...
-	case "NodeSecret": //add some secrets to all present nodes based on labels in some region/cluster
-
+		fmt.Println("JSON\n", data)
 	}
 }
 
-var MutateCmd = &cobra.Command{
-	Use:   "mutate",
-	Short: "Mutate state of the constallations",
-	Long:  "change all data inside regions, clusters and nodes",
-	Args:  cobra.NoArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		file := cmd.Flag("file").Value.String()
+func mutateActions(file *model.MutateFile) {
 
-		if _, err := os.Stat(file); err == nil {
-			f, err := mutateFile(file)
-			if err != nil {
-				fmt.Println(err.Error())
-			}
+}
 
-			kind(f)
-		} else {
-			fmt.Println("File not exists")
-		}
-	},
+func kind(file *model.MutateFile) {
+	switch file.Content.Kind {
+	case helper.CONFIGS: //add some configs to all present nodes based on labels in some region/cluster
+		mutateConfigs(file)
+
+	case helper.ACTIONS: // put some action to the all present nodes in some region/cluster like update,restart bash commands etc...
+		mutateActions(file)
+
+	case helper.SECRETS: //add some secrets to all present nodes based on labels in some region/cluster
+	case helper.NAMESPACES:
+	}
 }
 
 func mutateFile(n ...string) (*model.MutateFile, error) {

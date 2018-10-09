@@ -3,6 +3,7 @@ package request
 type MutateRequest struct {
 	Request   string   `json:"request"`
 	Timestamp int64    `json:"timestamp"`
+	Namespace string   `json:"namespace"`
 	Regions   []Region `json:"regions"`
 }
 

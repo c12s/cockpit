@@ -9,8 +9,9 @@ const (
 	CONFIGS    = "Configs"
 	NAMESPACES = "Namespaces"
 
-	ENV   = "env"
-	FILES = "files"
+	ENV      = "env"
+	FILES    = "files"
+	AACTIONS = "actions"
 
 	LABELS  = "labels"
 	COMPARE = "compare"
@@ -21,7 +22,7 @@ const (
 	FILE    = "file"
 )
 
-var Allowed_payloads = [...]string{"env", "files", "actions"}
-var Configs_payloads = []string{"env", "files"}
-var Actions_payloads = []string{"actions"}
-var Secrets_payloads = []string{"keys", "files"}
+// var Allowed_payloads = [...]string{"env", "files", "actions"}
+var Configs_payloads = []string{ENV, FILES}
+var Actions_payloads = []string{AACTIONS}
+var Secrets_payloads = []string{ENV, FILES}

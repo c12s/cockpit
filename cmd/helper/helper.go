@@ -39,7 +39,7 @@ func convertFile(file *model.Constellations) *request.MutateRequest {
 				fmt.Println("Error parsing strategy") //TODO: shuld return error or panic
 			}
 
-			p := extractPayload(file.Payload, region.Payload, cluster.Payload)
+			p := extractPayload(file.Payload, region.Payload, cluster.Payload, file.Kind)
 			if p == nil {
 				fmt.Println("Error parsing payload") //TODO: shuld return error or panic
 			}

@@ -2,6 +2,7 @@ package helper
 
 import (
 	"bufio"
+	b64 "encoding/base64"
 	"errors"
 	"fmt"
 	"github.com/c12s/cockpit/cmd/model/request"
@@ -9,7 +10,20 @@ import (
 	"strings"
 )
 
-func readFile(file string) (error, []string) {
+func toBASE64(data string) string {
+	b64Data := b64.StdEncoding.EncodeToString([]byte(data))
+	return b64Data
+}
+
+func arrToBase(data []string) []string {
+	conv := []string{}
+	for _, item := range data {
+		conv = append(conv, toBASE64(item))
+	}
+	return conv
+}
+
+func readFile(file, kind string) (error, []string) {
 	// Open the file.
 	f, err := os.Open(file)
 	if err != nil {
@@ -27,7 +41,12 @@ func readFile(file string) (error, []string) {
 			if !strings.Contains(line, "=") {
 				return errors.New(fmt.Sprintf("Error: Line %s is not in right format KEY=VALUE.", line)), nil
 			} else {
-				data = append(data, line)
+				if kind == SECRETS {
+					bLine := toBASE64(line)
+					data = append(data, bLine)
+				} else if kind == CONFIGS {
+					data = append(data, line)
+				}
 			}
 		}
 	}
@@ -35,13 +54,13 @@ func readFile(file string) (error, []string) {
 	return nil, data
 }
 
-func constructPayload(payload map[string][]string) []request.Payload {
+func constructPayload(payload map[string][]string, kind string) []request.Payload {
 	retVal := []request.Payload{}
 	if len(payload) != 0 {
 		for k, v := range payload {
 			if k == FILES {
 				for _, file := range v {
-					err, data := readFile(file)
+					err, data := readFile(file, kind)
 					if err != nil {
 						fmt.Println(err)
 						return nil
@@ -53,9 +72,11 @@ func constructPayload(payload map[string][]string) []request.Payload {
 					retVal = append(retVal, p)
 				}
 			} else {
-				p := request.Payload{
-					Kind:    k,
-					Content: v,
+				p := request.Payload{Kind: k}
+				if kind == SECRETS {
+					p.Content = arrToBase(v)
+				} else if kind == CONFIGS {
+					p.Content = v
 				}
 				retVal = append(retVal, p)
 			}
@@ -67,18 +88,18 @@ func constructPayload(payload map[string][]string) []request.Payload {
 	return retVal
 }
 
-func extractPayload(file, region, cluster map[string][]string) []request.Payload {
-	p := constructPayload(file)
+func extractPayload(file, region, cluster map[string][]string, kind string) []request.Payload {
+	p := constructPayload(file, kind)
 	if p != nil {
 		return p
 	}
 
-	p = constructPayload(region)
+	p = constructPayload(region, kind)
 	if p != nil {
 		return p
 	}
 
-	p = constructPayload(cluster)
+	p = constructPayload(cluster, kind)
 	if p != nil {
 		return p
 	}

@@ -6,12 +6,13 @@ type MutateFile struct {
 
 // Model for parsing yml file
 type Constellations struct {
-	Version  string                       `yaml:"version"`
-	Kind     string                       `yaml:"kind"`
-	Payload  map[string][]string          `yaml:"payload"`
-	Strategy map[string]string            `yaml:"strategy"`
-	Selector map[string]map[string]string `yaml:"selector"`
-	Region   map[string]Region            `yaml:"region"`
+	Version   string                       `yaml:"version"`
+	Kind      string                       `yaml:"kind"`
+	Namespace string                       `yaml:"namespace"`
+	Payload   map[string][]string          `yaml:"payload"`
+	Strategy  map[string]string            `yaml:"strategy"`
+	Selector  map[string]map[string]string `yaml:"selector"`
+	Region    map[string]Region            `yaml:"region"`
 }
 
 type Region struct {

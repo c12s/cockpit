@@ -1,7 +1,8 @@
 constellations:
   version: v1
   kind: Configs # May be [Configs | Secrets | Actions]
-  namespace: TestNamespace
+  # namespace: TestNamespace
+  # name: TestArtifact
   payload: # May contains [file | env | actions | keys]
     files:
       - test.env

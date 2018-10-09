@@ -11,10 +11,6 @@ import (
 	"strings"
 )
 
-func sendToLunar(data string) {
-	fmt.Println("JSON\n", data)
-}
-
 func keyNotOK(key string, test []string) bool {
 	for _, item := range test {
 		if key == item {
@@ -92,73 +88,70 @@ func validateActionsPayload(payload map[string][]string) error {
 	return nil
 }
 
-func mutateConfigs(file *model.MutateFile) {
+func mutateConfigs(file *model.MutateFile) (error, string) {
 	err := validateConfigsPayload(file.Content.Payload)
 	if err != nil {
-		fmt.Println(err)
+		return err, ""
 	} else {
 		data, err := helper.FileToJSON(&file.Content)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err, ""
 		}
-		sendToLunar(data)
+		return nil, data
 	}
 }
 
-func mutateActions(file *model.MutateFile) {
+func mutateActions(file *model.MutateFile) (error, string) {
 	err := validateActionsPayload(file.Content.Payload)
 	if err != nil {
-		fmt.Println(err)
+		return err, ""
 	} else {
 		data, err := helper.FileToJSON(&file.Content)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err, ""
 		}
-		sendToLunar(data)
+		return nil, data
 	}
 }
 
-func mutateSecrets(file *model.MutateFile) {
+func mutateSecrets(file *model.MutateFile) (error, string) {
 	err := validateConfigsPayload(file.Content.Payload)
 	if err != nil {
-		fmt.Println(err)
+		return err, ""
 	} else {
 		data, err := helper.FileToJSON(&file.Content)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err, ""
 		}
-		sendToLunar(data)
+		return nil, data
 	}
 }
 
-func kind(file *model.MutateFile) {
+func kind(file *model.MutateFile) (error, string) {
 	switch file.Content.Kind {
 	case helper.CONFIGS: //add some configs to all present nodes based on labels in some region/cluster
-		mutateConfigs(file)
+		return mutateConfigs(file)
 
 	case helper.ACTIONS: // put some action to the all present nodes in some region/cluster like update,restart bash commands etc...
-		mutateActions(file)
+		return mutateActions(file)
 
 	case helper.SECRETS: //add some secrets to all present nodes based on labels in some region/cluster
-		mutateSecrets(file)
+		return mutateSecrets(file)
 
-	case helper.NAMESPACES:
+	default:
+		return errors.New("Unspupported Kind"), ""
 	}
 }
 
-func namespaces(file *model.NMutateFile) {
+func namespaces(file *model.NMutateFile) (error, string) {
 	if file.Content.Name == "" {
-		fmt.Println(errors.New("Error: Name must be provided, for Namespace artifact!"))
+		return errors.New("Error: Name must be provided, for Namespace artifact!"), ""
 	} else {
 		data, err := helper.FileToJSON(&file.Content)
 		if err != nil {
-			fmt.Println(err)
-			return
+			return err, ""
 		}
-		sendToLunar(data)
+		return nil, data
 	}
 }
 

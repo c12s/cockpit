@@ -2,6 +2,7 @@ package model
 
 import (
 	"gopkg.in/yaml.v2"
+	"io/ioutil"
 )
 
 type CContext struct {
@@ -22,4 +23,19 @@ func Marshall(c *CContext) (error, string) {
 	}
 
 	return nil, string(d)
+}
+
+func Context(address string) (error, *CContext) {
+	data, err := ioutil.ReadFile(address)
+	if err != nil {
+		return err, nil
+	}
+
+	var c CContext
+	err = yaml.Unmarshal(data, &c)
+	if err != nil {
+		return err, nil
+	}
+
+	return nil, &c
 }

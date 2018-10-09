@@ -55,12 +55,18 @@ func convertFile(file *model.Constellations) *request.MutateRequest {
 		regions = append(regions, r)
 	}
 
+	var namespace = "default"
+	if file.Namespace != "" {
+		namespace = file.Namespace
+	}
+
 	return &request.MutateRequest{
 		Request:   "user_name_email_or_something_else",
 		Timestamp: timestamp(),
 		Regions:   regions,
-		Namespace: file.Namespace,
+		Namespace: namespace,
 		Kind:      file.Kind,
+		Name:      file.Name,
 	}
 }
 

@@ -26,3 +26,4 @@ const (
 var Configs_payloads = []string{ENV, FILES}
 var Actions_payloads = []string{AACTIONS}
 var Secrets_payloads = []string{ENV, FILES}
+var Namespaces_payloads = []string{LABELS}

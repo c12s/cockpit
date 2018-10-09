@@ -14,16 +14,6 @@ func timestamp() int64 {
 	return time.Now().UnixNano()
 }
 
-func inside(key string) bool {
-	for _, item := range allowed_payloads {
-		if key == item {
-			return true
-		}
-	}
-
-	return false
-}
-
 func constructFileKey(path string) string {
 	name := filepath.Base(path)
 	return strings.Join([]string{"file", name}, "://")
@@ -39,7 +29,7 @@ func convertFile(file *model.Constellations) *request.MutateRequest {
 				fmt.Println("Error parsing strategy") //TODO: shuld return error or panic
 			}
 
-			p := extractPayload(file.Payload, region.Payload, cluster.Payload)
+			p := extractPayload(file.Payload, region.Payload, cluster.Payload, file.Kind)
 			if p == nil {
 				fmt.Println("Error parsing payload") //TODO: shuld return error or panic
 			}
@@ -69,15 +59,45 @@ func convertFile(file *model.Constellations) *request.MutateRequest {
 		Request:   "user_name_email_or_something_else",
 		Timestamp: timestamp(),
 		Regions:   regions,
+		Namespace: file.Namespace,
+		Kind:      file.Kind,
 	}
 }
 
-func FileToJSON(file *model.Constellations) (string, error) {
-	data := convertFile(file)
-	dat, err := json.Marshal(data)
-	if err != nil {
-		return "", err
+func convertNFile(file *model.NConstellations) *request.NMutateRequest {
+	labels := map[string]string{}
+	for key, value := range file.Payload[LABELS] {
+		labels[key] = value
 	}
 
-	return string(dat), nil
+	return &request.NMutateRequest{
+		Request:   "user_name_email_or_something_else",
+		Timestamp: timestamp(),
+		Name:      file.Name,
+		Labels:    labels,
+		Kind:      NAMESPACES,
+	}
+}
+
+func FileToJSON(file interface{}) (string, error) {
+	switch v := file.(type) {
+	case *model.Constellations:
+		data := convertFile(v)
+		dat, err := json.Marshal(data)
+		if err != nil {
+			return "", err
+		}
+
+		return string(dat), nil
+	case *model.NConstellations:
+		data := convertNFile(v)
+		dat, err := json.Marshal(data)
+		if err != nil {
+			return "", err
+		}
+
+		return string(dat), nil
+	}
+
+	return "NOT VALID", nil
 }

@@ -8,6 +8,7 @@ type MutateFile struct {
 type Constellations struct {
 	Version   string                       `yaml:"version"`
 	Kind      string                       `yaml:"kind"`
+	Name      string                       `yaml:"name"`
 	Namespace string                       `yaml:"namespace"`
 	Payload   map[string][]string          `yaml:"payload"`
 	Strategy  map[string]string            `yaml:"strategy"`

@@ -27,3 +27,14 @@ type Cluster struct {
 	Payload  map[string][]string          `yaml:"payload"`
 	Selector map[string]map[string]string `yaml:"selector"`
 }
+
+type NConstellations struct {
+	Version string                       `yaml:"version"`
+	Kind    string                       `yaml:"kind"`
+	Name    string                       `yaml:"name"`
+	Payload map[string]map[string]string `yaml:"payload"`
+}
+
+type NMutateFile struct {
+	Content NConstellations `yaml:"constellations"`
+}

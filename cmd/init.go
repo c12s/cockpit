@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"os/user"
-	"strings"
+	"path/filepath"
 )
 
 var ContextCmd = &cobra.Command{
@@ -29,14 +29,11 @@ func createDir(dir string) error {
 	} else {
 		return errors.New("Context already exists.")
 	}
-
 	return nil
 }
 
 func initContext(path, address string) error {
-	s := []string{path, "ccontext.yml"}
-	filename := strings.Join(s, "/")
-
+	filename := filepath.Join(path, "context.yml")
 	file, err := os.Create(filename)
 	defer file.Close()
 	if err != nil {
@@ -56,7 +53,6 @@ func initContext(path, address string) error {
 	if nerr != nil {
 		return nerr
 	}
-
 	fmt.Fprintf(file, data)
 
 	return nil
@@ -73,8 +69,8 @@ var InitCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println(err)
 		}
-		s := []string{usr.HomeDir, "ccontext"}
-		contextPath := strings.Join(s, "/")
+
+		contextPath := filepath.Join(usr.HomeDir, ".constellations")
 		fmt.Printf("Empty context initialized in %s. run 'cockpit context login'\n", contextPath)
 		err = createDir(contextPath)
 		if err != nil {
@@ -107,5 +103,49 @@ var LogoutCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Please provide some of avalible commands or type help for help")
+	},
+}
+
+func drop(dir string) error {
+	d, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(dir, name))
+		if err != nil {
+			return err
+		}
+	}
+
+	err = os.Remove(dir)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var DropCmd = &cobra.Command{
+	Use:   "drop",
+	Short: "Drop inited context environment.",
+	Long:  "change all data inside regions, clusters and nodes",
+	Args:  cobra.NoArgs,
+	Run: func(cmd *cobra.Command, args []string) {
+		usr, err := user.Current()
+		if err != nil {
+			fmt.Println(err)
+		}
+		contextPath := filepath.Join(usr.HomeDir, ".constellations")
+		err = drop(contextPath)
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("Current context dropped!")
 	},
 }

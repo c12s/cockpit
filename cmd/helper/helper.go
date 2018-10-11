@@ -56,17 +56,23 @@ func convertFile(file *model.Constellations) *request.MutateRequest {
 	}
 
 	var namespace = "default"
-	if file.Namespace != "" {
-		namespace = file.Namespace
+	if file.MTData.Namespace != "" {
+		namespace = file.MTData.Namespace
+	}
+
+	metadata := request.Metadata{
+		Version:      file.Version,
+		TaskName:     file.MTData.TaskName,
+		Timestamp:    timestamp(),
+		Namespace:    namespace,
+		ForceNSQueue: file.MTData.ForceNSQueue,
 	}
 
 	return &request.MutateRequest{
-		Request:   "user_name_email_or_something_else",
-		Timestamp: timestamp(),
-		Regions:   regions,
-		Namespace: namespace,
-		Kind:      file.Kind,
-		Name:      file.Name,
+		Request: "user_name_email_or_something_else",
+		Regions: regions,
+		Kind:    file.Kind,
+		MTData:  metadata,
 	}
 }
 
@@ -76,12 +82,19 @@ func convertNFile(file *model.NConstellations) *request.NMutateRequest {
 		labels[key] = value
 	}
 
+	metadata := request.Metadata{
+		Version:      file.Version,
+		TaskName:     file.MTData.TaskName,
+		Timestamp:    timestamp(),
+		Namespace:    file.MTData.Namespace,
+		ForceNSQueue: file.MTData.ForceNSQueue,
+	}
+
 	return &request.NMutateRequest{
-		Request:   "user_name_email_or_something_else",
-		Timestamp: timestamp(),
-		Name:      file.Name,
-		Labels:    labels,
-		Kind:      NAMESPACES,
+		Request: "user_name_email_or_something_else",
+		Labels:  labels,
+		Kind:    NAMESPACES,
+		MTData:  metadata,
 	}
 }
 

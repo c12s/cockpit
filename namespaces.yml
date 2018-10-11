@@ -1,7 +1,11 @@
 constellations:
   version: v1
   kind: Namespaces # May be [Namespaces]
-  name: TestNamespace
+  metadata:
+    namespace: default
+    taskName: default
+    queue: default
+    forceNamespaceQueue: true
   payload: # May contains [labels]
     labels:
       l1: v1

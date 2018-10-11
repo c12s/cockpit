@@ -136,7 +136,6 @@ var ConfigsMutateCmd = &cobra.Command{
 				fmt.Println(err3)
 				return
 			}
-
 			callPath := formCall("new", ctx)
 			postCall(10*time.Second, callPath, data)
 		} else {

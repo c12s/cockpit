@@ -144,7 +144,7 @@ func kind(file *model.MutateFile) (error, string) {
 }
 
 func namespaces(file *model.NMutateFile) (error, string) {
-	if file.Content.Name == "" {
+	if file.Content.MTData.Namespace == "" {
 		return errors.New("Error: Name must be provided, for Namespace artifact!"), ""
 	} else {
 		data, err := helper.FileToJSON(&file.Content)

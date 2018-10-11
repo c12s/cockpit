@@ -1,8 +1,11 @@
 constellations:
   version: v1
   kind: Configs # May be [Configs | Secrets | Actions]
-  # namespace: TestNamespace
-  # name: TestArtifact
+  metadata:
+    namespace: default
+    taskName: default
+    queue: default
+    forceNamespaceQueue: true
   payload: # May contains [file | env | actions | keys]
     files:
       - test.env

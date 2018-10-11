@@ -39,14 +39,18 @@ var NamespacesMutateCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		file := cmd.Flag("file").Value.String()
-
 		if _, err := os.Stat(file); err == nil {
 			f, err := mutateNFile(file)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 
-			namespaces(f)
+			err2, data := namespaces(f)
+			if err2 != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(data)
 		} else {
 			fmt.Println("File not exists")
 		}

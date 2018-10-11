@@ -1,12 +1,18 @@
 package request
 
 type MutateRequest struct {
-	Request   string   `json:"request"`
-	Kind      string   `json:"kind"`
-	Name      string   `json:"name"`
-	Timestamp int64    `json:"timestamp"`
-	Namespace string   `json:"namespace"`
-	Regions   []Region `json:"regions"`
+	Request string   `json:"request"`
+	Kind    string   `json:"kind"`
+	MTData  Metadata `json:"metadata"`
+	Regions []Region `json:"regions"`
+}
+
+type Metadata struct {
+	Version      string `json:"version"`
+	TaskName     string `json:"taskName"`
+	Timestamp    int64  `json:"timestamp"`
+	Namespace    string `json:"namespace"`
+	ForceNSQueue bool   `json:"forceNamespaceQueue"`
 }
 
 type Region struct {
@@ -37,9 +43,8 @@ type Selector struct {
 }
 
 type NMutateRequest struct {
-	Request   string            `json:"request"`
-	Kind      string            `json:"kind"`
-	Timestamp int64             `json:"timestamp"`
-	Name      string            `json:"name"`
-	Labels    map[string]string `json:"labels"`
+	Request string            `json:"request"`
+	Kind    string            `json:"kind"`
+	MTData  Metadata          `json:"metadata"`
+	Labels  map[string]string `json:"labels"`
 }

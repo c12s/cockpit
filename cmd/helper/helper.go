@@ -61,14 +61,15 @@ func convertFile(file *model.Constellations) *request.MutateRequest {
 	}
 
 	metadata := request.Metadata{
-		Version:      file.Version,
 		TaskName:     file.MTData.TaskName,
 		Timestamp:    timestamp(),
 		Namespace:    namespace,
 		ForceNSQueue: file.MTData.ForceNSQueue,
+		Queue:        file.MTData.Queue,
 	}
 
 	return &request.MutateRequest{
+		Version: file.Version,
 		Request: "user_name_email_or_something_else",
 		Regions: regions,
 		Kind:    file.Kind,
@@ -83,14 +84,15 @@ func convertNFile(file *model.NConstellations) *request.NMutateRequest {
 	}
 
 	metadata := request.Metadata{
-		Version:      file.Version,
 		TaskName:     file.MTData.TaskName,
 		Timestamp:    timestamp(),
 		Namespace:    file.MTData.Namespace,
 		ForceNSQueue: file.MTData.ForceNSQueue,
+		Queue:        file.MTData.Queue,
 	}
 
 	return &request.NMutateRequest{
+		Version: file.Version,
 		Request: "user_name_email_or_something_else",
 		Labels:  labels,
 		Kind:    NAMESPACES,

@@ -48,5 +48,5 @@ type NMutateRequest struct {
 	Request string            `json:"request"`
 	Kind    string            `json:"kind"`
 	MTData  Metadata          `json:"metadata"`
-	Labels  map[string]string `json:"queue"`
+	Labels  map[string]string `json:"labels"`
 }

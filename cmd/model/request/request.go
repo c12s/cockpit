@@ -29,8 +29,8 @@ type Cluster struct {
 }
 
 type Payload struct {
-	Kind    string   `json:"kind"`
-	Content []string `json:"content"`
+	Kind    string            `json:"kind"`
+	Content map[string]string `json:"content"`
 }
 
 type Strategy struct {

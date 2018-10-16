@@ -9,7 +9,7 @@ type Constellations struct {
 	Version  string                       `yaml:"version"`
 	Kind     string                       `yaml:"kind"`
 	MTData   Metadata                     `yaml:"metadata"`
-	Payload  map[string][]string          `yaml:"payload"`
+	Payload  map[string]map[string]string `yaml:"payload"`
 	Strategy map[string]string            `yaml:"strategy"`
 	Selector map[string]map[string]string `yaml:"selector"`
 	Region   map[string]Region            `yaml:"region"`
@@ -24,14 +24,14 @@ type Metadata struct {
 
 type Region struct {
 	Strategy map[string]string            `yaml:"strategy"`
-	Payload  map[string][]string          `yaml:"payload"`
+	Payload  map[string]map[string]string `yaml:"payload"`
 	Selector map[string]map[string]string `yaml:"selector"`
 	Cluster  map[string]Cluster           `yaml:"cluster"`
 }
 
 type Cluster struct {
 	Strategy map[string]string            `yaml:"strategy"`
-	Payload  map[string][]string          `yaml:"payload"`
+	Payload  map[string]map[string]string `yaml:"payload"`
 	Selector map[string]map[string]string `yaml:"selector"`
 }
 

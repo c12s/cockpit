@@ -131,13 +131,14 @@ var ConfigsMutateCmd = &cobra.Command{
 				return
 			}
 
-			err3, ctx := getContext()
+			err3, _ := getContext()
 			if err != nil {
 				fmt.Println(err3)
 				return
 			}
-			callPath := formCall("new", ctx)
-			postCall(10*time.Second, callPath, data)
+			// callPath := formCall("new", ctx)
+			// postCall(10*time.Second, callPath, data)
+			fmt.Println(data)
 		} else {
 			fmt.Println("File not exists")
 		}

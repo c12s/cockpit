@@ -1,6 +1,7 @@
 package request
 
 type MutateRequest struct {
+	Version string   `json:"version"`
 	Request string   `json:"request"`
 	Kind    string   `json:"kind"`
 	MTData  Metadata `json:"metadata"`
@@ -8,11 +9,11 @@ type MutateRequest struct {
 }
 
 type Metadata struct {
-	Version      string `json:"version"`
 	TaskName     string `json:"taskName"`
 	Timestamp    int64  `json:"timestamp"`
 	Namespace    string `json:"namespace"`
 	ForceNSQueue bool   `json:"forceNamespaceQueue"`
+	Queue        string `json:"queue"`
 }
 
 type Region struct {
@@ -28,8 +29,8 @@ type Cluster struct {
 }
 
 type Payload struct {
-	Kind    string   `json:"kind"`
-	Content []string `json:"content"`
+	Kind    string            `json:"kind"`
+	Content map[string]string `json:"content"`
 }
 
 type Strategy struct {
@@ -43,6 +44,7 @@ type Selector struct {
 }
 
 type NMutateRequest struct {
+	Version string            `json:"version"`
 	Request string            `json:"request"`
 	Kind    string            `json:"kind"`
 	MTData  Metadata          `json:"metadata"`

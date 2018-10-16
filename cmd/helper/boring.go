@@ -15,15 +15,15 @@ func toBASE64(data string) string {
 	return b64Data
 }
 
-func arrToBase(data []string) []string {
-	conv := []string{}
-	for _, item := range data {
-		conv = append(conv, toBASE64(item))
+func arrToBase(data map[string]string) map[string]string {
+	conv := map[string]string{}
+	for key, value := range data {
+		conv[key] = toBASE64(value)
 	}
 	return conv
 }
 
-func readFile(file, kind string) (error, []string) {
+func readFile(file, kind string) (error, map[string]string) {
 	// Open the file.
 	f, err := os.Open(file)
 	if err != nil {
@@ -32,20 +32,18 @@ func readFile(file, kind string) (error, []string) {
 
 	// Create a new Scanner for the file.
 	scanner := bufio.NewScanner(f)
-
-	data := []string{}
-	// Loop over all lines in the file and print them.
+	data := map[string]string{}
 	for scanner.Scan() {
 		line := scanner.Text()
 		if !strings.HasPrefix(line, "#") && len(line) > 0 {
 			if !strings.Contains(line, "=") {
 				return errors.New(fmt.Sprintf("Error: Line %s is not in right format KEY=VALUE.", line)), nil
 			} else {
+				bLine := strings.Split(line, "=")
 				if kind == SECRETS {
-					bLine := toBASE64(line)
-					data = append(data, bLine)
+					data[bLine[0]] = toBASE64(bLine[1])
 				} else if kind == CONFIGS {
-					data = append(data, line)
+					data[bLine[0]] = bLine[1]
 				}
 			}
 		}
@@ -54,19 +52,20 @@ func readFile(file, kind string) (error, []string) {
 	return nil, data
 }
 
-func constructPayload(payload map[string][]string, kind string) []request.Payload {
+func constructPayload(payload map[string]map[string]string, kind string) []request.Payload {
 	retVal := []request.Payload{}
 	if len(payload) != 0 {
 		for k, v := range payload {
 			if k == FILES {
-				for _, file := range v {
+				for name, file := range v {
 					err, data := readFile(file, kind)
 					if err != nil {
 						fmt.Println(err)
 						return nil
 					}
+					data[FILE_NAME] = strings.Join([]string{name, "env"}, ".")
 					p := request.Payload{
-						Kind:    constructFileKey(file),
+						Kind:    FILE,
 						Content: data,
 					}
 					retVal = append(retVal, p)
@@ -75,7 +74,7 @@ func constructPayload(payload map[string][]string, kind string) []request.Payloa
 				p := request.Payload{Kind: k}
 				if kind == SECRETS {
 					p.Content = arrToBase(v)
-				} else if kind == CONFIGS {
+				} else if kind == CONFIGS || kind == ACTIONS {
 					p.Content = v
 				}
 				retVal = append(retVal, p)
@@ -88,7 +87,7 @@ func constructPayload(payload map[string][]string, kind string) []request.Payloa
 	return retVal
 }
 
-func extractPayload(file, region, cluster map[string][]string, kind string) []request.Payload {
+func extractPayload(file, region, cluster map[string]map[string]string, kind string) []request.Payload {
 	p := constructPayload(file, kind)
 	if p != nil {
 		return p

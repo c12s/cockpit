@@ -13,13 +13,14 @@ const (
 	FILES    = "files"
 	AACTIONS = "actions"
 
-	LABELS  = "labels"
-	COMPARE = "compare"
-	KIND    = "kind"
-	ALL     = "all"
-	TYPE    = "type"
-	UPDATE  = "update"
-	FILE    = "file"
+	LABELS    = "labels"
+	COMPARE   = "compare"
+	KIND      = "kind"
+	ALL       = "all"
+	TYPE      = "type"
+	UPDATE    = "update"
+	FILE      = "file"
+	FILE_NAME = "file_name"
 )
 
 // var Allowed_payloads = [...]string{"env", "files", "actions"}

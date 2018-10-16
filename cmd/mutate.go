@@ -20,7 +20,7 @@ func keyNotOK(key string, test []string) bool {
 	return false
 }
 
-func in(payload map[string][]string, test []string) error {
+func in(payload map[string]map[string]string, test []string) error {
 	payloads := strings.Join(test, ", ")
 	var inside = false
 
@@ -44,16 +44,7 @@ func in(payload map[string][]string, test []string) error {
 	return errors.New(fmt.Sprintf("Error2: Allowed payloads for this artifact %s not presented", payloads))
 }
 
-func splitter(entries []string) error {
-	for _, entry := range entries {
-		if len(strings.Split(entry, "=")) == 1 {
-			return errors.New(fmt.Sprintf("Error: entry %s not in the right format KEY=VALUE", entry))
-		}
-	}
-	return nil
-}
-
-func files(files []string) error {
+func files(files map[string]string) error {
 	for _, file := range files {
 		if _, err := os.Stat(file); os.IsNotExist(err) {
 			return errors.New(fmt.Sprintf("Error: File %s does not exists", file))
@@ -62,13 +53,8 @@ func files(files []string) error {
 	return nil
 }
 
-func validateConfigsPayload(payload map[string][]string) error {
+func validateConfigsPayload(payload map[string]map[string]string) error {
 	err := in(payload, helper.Configs_payloads)
-	if err != nil {
-		return err
-	}
-
-	err = splitter(payload[helper.ENV])
 	if err != nil {
 		return err
 	}
@@ -80,7 +66,7 @@ func validateConfigsPayload(payload map[string][]string) error {
 	return nil
 }
 
-func validateActionsPayload(payload map[string][]string) error {
+func validateActionsPayload(payload map[string]map[string]string) error {
 	err := in(payload, helper.Actions_payloads)
 	if err != nil {
 		return err

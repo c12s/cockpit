@@ -45,7 +45,12 @@ var ActionsMutateCmd = &cobra.Command{
 				fmt.Println(err.Error())
 			}
 
-			kind(f)
+			err2, data := kind(f)
+			if err2 != nil {
+				fmt.Println(err2)
+				return
+			}
+			fmt.Println(data)
 		} else {
 			fmt.Println("File not exists")
 		}

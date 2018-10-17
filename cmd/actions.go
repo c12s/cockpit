@@ -28,6 +28,13 @@ var ActionsGetCmd = &cobra.Command{
 		top := cmd.Flag("top").Value.String()
 
 		q := map[string]string{}
+		err, ctx := getContext()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		q["user"] = ctx.Context.User
+
 		if labels != "" {
 			q["labels"] = labels
 
@@ -49,12 +56,6 @@ var ActionsGetCmd = &cobra.Command{
 
 		if top != "" {
 			q["top"] = top
-		}
-
-		err, ctx := getContext()
-		if err != nil {
-			fmt.Println(err)
-			return
 		}
 
 		callPath := formCall("actions", "list", ctx, q)

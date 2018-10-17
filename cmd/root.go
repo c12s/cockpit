@@ -15,8 +15,17 @@ func init() {
 	LoginCmd.Flags().StringP("password", "p", "", "provide password to login to system")
 	InitCmd.Flags().StringP("address", "a", "", "provide service ip address, so CLI can comunicate with rest of the system")
 
-	ConfigsGetCmd.Flags().StringP("region", "r", "", "provide region to look configs in")
-	ConfigsGetCmd.Flags().StringP("cluster", "c", "", "provide cluster to look configs in")
+	ConfigsGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for configs selection. [k1:v1,k2:v2,...]")
+	ConfigsGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting configs [any | all]")
+
+	ActionsGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for actions selection. [k1:v1,k2:v2,...]")
+	ActionsGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting actions [any | all]")
+	ActionsGetCmd.Flags().StringP("from", "f", "", "timestamp filtering, from where to start lookup")
+	ConfigsGetCmd.Flags().StringP("to", "t", "", "timestamp filtering to where to end lookup")
+	ConfigsGetCmd.Flags().StringP("top", "p", "", "returning result contains top n elements")
+
+	SecretsGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for secrets selection. [k1:v1,k2:v2,...]")
+	SecretsGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting secrets [any | all]")
 
 	ConfigsCmd.AddCommand(ConfigsGetCmd)
 	ConfigsCmd.AddCommand(ConfigsMutateCmd)

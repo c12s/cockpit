@@ -21,13 +21,31 @@ var SecretsGetCmd = &cobra.Command{
 	Short: "Get the secrets from region/s cluster/s node/s job/s",
 	Long:  "change all data inside regions, clusters and nodes",
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			fmt.Println("Please provide region, cluster, node and/or job id")
+		labels := cmd.Flag("labels").Value.String()
+		compare := cmd.Flag("compare").Value.String()
+
+		q := map[string]string{}
+		if labels != "" {
+			q["labels"] = labels
+
+		}
+
+		if labels != "" && compare == "" {
+			q["compare"] = "any"
+		} else if labels != "" && compare != "" {
+			q["compare"] = compare
+		}
+
+		err, ctx := getContext()
+		if err != nil {
+			fmt.Println(err)
 			return
 		}
-		for _, a := range args {
-			fmt.Println(a)
-		}
+
+		callPath := formCall("secrets", "list", ctx, q)
+		// getCall(10*time.Second, callPath)
+
+		fmt.Println(callPath)
 	},
 }
 

@@ -22,13 +22,17 @@ var NamespacesGetCmd = &cobra.Command{
 	Long:  "change all data inside regions, clusters and nodes",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) == 0 {
-			fmt.Println("Please provide region, cluster, node and/or job id")
+		q := map[string]string{}
+		err, ctx := getContext()
+		if err != nil {
+			fmt.Println(err)
 			return
 		}
-		for _, a := range args {
-			fmt.Println(a)
-		}
+
+		callPath := formCall("namespaces", "list", ctx, q)
+		// getCall(10*time.Second, callPath)
+
+		fmt.Println(callPath)
 	},
 }
 

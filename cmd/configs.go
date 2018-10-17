@@ -25,6 +25,13 @@ var ConfigsGetCmd = &cobra.Command{
 		compare := cmd.Flag("compare").Value.String()
 
 		q := map[string]string{}
+		err, ctx := getContext()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		q["user"] = ctx.Context.User
+
 		if labels != "" {
 			q["labels"] = labels
 
@@ -34,12 +41,6 @@ var ConfigsGetCmd = &cobra.Command{
 			q["compare"] = "any"
 		} else if labels != "" && compare != "" {
 			q["compare"] = compare
-		}
-
-		err, ctx := getContext()
-		if err != nil {
-			fmt.Println(err)
-			return
 		}
 
 		callPath := formCall("configs", "list", ctx, q)

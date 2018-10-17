@@ -28,6 +28,7 @@ var NamespacesGetCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
+		q["user"] = ctx.Context.User
 
 		callPath := formCall("namespaces", "list", ctx, q)
 		// getCall(10*time.Second, callPath)

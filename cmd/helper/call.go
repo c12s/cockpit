@@ -45,31 +45,29 @@ func GetContext() (error, *model.CContext) {
 	return nil, ctx
 }
 
-func GetCall(timeout time.Duration, address string) {
+func GetCall(timeout time.Duration, address string) (error, string) {
 	var netClient = &http.Client{
 		Timeout: timeout,
 	}
 	response, err := netClient.Get(address)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err, ""
 	}
 	defer response.Body.Close()
 
 	if response.StatusCode == http.StatusOK {
 		bodyBytes, err2 := ioutil.ReadAll(response.Body)
 		if err2 != nil {
-			fmt.Println(err)
-			return
+			return err, ""
 		}
 		bodyString := string(bodyBytes)
-		fmt.Println(bodyString)
+		return nil, bodyString
 	} else {
-		fmt.Printf("Resp: %d", response.StatusCode)
+		return nil, fmt.Sprintf("Resp: %d", response.StatusCode)
 	}
 }
 
-func PostCall(timeout time.Duration, address, data string) {
+func PostCall(timeout time.Duration, address, data string) (error, string) {
 	var netClient = &http.Client{
 		Timeout: timeout,
 	}
@@ -79,17 +77,17 @@ func PostCall(timeout time.Duration, address, data string) {
 
 	resp, err := netClient.Do(req)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return err, ""
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode == http.StatusOK {
 		body, err2 := ioutil.ReadAll(resp.Body)
 		if err2 != nil {
-			fmt.Println(err2)
-			return
+			return err2, ""
 		}
-		fmt.Println("response Body:", string(body))
+		return nil, string(body)
+	} else {
+		return nil, fmt.Sprintf("Resp: %d", resp.StatusCode)
 	}
 }

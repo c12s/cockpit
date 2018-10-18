@@ -5,6 +5,7 @@ import (
 	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/spf13/cobra"
 	"os"
+	"time"
 )
 
 var ConfigsCmd = &cobra.Command{
@@ -45,9 +46,12 @@ var ConfigsGetCmd = &cobra.Command{
 		}
 
 		callPath := helper.FormCall("configs", "list", ctx, q)
-		// getCall(10*time.Second, callPath)
-
-		fmt.Println(callPath)
+		err1, resp := helper.GetCall(10*time.Second, callPath)
+		if err1 != nil {
+			fmt.Println(err1)
+			return
+		}
+		fmt.Println(resp)
 	},
 }
 
@@ -70,14 +74,21 @@ var ConfigsMutateCmd = &cobra.Command{
 				return
 			}
 
-			err3, _ := helper.GetContext()
+			err3, ctx := helper.GetContext()
 			if err != nil {
 				fmt.Println(err3)
 				return
 			}
-			// callPath := formCall("new", ctx)
-			// postCall(10*time.Second, callPath, data)
-			fmt.Println(data)
+
+			q := map[string]string{}
+			callPath := helper.FormCall("configs", "new", ctx, q)
+			err4, resp := helper.PostCall(10*time.Second, callPath, data)
+			if err4 != nil {
+				fmt.Println(err4)
+				return
+			}
+			fmt.Println(resp)
+
 		} else {
 			fmt.Println("File not exists")
 		}

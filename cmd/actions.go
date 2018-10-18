@@ -5,6 +5,7 @@ import (
 	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/spf13/cobra"
 	"os"
+	"time"
 )
 
 var ActionsCmd = &cobra.Command{
@@ -60,9 +61,12 @@ var ActionsGetCmd = &cobra.Command{
 		}
 
 		callPath := helper.FormCall("actions", "list", ctx, q)
-		// getCall(10*time.Second, callPath)
-
-		fmt.Println(callPath)
+		err1, resp := helper.GetCall(10*time.Second, callPath)
+		if err1 != nil {
+			fmt.Println(err1)
+			return
+		}
+		fmt.Println(resp)
 	},
 }
 
@@ -73,7 +77,6 @@ var ActionsMutateCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		file := cmd.Flag("file").Value.String()
-
 		if _, err := os.Stat(file); err == nil {
 			f, err := mutateFile(file)
 			if err != nil {
@@ -85,7 +88,22 @@ var ActionsMutateCmd = &cobra.Command{
 				fmt.Println(err2)
 				return
 			}
-			fmt.Println(data)
+
+			err3, ctx := helper.GetContext()
+			if err != nil {
+				fmt.Println(err3)
+				return
+			}
+
+			q := map[string]string{}
+			callPath := helper.FormCall("actions", "new", ctx, q)
+			err4, resp := helper.PostCall(10*time.Second, callPath, data)
+			if err4 != nil {
+				fmt.Println(err4)
+				return
+			}
+			fmt.Println(resp)
+
 		} else {
 			fmt.Println("File not exists")
 		}

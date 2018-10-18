@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -28,7 +29,7 @@ var ActionsGetCmd = &cobra.Command{
 		top := cmd.Flag("top").Value.String()
 
 		q := map[string]string{}
-		err, ctx := getContext()
+		err, ctx := helper.GetContext()
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -58,7 +59,7 @@ var ActionsGetCmd = &cobra.Command{
 			q["top"] = top
 		}
 
-		callPath := formCall("actions", "list", ctx, q)
+		callPath := helper.FormCall("actions", "list", ctx, q)
 		// getCall(10*time.Second, callPath)
 
 		fmt.Println(callPath)

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -25,7 +26,7 @@ var ConfigsGetCmd = &cobra.Command{
 		compare := cmd.Flag("compare").Value.String()
 
 		q := map[string]string{}
-		err, ctx := getContext()
+		err, ctx := helper.GetContext()
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -43,7 +44,7 @@ var ConfigsGetCmd = &cobra.Command{
 			q["compare"] = compare
 		}
 
-		callPath := formCall("configs", "list", ctx, q)
+		callPath := helper.FormCall("configs", "list", ctx, q)
 		// getCall(10*time.Second, callPath)
 
 		fmt.Println(callPath)
@@ -69,7 +70,7 @@ var ConfigsMutateCmd = &cobra.Command{
 				return
 			}
 
-			err3, _ := getContext()
+			err3, _ := helper.GetContext()
 			if err != nil {
 				fmt.Println(err3)
 				return

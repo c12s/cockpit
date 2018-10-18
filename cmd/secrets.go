@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -25,7 +26,7 @@ var SecretsGetCmd = &cobra.Command{
 		compare := cmd.Flag("compare").Value.String()
 
 		q := map[string]string{}
-		err, ctx := getContext()
+		err, ctx := helper.GetContext()
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -43,7 +44,7 @@ var SecretsGetCmd = &cobra.Command{
 			q["compare"] = compare
 		}
 
-		callPath := formCall("secrets", "list", ctx, q)
+		callPath := helper.FormCall("secrets", "list", ctx, q)
 		// getCall(10*time.Second, callPath)
 
 		fmt.Println(callPath)

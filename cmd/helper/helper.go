@@ -2,6 +2,7 @@ package helper
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/c12s/cockpit/cmd/model"
 	"github.com/c12s/cockpit/cmd/model/request"
@@ -19,7 +20,7 @@ func constructFileKey(path string) string {
 	return strings.Join([]string{"file", name}, "://")
 }
 
-func convertFile(file *model.Constellations) *request.MutateRequest {
+func convertFile(file *model.Constellations) (*request.MutateRequest, error) {
 	regions := []request.Region{}
 	for regionID, region := range file.Region {
 		clusters := []request.Cluster{}
@@ -68,16 +69,25 @@ func convertFile(file *model.Constellations) *request.MutateRequest {
 		Queue:        file.MTData.Queue,
 	}
 
+	err, ctx := GetContext()
+	if err != nil {
+		return nil, err
+	}
+
+	if ctx.Context.User == "" {
+		return nil, errors.New("Please login to continue")
+	}
+
 	return &request.MutateRequest{
 		Version: file.Version,
-		Request: "user_name_email_or_something_else",
+		Request: ctx.Context.User,
 		Regions: regions,
 		Kind:    file.Kind,
 		MTData:  metadata,
-	}
+	}, nil
 }
 
-func convertNFile(file *model.NConstellations) *request.NMutateRequest {
+func convertNFile(file *model.NConstellations) (*request.NMutateRequest, error) {
 	labels := map[string]string{}
 	for key, value := range file.Payload[LABELS] {
 		labels[key] = value
@@ -91,19 +101,33 @@ func convertNFile(file *model.NConstellations) *request.NMutateRequest {
 		Queue:        file.MTData.Queue,
 	}
 
+	err, ctx := GetContext()
+	if err != nil {
+		return nil, err
+	}
+
+	if ctx.Context.User == "" {
+		return nil, errors.New("Please login to continue")
+	}
+
 	return &request.NMutateRequest{
 		Version: file.Version,
-		Request: "user_name_email_or_something_else",
+		Request: ctx.Context.User,
+		Name:    file.Payload[NAMESPACE][NAME],
 		Labels:  labels,
 		Kind:    NAMESPACES,
 		MTData:  metadata,
-	}
+	}, nil
 }
 
 func FileToJSON(file interface{}) (string, error) {
 	switch v := file.(type) {
 	case *model.Constellations:
-		data := convertFile(v)
+		data, err1 := convertFile(v)
+		if err1 != nil {
+			return "", err1
+		}
+
 		dat, err := json.Marshal(data)
 		if err != nil {
 			return "", err
@@ -111,7 +135,11 @@ func FileToJSON(file interface{}) (string, error) {
 
 		return string(dat), nil
 	case *model.NConstellations:
-		data := convertNFile(v)
+		data, err1 := convertNFile(v)
+		if err1 != nil {
+			return "", err1
+		}
+
 		dat, err := json.Marshal(data)
 		if err != nil {
 			return "", err

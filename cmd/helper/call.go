@@ -1,4 +1,4 @@
-package cmd
+package helper
 
 import (
 	"bytes"
@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-func formCall(artifact, path string, c *model.CContext, query map[string]string) string {
+func FormCall(artifact, path string, c *model.CContext, query map[string]string) string {
 	s := []string{"http:/", c.Context.Address, "api", c.Context.Version, artifact, path}
 	pathSegment := strings.Join(s, "/")
 
@@ -30,7 +30,7 @@ func formCall(artifact, path string, c *model.CContext, query map[string]string)
 	return strings.Join([]string{pathSegment, querySegment}, "?")
 }
 
-func getContext() (error, *model.CContext) {
+func GetContext() (error, *model.CContext) {
 	usr, err := user.Current()
 	if err != nil {
 		return err, nil
@@ -45,7 +45,7 @@ func getContext() (error, *model.CContext) {
 	return nil, ctx
 }
 
-func getCall(timeout time.Duration, address string) {
+func GetCall(timeout time.Duration, address string) {
 	var netClient = &http.Client{
 		Timeout: timeout,
 	}
@@ -69,7 +69,7 @@ func getCall(timeout time.Duration, address string) {
 	}
 }
 
-func postCall(timeout time.Duration, address, data string) {
+func PostCall(timeout time.Duration, address, data string) {
 	var netClient = &http.Client{
 		Timeout: timeout,
 	}

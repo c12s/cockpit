@@ -6,7 +6,9 @@ constellations:
     taskName: default
     queue: default
     forceNamespaceQueue: true
-  payload: # May contains [labels]
+  payload: # May contains [labels and namespace with name]
+    namespace:
+      name: my_namespace
     labels:
       l1: v1
       l2: v2

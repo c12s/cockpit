@@ -21,6 +21,9 @@ const (
 	UPDATE    = "update"
 	FILE      = "file"
 	FILE_NAME = "file_name"
+
+	NAMESPACE = "namespace"
+	NAME      = "name"
 )
 
 // var Allowed_payloads = [...]string{"env", "files", "actions"}

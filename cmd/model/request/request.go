@@ -48,5 +48,6 @@ type NMutateRequest struct {
 	Request string            `json:"request"`
 	Kind    string            `json:"kind"`
 	MTData  Metadata          `json:"metadata"`
+	Name    string            `json:"name"`
 	Labels  map[string]string `json:"labels"`
 }

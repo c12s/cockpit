@@ -81,7 +81,9 @@ var ConfigsMutateCmd = &cobra.Command{
 			}
 
 			q := map[string]string{}
-			callPath := helper.FormCall("configs", "new", ctx, q)
+			q["user"] = ctx.Context.User
+
+			callPath := helper.FormCall("configs", "mutate", ctx, q)
 			err4, resp := helper.PostCall(10*time.Second, callPath, data)
 			if err4 != nil {
 				fmt.Println(err4)

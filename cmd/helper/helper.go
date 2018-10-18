@@ -21,6 +21,15 @@ func constructFileKey(path string) string {
 }
 
 func convertFile(file *model.Constellations) (*request.MutateRequest, error) {
+	err, ctx := GetContext()
+	if err != nil {
+		return nil, err
+	}
+
+	if ctx.Context.User == "" {
+		return nil, errors.New("Please login to continue")
+	}
+
 	regions := []request.Region{}
 	for regionID, region := range file.Region {
 		clusters := []request.Cluster{}
@@ -59,6 +68,8 @@ func convertFile(file *model.Constellations) (*request.MutateRequest, error) {
 	var namespace = "default"
 	if file.MTData.Namespace != "" {
 		namespace = file.MTData.Namespace
+	} else if ctx.Context.Namespace != "" {
+		namespace = ctx.Context.Namespace
 	}
 
 	metadata := request.Metadata{
@@ -67,15 +78,6 @@ func convertFile(file *model.Constellations) (*request.MutateRequest, error) {
 		Namespace:    namespace,
 		ForceNSQueue: file.MTData.ForceNSQueue,
 		Queue:        file.MTData.Queue,
-	}
-
-	err, ctx := GetContext()
-	if err != nil {
-		return nil, err
-	}
-
-	if ctx.Context.User == "" {
-		return nil, errors.New("Please login to continue")
 	}
 
 	return &request.MutateRequest{

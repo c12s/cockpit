@@ -5,6 +5,7 @@ import (
 	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/spf13/cobra"
 	"os"
+	"time"
 )
 
 var NamespacesCmd = &cobra.Command{
@@ -32,9 +33,13 @@ var NamespacesGetCmd = &cobra.Command{
 		q["user"] = ctx.Context.User
 
 		callPath := helper.FormCall("namespaces", "list", ctx, q)
-		// getCall(10*time.Second, callPath)
+		err1, resp := helper.GetCall(10*time.Second, callPath)
+		if err1 != nil {
+			fmt.Println(err1)
+			return
+		}
+		fmt.Println(resp)
 
-		fmt.Println(callPath)
 	},
 }
 
@@ -56,7 +61,24 @@ var NamespacesMutateCmd = &cobra.Command{
 				fmt.Println(err)
 				return
 			}
-			fmt.Println(data)
+
+			err3, ctx := helper.GetContext()
+			if err != nil {
+				fmt.Println(err3)
+				return
+			}
+
+			q := map[string]string{}
+			q["user"] = ctx.Context.User
+
+			callPath := helper.FormCall("namespaces", "mutate", ctx, q)
+			err4, resp := helper.PostCall(10*time.Second, callPath, data)
+			if err4 != nil {
+				fmt.Println(err4)
+				return
+			}
+			fmt.Println(resp)
+
 		} else {
 			fmt.Println("File not exists")
 		}

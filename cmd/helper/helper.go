@@ -20,16 +20,42 @@ func constructFileKey(path string) string {
 	return strings.Join([]string{"file", name}, "://")
 }
 
-func convertFile(file *model.Constellations) (*request.MutateRequest, error) {
-	err, ctx := GetContext()
-	if err != nil {
-		return nil, err
+func searchMutate(file *model.Constellations) []request.Region {
+	regions := []request.Region{}
+	s := constructStrategy(file.Strategy)
+	if s == nil {
+		fmt.Println("Error parsing strategy") //TODO: shuld return error or panic
 	}
 
-	if ctx.Context.User == "" {
-		return nil, errors.New("Please login to continue")
+	p := constructPayload(file.Payload, file.Kind)
+	if p == nil {
+		fmt.Println("Error parsing payload") //TODO: shuld return error or panic
 	}
 
+	sl := constructSelector(file.Selector)
+	if sl == nil {
+		fmt.Println("Error parsing selector") //TODO: shuld return error or panic
+	}
+
+	clusters := []request.Cluster{}
+	c := request.Cluster{
+		ID:       "*",
+		Payload:  p,
+		Strategy: *s,
+		Selector: *sl,
+	}
+	clusters = append(clusters, c)
+
+	r := request.Region{
+		ID:       "*",
+		Clusters: clusters,
+	}
+	regions = append(regions, r)
+
+	return regions
+}
+
+func detailMutate(file *model.Constellations) []request.Region {
 	regions := []request.Region{}
 	for regionID, region := range file.Region {
 		clusters := []request.Cluster{}
@@ -64,6 +90,25 @@ func convertFile(file *model.Constellations) (*request.MutateRequest, error) {
 		}
 		regions = append(regions, r)
 	}
+	return regions
+}
+
+func convertFile(file *model.Constellations) (*request.MutateRequest, error) {
+	err, ctx := GetContext()
+	if err != nil {
+		return nil, err
+	}
+
+	if ctx.Context.User == "" {
+		return nil, errors.New("Please login to continue")
+	}
+
+	regions := []request.Region{}
+	if len(file.Region) > 0 {
+		regions = append(regions, detailMutate(file)...)
+	} else {
+		regions = append(regions, searchMutate(file)...)
+	}
 
 	var namespace = "default"
 	if file.MTData.Namespace != "" {
@@ -72,20 +117,18 @@ func convertFile(file *model.Constellations) (*request.MutateRequest, error) {
 		namespace = ctx.Context.Namespace
 	}
 
-	metadata := request.Metadata{
-		TaskName:     file.MTData.TaskName,
-		Timestamp:    timestamp(),
-		Namespace:    namespace,
-		ForceNSQueue: file.MTData.ForceNSQueue,
-		Queue:        file.MTData.Queue,
-	}
-
 	return &request.MutateRequest{
 		Version: file.Version,
 		Request: ctx.Context.User,
 		Regions: regions,
 		Kind:    file.Kind,
-		MTData:  metadata,
+		MTData: request.Metadata{
+			TaskName:     file.MTData.TaskName,
+			Timestamp:    timestamp(),
+			Namespace:    namespace,
+			ForceNSQueue: file.MTData.ForceNSQueue,
+			Queue:        file.MTData.Queue,
+		},
 	}, nil
 }
 

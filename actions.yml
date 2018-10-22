@@ -1,0 +1,33 @@
+constellations:
+  version: v1
+  kind: Actions # May be [Configs | Secrets | Actions]
+  metadata:
+    namespace: default
+    taskName: default
+    queue: default
+    forceNamespaceQueue: true
+  payload: # May contains [file | env | actions]
+    actions:
+      git_update_cmd: git update && git pull #key is comment for value that will be executed
+      git_add_cmd: git add .
+      git_commit_cmd: git commit
+  strategy:
+    type: AtOnce # May be AtOnce | RollingUpdate
+    update: all # May be [all | number] | [percentage of clustr nodes]
+  selector:
+    labels:
+      l1: v1
+      l2: v2
+      l3: v3
+    compare:
+      kind: all # May be [all | any]
+  region:
+    region1:
+      cluster:
+        cluster1:
+        cluster2:
+    region2:
+      cluster:
+        cluster1:
+        cluster3:
+        cluster4:

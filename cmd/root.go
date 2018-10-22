@@ -27,6 +27,10 @@ func init() {
 	SecretsGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for secrets selection. [k1:v1,k2:v2,...]")
 	SecretsGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting secrets [any | all]")
 
+	NamespacesGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for namespaces selection. [k1:v1,k2:v2,...]")
+	NamespacesGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting namespaces [any | all]")
+	NamespacesGetCmd.Flags().StringP("name", "n", "", "name, when selecting namespaces")
+
 	ConfigsCmd.AddCommand(ConfigsGetCmd)
 	ConfigsCmd.AddCommand(ConfigsMutateCmd)
 	RootCmd.AddCommand(ConfigsCmd)

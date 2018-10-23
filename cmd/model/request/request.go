@@ -52,10 +52,13 @@ type NMutateRequest struct {
 	Labels  map[string]string `json:"labels"`
 }
 
-type Response struct {
-	Result Rez `json:"response"`
+type NSResponse struct {
+	Result []Data `json:"data"`
 }
 
-type Rez struct {
-	Content map[string]int64 `json:"content"`
+type Data struct {
+	Age       string `json:"age"`
+	Labels    string `json:"labels"`
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
 }

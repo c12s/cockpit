@@ -49,7 +49,7 @@ func GetContext() (error, *model.CContext) {
 	return nil, ctx
 }
 
-func GetJson(timeout time.Duration, url string) (error, *request.Response) {
+func GetJson(timeout time.Duration, url string) (error, *request.NSResponse) {
 	var myClient = &http.Client{
 		Timeout: timeout,
 	}
@@ -66,9 +66,11 @@ func GetJson(timeout time.Duration, url string) (error, *request.Response) {
 
 	rsp := string(body)
 
-	fmt.Println(rsp)
+	rsp = strings.Replace(rsp, "\\", "", -1)
+	rsp = strings.TrimSuffix(rsp, "\"")
+	rsp = strings.TrimPrefix(rsp, "\"")
 
-	s := &request.Response{}
+	s := &request.NSResponse{}
 	err = json.Unmarshal([]byte(rsp), &s)
 	if err != nil {
 		return err, nil
@@ -77,28 +79,22 @@ func GetJson(timeout time.Duration, url string) (error, *request.Response) {
 	return nil, s
 }
 
-func Pprint(resp string) {
-	rez := map[string]string{}
-	val := strings.Split(resp, ",")
-	if len(val) > 1 {
-		for _, v := range val {
-			r := strings.Replace(strings.Replace(v, "{", "", -1), "}", "", -1)
-			kv := strings.Split(r, ":")
-			k := strings.Replace(strings.Replace(kv[0], "\"", "", -1), "\\", "", -1)
-			v := strings.Replace(strings.Replace(kv[1], "\"", "", -1), "\\", "", -1)
-			rez[k] = v
-		}
+func Print(resp *request.NSResponse) {
+	if len(resp.Result) > 0 {
 		// initialize tabwriter
 		w := new(tabwriter.Writer)
 		// minwidth, tabwidth, padding, padchar, flags
 		w.Init(os.Stdout, 8, 8, 0, '\t', 0)
 		defer w.Flush()
+
 		fmt.Fprintf(w, "\n %s\t%s\t%s\t", "Namespace", "Name", "Age")
 		fmt.Fprintf(w, "\n %s\t%s\t%s\t", "----", "----", "----")
-		fmt.Fprintf(w, "\n %s\t%s\t%s\t", rez["namespace"], rez["name"], rez["age"])
+		for _, rez := range resp.Result {
+			fmt.Fprintf(w, "\n %s\t%s\t%s\t", rez.Namespace, rez.Name, rez.Age)
+		}
 		fmt.Fprintf(w, "\n")
 	} else {
-		fmt.Println(resp)
+		fmt.Println("No results")
 	}
 }
 

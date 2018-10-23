@@ -3,9 +3,9 @@ constellations:
   kind: Namespaces # May be [Namespaces]
   metadata:
     namespace: default
-    taskName: default
-    queue: default
-    forceNamespaceQueue: true
+    taskName: my_tas
+    queue: myqueue2
+    forceNamespaceQueue: false
   payload: # May contains [labels and namespace with name]
     namespace:
       name: my_namespace

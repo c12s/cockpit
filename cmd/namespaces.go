@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	// "encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/spf13/cobra"
@@ -24,6 +25,10 @@ var NamespacesGetCmd = &cobra.Command{
 	Long:  "change all data inside regions, clusters and nodes",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
+		labels := cmd.Flag("labels").Value.String()
+		compare := cmd.Flag("compare").Value.String()
+		name := cmd.Flag("name").Value.String()
+
 		q := map[string]string{}
 		err, ctx := helper.GetContext()
 		if err != nil {
@@ -32,15 +37,36 @@ var NamespacesGetCmd = &cobra.Command{
 		}
 		q["user"] = ctx.Context.User
 
+		if labels != "" {
+			q["labels"] = labels
+
+		}
+
+		if labels != "" && compare == "" {
+			q["compare"] = "any"
+		} else if labels != "" && compare != "" {
+			q["compare"] = compare
+		}
+
+		if name != "" {
+			q["name"] = name
+
+		}
+
 		callPath := helper.FormCall("namespaces", "list", ctx, q)
 		err1, resp := helper.GetCall(10*time.Second, callPath)
 		if err1 != nil {
 			fmt.Println(err1)
 			return
 		}
-		fmt.Println(resp)
+
+		helper.Pprint(resp)
 
 	},
+}
+
+type Rez struct {
+	Rez map[string]map[string]string `json:"rez"`
 }
 
 var NamespacesMutateCmd = &cobra.Command{

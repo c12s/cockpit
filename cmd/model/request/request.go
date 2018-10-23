@@ -51,3 +51,11 @@ type NMutateRequest struct {
 	Name    string            `json:"name"`
 	Labels  map[string]string `json:"labels"`
 }
+
+type Response struct {
+	Result Rez `json:"response"`
+}
+
+type Rez struct {
+	Content map[string]int64 `json:"content"`
+}

@@ -80,23 +80,26 @@ func GetJson(timeout time.Duration, url string) (error, *request.Response) {
 func Pprint(resp string) {
 	rez := map[string]string{}
 	val := strings.Split(resp, ",")
-	for _, v := range val {
-		r := strings.Replace(strings.Replace(v, "{", "", -1), "}", "", -1)
-		kv := strings.Split(r, ":")
-		k := strings.Replace(strings.Replace(kv[0], "\"", "", -1), "\\", "", -1)
-		v := strings.Replace(strings.Replace(kv[1], "\"", "", -1), "\\", "", -1)
-		rez[k] = v
+	if len(val) > 1 {
+		for _, v := range val {
+			r := strings.Replace(strings.Replace(v, "{", "", -1), "}", "", -1)
+			kv := strings.Split(r, ":")
+			k := strings.Replace(strings.Replace(kv[0], "\"", "", -1), "\\", "", -1)
+			v := strings.Replace(strings.Replace(kv[1], "\"", "", -1), "\\", "", -1)
+			rez[k] = v
+		}
+		// initialize tabwriter
+		w := new(tabwriter.Writer)
+		// minwidth, tabwidth, padding, padchar, flags
+		w.Init(os.Stdout, 8, 8, 0, '\t', 0)
+		defer w.Flush()
+		fmt.Fprintf(w, "\n %s\t%s\t%s\t", "Namespace", "Name", "Age")
+		fmt.Fprintf(w, "\n %s\t%s\t%s\t", "----", "----", "----")
+		fmt.Fprintf(w, "\n %s\t%s\t%s\t", rez["namespace"], rez["name"], rez["age"])
+		fmt.Fprintf(w, "\n")
+	} else {
+		fmt.Println(resp)
 	}
-
-	// initialize tabwriter
-	w := new(tabwriter.Writer)
-	// minwidth, tabwidth, padding, padchar, flags
-	w.Init(os.Stdout, 8, 8, 0, '\t', 0)
-	defer w.Flush()
-	fmt.Fprintf(w, "\n %s\t%s\t%s\t", "Namespace", "Name", "Age")
-	fmt.Fprintf(w, "\n %s\t%s\t%s\t", "----", "----", "----")
-	fmt.Fprintf(w, "\n %s\t%s\t%s\t", rez["namespace"], rez["name"], rez["age"])
-	fmt.Fprintf(w, "\n")
 }
 
 func GetCall(timeout time.Duration, address string) (error, string) {

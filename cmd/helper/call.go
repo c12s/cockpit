@@ -2,13 +2,17 @@ package helper
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/cmd/model"
+	"github.com/c12s/cockpit/cmd/model/request"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"os/user"
 	"path/filepath"
 	"strings"
+	"text/tabwriter"
 	"time"
 )
 
@@ -43,6 +47,56 @@ func GetContext() (error, *model.CContext) {
 	}
 
 	return nil, ctx
+}
+
+func GetJson(timeout time.Duration, url string) (error, *request.Response) {
+	var myClient = &http.Client{
+		Timeout: timeout,
+	}
+	r, err := myClient.Get(url)
+	if err != nil {
+		return err, nil
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err, nil
+	}
+	r.Body.Close()
+
+	rsp := string(body)
+
+	fmt.Println(rsp)
+
+	s := &request.Response{}
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	return nil, s
+}
+
+func Pprint(resp string) {
+	rez := map[string]string{}
+	val := strings.Split(resp, ",")
+	for _, v := range val {
+		r := strings.Replace(strings.Replace(v, "{", "", -1), "}", "", -1)
+		kv := strings.Split(r, ":")
+		k := strings.Replace(strings.Replace(kv[0], "\"", "", -1), "\\", "", -1)
+		v := strings.Replace(strings.Replace(kv[1], "\"", "", -1), "\\", "", -1)
+		rez[k] = v
+	}
+
+	// initialize tabwriter
+	w := new(tabwriter.Writer)
+	// minwidth, tabwidth, padding, padchar, flags
+	w.Init(os.Stdout, 8, 8, 0, '\t', 0)
+	defer w.Flush()
+	fmt.Fprintf(w, "\n %s\t%s\t%s\t", "Namespace", "Name", "Age")
+	fmt.Fprintf(w, "\n %s\t%s\t%s\t", "----", "----", "----")
+	fmt.Fprintf(w, "\n %s\t%s\t%s\t", rez["namespace"], rez["name"], rez["age"])
+	fmt.Fprintf(w, "\n")
 }
 
 func GetCall(timeout time.Duration, address string) (error, string) {

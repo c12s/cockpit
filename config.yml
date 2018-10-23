@@ -23,13 +23,13 @@ constellations:
       l3: v3
     compare:
       kind: all # May be [all | any]
-  region:
-    region1:
-      cluster:
-        cluster1:
-        cluster2:
-    region2:
-      cluster:
-        cluster1:
-        cluster3:
-        cluster4:
+  # region:
+  #   region1:
+  #     cluster:
+  #       cluster1:
+  #       cluster2:
+  #   region2:
+  #     cluster:
+  #       cluster1:
+  #       cluster3:
+  #       cluster4:

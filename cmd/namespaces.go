@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	// "encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/spf13/cobra"
@@ -58,9 +59,14 @@ var NamespacesGetCmd = &cobra.Command{
 			fmt.Println(err1)
 			return
 		}
-		fmt.Println(resp)
+
+		helper.Pprint(resp)
 
 	},
+}
+
+type Rez struct {
+	Rez map[string]map[string]string `json:"rez"`
 }
 
 var NamespacesMutateCmd = &cobra.Command{

@@ -49,7 +49,7 @@ func GetContext() (error, *model.CContext) {
 	return nil, ctx
 }
 
-func GetJson(timeout time.Duration, url string) (error, *request.NSResponse) {
+func GetNSJson(timeout time.Duration, url string) (error, *request.NSResponse) {
 	var myClient = &http.Client{
 		Timeout: timeout,
 	}
@@ -79,7 +79,37 @@ func GetJson(timeout time.Duration, url string) (error, *request.NSResponse) {
 	return nil, s
 }
 
-func Print(resp *request.NSResponse) {
+func GetConfigsJson(timeout time.Duration, url string) (error, *request.ConfigResponse) {
+	var myClient = &http.Client{
+		Timeout: timeout,
+	}
+	r, err := myClient.Get(url)
+	if err != nil {
+		return err, nil
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err, nil
+	}
+	r.Body.Close()
+
+	rsp := string(body)
+
+	rsp = strings.Replace(rsp, "\\", "", -1)
+	rsp = strings.TrimSuffix(rsp, "\"")
+	rsp = strings.TrimPrefix(rsp, "\"")
+
+	s := &request.ConfigResponse{}
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	return nil, s
+}
+
+func NSPrint(resp *request.NSResponse) {
 	if len(resp.Result) > 0 {
 		// initialize tabwriter
 		w := new(tabwriter.Writer)
@@ -91,6 +121,25 @@ func Print(resp *request.NSResponse) {
 		fmt.Fprintf(w, "\n %s\t%s\t%s\t", "----", "----", "----")
 		for _, rez := range resp.Result {
 			fmt.Fprintf(w, "\n %s\t%s\t%s\t", rez.Namespace, rez.Name, rez.Age)
+		}
+		fmt.Fprintf(w, "\n")
+	} else {
+		fmt.Println("No results")
+	}
+}
+
+func ConfigPrint(resp *request.ConfigResponse) {
+	if len(resp.Result) > 0 {
+		// initialize tabwriter
+		w := new(tabwriter.Writer)
+		// minwidth, tabwidth, padding, padchar, flags
+		w.Init(os.Stdout, 8, 8, 0, '\t', 0)
+		defer w.Flush()
+
+		fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t", "RegionID", "ClusterID", "NodeID", "Configs")
+		fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t", "----", "----", "----", "----")
+		for _, rez := range resp.Result {
+			fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t", rez.RegionId, rez.ClusterId, rez.NodeId, rez.Configs)
 		}
 		fmt.Fprintf(w, "\n")
 	} else {

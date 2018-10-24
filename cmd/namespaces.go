@@ -54,12 +54,12 @@ var NamespacesGetCmd = &cobra.Command{
 		}
 
 		callPath := helper.FormCall("namespaces", "list", ctx, q)
-		err1, resp := helper.GetJson(10*time.Second, callPath)
+		err1, resp := helper.GetNSJson(10*time.Second, callPath)
 		if err1 != nil {
 			fmt.Println(err1)
 			return
 		}
-		helper.Print(resp)
+		helper.NSPrint(resp)
 	},
 }
 

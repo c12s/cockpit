@@ -53,12 +53,23 @@ type NMutateRequest struct {
 }
 
 type NSResponse struct {
-	Result []Data `json:"data"`
+	Result []NSData `json:"data"`
 }
 
-type Data struct {
+type NSData struct {
 	Age       string `json:"age"`
 	Labels    string `json:"labels"`
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+}
+
+type ConfigResponse struct {
+	Result []ConfigData `json:"data"`
+}
+
+type ConfigData struct {
+	RegionId  string `json:"regionId"`
+	ClusterId string `json:"clusterId"`
+	NodeId    string `json:"nodeId"`
+	Configs   string `json:"Configs"`
 }

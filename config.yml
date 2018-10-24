@@ -11,7 +11,7 @@ constellations:
       test: test.env
       test_name: test_name.env
     env:
-      NESTO: VAL # key is the name of the env and value is env value
+      NESTO: VAL # key is the name of the env and value is env value [Tombstone] remove env
       NESTO2: VAL2
   strategy:
     type: AtOnce # May be AtOnce | RollingUpdate

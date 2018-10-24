@@ -59,24 +59,51 @@ func detailMutate(file *model.Constellations) []request.Region {
 	regions := []request.Region{}
 	for regionID, region := range file.Region {
 		clusters := []request.Cluster{}
-		for clusterID, cluster := range region.Cluster {
-			s := extractStrategy(file.Strategy, region.Strategy, cluster.Strategy)
+		if len(region.Cluster) > 0 {
+			for clusterID, cluster := range region.Cluster {
+				s := extractStrategy(file.Strategy, region.Strategy, cluster.Strategy)
+				if s == nil {
+					fmt.Println("Error parsing strategy") //TODO: shuld return error or panic
+				}
+
+				p := extractPayload(file.Payload, region.Payload, cluster.Payload, file.Kind)
+				if p == nil {
+					fmt.Println("Error parsing payload") //TODO: shuld return error or panic
+				}
+
+				sl := extractSelector(file.Selector, region.Selector, cluster.Selector)
+				if sl == nil {
+					fmt.Println("Error parsing selector") //TODO: shuld return error or panic
+				}
+
+				c := request.Cluster{
+					ID:       clusterID,
+					Payload:  p,
+					Strategy: *s,
+					Selector: *sl,
+				}
+				clusters = append(clusters, c)
+			}
+		} else {
+			emptyPS := map[string]map[string]string{}
+			emptyS := map[string]string{}
+			s := extractStrategy(file.Strategy, region.Strategy, emptyS)
 			if s == nil {
 				fmt.Println("Error parsing strategy") //TODO: shuld return error or panic
 			}
 
-			p := extractPayload(file.Payload, region.Payload, cluster.Payload, file.Kind)
+			p := extractPayload(file.Payload, region.Payload, emptyPS, file.Kind)
 			if p == nil {
 				fmt.Println("Error parsing payload") //TODO: shuld return error or panic
 			}
 
-			sl := extractSelector(file.Selector, region.Selector, cluster.Selector)
+			sl := extractSelector(file.Selector, region.Selector, emptyPS)
 			if sl == nil {
 				fmt.Println("Error parsing selector") //TODO: shuld return error or panic
 			}
 
 			c := request.Cluster{
-				ID:       clusterID,
+				ID:       "*",
 				Payload:  p,
 				Strategy: *s,
 				Selector: *sl,

@@ -27,7 +27,8 @@ var ActionsGetCmd = &cobra.Command{
 		compare := cmd.Flag("compare").Value.String()
 		from := cmd.Flag("from").Value.String()
 		to := cmd.Flag("to").Value.String()
-		top := cmd.Flag("top").Value.String()
+		head := cmd.Flag("head").Value.String()
+		tail := cmd.Flag("tail").Value.String()
 
 		q := map[string]string{}
 		err, ctx := helper.GetContext()
@@ -56,8 +57,14 @@ var ActionsGetCmd = &cobra.Command{
 			q["to"] = to
 		}
 
-		if top != "" {
-			q["top"] = top
+		if from == "" && to == "" {
+			if head != "" {
+				q["head"] = head
+			}
+
+			if tail != "" {
+				q["tail"] = tail
+			}
 		}
 
 		callPath := helper.FormCall("actions", "list", ctx, q)
@@ -104,6 +111,7 @@ var ActionsMutateCmd = &cobra.Command{
 				fmt.Println(err4)
 				return
 			}
+
 			fmt.Println(resp)
 
 		} else {

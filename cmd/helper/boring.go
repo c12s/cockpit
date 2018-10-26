@@ -74,8 +74,17 @@ func constructPayload(payload map[string]map[string]string, kind string) []reque
 				p := request.Payload{Kind: k}
 				if kind == SECRETS {
 					p.Content = arrToBase(v)
-				} else if kind == CONFIGS || kind == ACTIONS {
+				} else if kind == CONFIGS {
 					p.Content = v
+				} else if kind == ACTIONS {
+					p.Content = v
+					p.Index = []string{}
+
+					// to preserve order of the operations
+					// we need to know isertation time
+					for k, _ := range v {
+						p.Index = append(p.Index, k)
+					}
 				}
 				retVal = append(retVal, p)
 			}

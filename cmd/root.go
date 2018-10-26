@@ -21,8 +21,9 @@ func init() {
 	ActionsGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for actions selection. [k1:v1,k2:v2,...]")
 	ActionsGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting actions [any | all]")
 	ActionsGetCmd.Flags().StringP("from", "f", "", "timestamp filtering, from where to start lookup")
-	ConfigsGetCmd.Flags().StringP("to", "t", "", "timestamp filtering to where to end lookup")
-	ConfigsGetCmd.Flags().StringP("top", "p", "", "returning result contains top n elements")
+	ActionsGetCmd.Flags().StringP("to", "t", "", "timestamp filtering to where to end lookup")
+	ActionsGetCmd.Flags().StringP("head", "e", "", "returning result contains top n elements")
+	ActionsGetCmd.Flags().StringP("tail", "a", "", "returning result contains last n elements")
 
 	SecretsGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for secrets selection. [k1:v1,k2:v2,...]")
 	SecretsGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting secrets [any | all]")

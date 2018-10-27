@@ -109,6 +109,56 @@ func GetConfigsJson(timeout time.Duration, url string) (error, *request.ConfigRe
 	return nil, s
 }
 
+func GetActionsJson(timeout time.Duration, url string) (error, *request.ActionsResponse) {
+	var myClient = &http.Client{
+		Timeout: timeout,
+	}
+	r, err := myClient.Get(url)
+	if err != nil {
+		return err, nil
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err, nil
+	}
+	r.Body.Close()
+
+	rsp := string(body)
+
+	rsp = strings.Replace(rsp, "\\", "", -1)
+	rsp = strings.TrimSuffix(rsp, "\"")
+	rsp = strings.TrimPrefix(rsp, "\"")
+
+	s := &request.ActionsResponse{}
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	return nil, s
+}
+
+func ActionsPrint(resp *request.ActionsResponse) {
+	if len(resp.Result) > 0 {
+		for _, rez := range resp.Result {
+			fmt.Printf("RegionID: %s\n", rez.RegionId)
+			fmt.Printf("ClusterID: %s\n", rez.ClusterId)
+			fmt.Printf("NodeID: %s\n", rez.NodeId)
+			for k, v := range rez.Actions {
+				rsp := strings.Replace(v, ",", "\n\t", -1)
+				t := strings.Split(k, "_")
+				fmt.Printf("Timestamp: %s\n", t[1])
+				fmt.Printf("\t%s\n", rsp)
+				fmt.Println("")
+			}
+			fmt.Println("")
+		}
+	} else {
+		fmt.Println("No results")
+	}
+}
+
 func NSPrint(resp *request.NSResponse) {
 	if len(resp.Result) > 0 {
 		// initialize tabwriter

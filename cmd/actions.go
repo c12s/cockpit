@@ -68,12 +68,12 @@ var ActionsGetCmd = &cobra.Command{
 		}
 
 		callPath := helper.FormCall("actions", "list", ctx, q)
-		err1, resp := helper.GetCall(10*time.Second, callPath)
+		err1, resp := helper.GetActionsJson(10*time.Second, callPath)
 		if err1 != nil {
 			fmt.Println(err1)
 			return
 		}
-		fmt.Println(resp)
+		helper.ActionsPrint(resp)
 	},
 }
 

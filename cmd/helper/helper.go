@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/cmd/model"
 	"github.com/c12s/cockpit/cmd/model/request"
+	"gopkg.in/yaml.v2"
 	"path/filepath"
 	"strings"
 	"time"
@@ -85,7 +86,7 @@ func detailMutate(file *model.Constellations) []request.Region {
 				clusters = append(clusters, c)
 			}
 		} else {
-			emptyPS := map[string]map[string]string{}
+			emptyPS := map[string]yaml.MapSlice{}
 			emptyS := map[string]string{}
 			s := extractStrategy(file.Strategy, region.Strategy, emptyS)
 			if s == nil {

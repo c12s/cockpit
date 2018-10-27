@@ -72,5 +72,16 @@ type ConfigData struct {
 	RegionId  string `json:"regionId"`
 	ClusterId string `json:"clusterId"`
 	NodeId    string `json:"nodeId"`
-	Configs   string `json:"Configs"`
+	Configs   string `json:"configs"`
+}
+
+type ActionsResponse struct {
+	Result []ActionsData `json:"data"`
+}
+
+type ActionsData struct {
+	RegionId  string            `json:"regionId"`
+	ClusterId string            `json:"clusterId"`
+	NodeId    string            `json:"nodeId"`
+	Actions   map[string]string `json:"actions"`
 }

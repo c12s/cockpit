@@ -20,16 +20,17 @@ func keyNotOK(key string, test []string) bool {
 	return false
 }
 
-func in(payload map[string]map[string]string, test []string) error {
+func in(payload map[string]yaml.MapSlice, test []string) error {
 	payloads := strings.Join(test, ", ")
 	var inside = false
 
 	for _, item := range test {
 		if _, ok := payload[item]; ok {
 			inside = true
-		} else {
-			inside = false
 		}
+		// else {
+		// 	inside = false
+		// }
 	}
 
 	for key, _ := range payload {
@@ -44,16 +45,19 @@ func in(payload map[string]map[string]string, test []string) error {
 	return errors.New(fmt.Sprintf("Error2: Allowed payloads for this artifact %s not presented", payloads))
 }
 
-func files(files map[string]string) error {
-	for _, file := range files {
-		if _, err := os.Stat(file); os.IsNotExist(err) {
-			return errors.New(fmt.Sprintf("Error: File %s does not exists", file))
+func files(files yaml.MapSlice) error {
+	for _, sItem := range files {
+		switch file := sItem.Value.(type) {
+		case string:
+			if _, err := os.Stat(file); os.IsNotExist(err) {
+				return errors.New(fmt.Sprintf("Error: File %s does not exists", file))
+			}
 		}
 	}
 	return nil
 }
 
-func validateConfigsPayload(payload map[string]map[string]string) error {
+func validateConfigsPayload(payload map[string]yaml.MapSlice) error {
 	err := in(payload, helper.Configs_payloads)
 	if err != nil {
 		return err
@@ -66,7 +70,7 @@ func validateConfigsPayload(payload map[string]map[string]string) error {
 	return nil
 }
 
-func validateActionsPayload(payload map[string]map[string]string) error {
+func validateActionsPayload(payload map[string]yaml.MapSlice) error {
 	err := in(payload, helper.Actions_payloads)
 	if err != nil {
 		return err
@@ -90,6 +94,7 @@ func mutateConfigs(file *model.MutateFile) (error, string) {
 func mutateActions(file *model.MutateFile) (error, string) {
 	err := validateActionsPayload(file.Content.Payload)
 	if err != nil {
+		fmt.Println(err)
 		return err, ""
 	} else {
 		data, err := helper.FileToJSON(&file.Content)

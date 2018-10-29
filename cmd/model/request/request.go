@@ -85,3 +85,14 @@ type ActionsData struct {
 	NodeId    string            `json:"nodeId"`
 	Actions   map[string]string `json:"actions"`
 }
+
+type SecretsResponse struct {
+	Result []SecretsData `json:"data"`
+}
+
+type SecretsData struct {
+	RegionId  string `json:"regionId"`
+	ClusterId string `json:"clusterId"`
+	NodeId    string `json:"nodeId"`
+	Secrets   string `json:"secrets"`
+}

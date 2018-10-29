@@ -139,6 +139,36 @@ func GetActionsJson(timeout time.Duration, url string) (error, *request.ActionsR
 	return nil, s
 }
 
+func GetSecretsJson(timeout time.Duration, url string) (error, *request.SecretsResponse) {
+	var myClient = &http.Client{
+		Timeout: timeout,
+	}
+	r, err := myClient.Get(url)
+	if err != nil {
+		return err, nil
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return err, nil
+	}
+	r.Body.Close()
+
+	rsp := string(body)
+
+	rsp = strings.Replace(rsp, "\\", "", -1)
+	rsp = strings.TrimSuffix(rsp, "\"")
+	rsp = strings.TrimPrefix(rsp, "\"")
+
+	s := &request.SecretsResponse{}
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	return nil, s
+}
+
 func ActionsPrint(resp *request.ActionsResponse) {
 	if len(resp.Result) > 0 {
 		for _, rez := range resp.Result {
@@ -190,6 +220,25 @@ func ConfigPrint(resp *request.ConfigResponse) {
 		fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t", "----", "----", "----", "----")
 		for _, rez := range resp.Result {
 			fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t", rez.RegionId, rez.ClusterId, rez.NodeId, rez.Configs)
+		}
+		fmt.Fprintf(w, "\n")
+	} else {
+		fmt.Println("No results")
+	}
+}
+
+func SecretsPrint(resp *request.SecretsResponse) {
+	if len(resp.Result) > 0 {
+		// initialize tabwriter
+		w := new(tabwriter.Writer)
+		// minwidth, tabwidth, padding, padchar, flags
+		w.Init(os.Stdout, 8, 8, 0, '\t', 0)
+		defer w.Flush()
+
+		fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t", "RegionID", "ClusterID", "NodeID", "Secrets")
+		fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t", "----", "----", "----", "----")
+		for _, rez := range resp.Result {
+			fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t", rez.RegionId, rez.ClusterId, rez.NodeId, rez.Secrets)
 		}
 		fmt.Fprintf(w, "\n")
 	} else {

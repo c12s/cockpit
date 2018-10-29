@@ -46,13 +46,12 @@ var SecretsGetCmd = &cobra.Command{
 		}
 
 		callPath := helper.FormCall("secrets", "list", ctx, q)
-		err1, resp := helper.GetCall(10*time.Second, callPath)
+		err1, resp := helper.GetSecretsJson(10*time.Second, callPath)
 		if err1 != nil {
 			fmt.Println(err1)
 			return
 		}
-		fmt.Println(resp)
-
+		helper.SecretsPrint(resp)
 	},
 }
 

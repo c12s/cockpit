@@ -14,8 +14,9 @@ constellations:
       NESTO: VAL # key is the name of the env and value is env value [Tombstone] remove env
       NESTO2: VAL2
   strategy:
-    type: AtOnce # May be AtOnce | RollingUpdate
+    type: AtOnce # May be AtOnce | RollingUpdate | Canary
     update: all # May be [all | number] | [percentage of clustr nodes]
+    interval: 10d # [ (days | d) (hour | h) | default ]
   selector:
     labels:
       l1: v1

@@ -139,6 +139,12 @@ func constructStrategy(strategy map[string]string) *request.Strategy {
 		} else {
 			return nil //TODO: should throw some error
 		}
+
+		if val, ok := strategy[INTERVAL]; ok {
+			s.Interval = val
+		} else {
+			return nil //TODO: should throw some error
+		}
 	} else {
 		return nil
 	}

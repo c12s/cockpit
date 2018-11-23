@@ -113,7 +113,6 @@ var ActionsMutateCmd = &cobra.Command{
 			}
 
 			fmt.Println(resp)
-
 		} else {
 			fmt.Println("File not exists")
 		}

@@ -19,6 +19,7 @@ const (
 	ALL       = "all"
 	TYPE      = "type"
 	UPDATE    = "update"
+	INTERVAL  = "interval"
 	FILE      = "file"
 	FILE_NAME = "file_name"
 

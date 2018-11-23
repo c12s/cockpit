@@ -35,8 +35,9 @@ type Payload struct {
 }
 
 type Strategy struct {
-	Type string `json:"type"`
-	Kind string `json:"kind"`
+	Type     string `json:"type"`
+	Kind     string `json:"kind"`
+	Interval string `json:"interval"`
 }
 
 type Selector struct {

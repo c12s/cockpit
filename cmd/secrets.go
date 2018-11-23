@@ -90,7 +90,6 @@ var SecretsMutateCmd = &cobra.Command{
 				return
 			}
 			fmt.Println(resp)
-
 		} else {
 			fmt.Println("File not exists")
 		}

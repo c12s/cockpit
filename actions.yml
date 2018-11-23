@@ -8,9 +8,9 @@ constellations:
     forceNamespaceQueue: true
   payload: # May contains [file | env | actions]
     actions:
-      build_lib: go build #key is comment for value that will be executed
-      run_go: go run
-      check_up_time: uptime
+      build_lib: apt-get update #key is comment for value that will be executed
+      run_go: apt-get upgrade
+      check_up_time: apt-get restart
   strategy:
     type: AtOnce # May be AtOnce | RollingUpdate
     update: all # May be [all | number] | [percentage of clustr nodes]

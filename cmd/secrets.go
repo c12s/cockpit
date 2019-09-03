@@ -83,13 +83,15 @@ var SecretsMutateCmd = &cobra.Command{
 			q := map[string]string{}
 			q["user"] = ctx.Context.User
 
-			callPath := helper.FormCall("secrets", "mutate", ctx, q)
-			err4, resp := helper.PostCall(10*time.Second, callPath, data)
-			if err4 != nil {
-				fmt.Println(err4)
-				return
-			}
-			fmt.Println(resp)
+			// callPath := helper.FormCall("secrets", "mutate", ctx, q)
+			// err4, resp := helper.PostCall(10*time.Second, callPath, data)
+			// if err4 != nil {
+			// 	fmt.Println(err4)
+			// 	return
+			// }
+			// fmt.Println(resp)
+			fmt.Println(q)
+			fmt.Println(data)
 		} else {
 			fmt.Println("File not exists")
 		}

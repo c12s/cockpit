@@ -17,13 +17,17 @@ constellations:
     type: AtOnce # May be AtOnce | RollingUpdate | Canary
     update: all # May be [all | number] | [percentage of clustr nodes]
     interval: 10d # [ (days | d) (hour | h) | default ]
+    retry: 
+      strategy: Cancel #[Cancel | LinearBackoff | ConstantBackoff | QuadriaticBackoff | ExponentialBackoff | PolynomialBackoff]
+      attempts: 2
+      constant: 1 # a step for ConstantBackoff
   selector:
     labels:
       l1: v1
       l2: v2
       l3: v3
     compare:
-      kind: all # May be [all | any]
+      kind: all # May be [all | any] 
   # region:
   #   region1:
   #     cluster:

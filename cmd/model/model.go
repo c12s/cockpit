@@ -14,7 +14,7 @@ type Constellations struct {
 	Kind     string                   `yaml:"kind"`
 	MTData   Metadata                 `yaml:"metadata"`
 	Payload  map[string]yaml.MapSlice `yaml:"payload"`
-	Strategy map[string]string        `yaml:"strategy"`
+	Strategy Strategy                 `yaml:"strategy"`
 	Selector map[string]yaml.MapSlice `yaml:"selector"`
 	Region   map[string]Region        `yaml:"region"`
 }
@@ -27,14 +27,14 @@ type Metadata struct {
 }
 
 type Region struct {
-	Strategy map[string]string        `yaml:"strategy"`
+	Strategy Strategy                 `yaml:"strategy"`
 	Payload  map[string]yaml.MapSlice `yaml:"payload"` //map[string]string
 	Selector map[string]yaml.MapSlice `yaml:"selector"`
 	Cluster  map[string]Cluster       `yaml:"cluster"`
 }
 
 type Cluster struct {
-	Strategy map[string]string        `yaml:"strategy"`
+	Strategy Strategy                 `yaml:"strategy"`
 	Payload  map[string]yaml.MapSlice `yaml:"payload"`
 	Selector map[string]yaml.MapSlice `yaml:"selector"`
 }
@@ -48,4 +48,11 @@ type NConstellations struct {
 
 type NMutateFile struct {
 	Content NConstellations `yaml:"constellations"`
+}
+
+type Strategy struct {
+	Type     string            `yaml:"type"`
+	Update   string            `yaml:"update"`
+	Interval string            `yaml:"interval"`
+	Retry    map[string]string `yaml:"retry"`
 }

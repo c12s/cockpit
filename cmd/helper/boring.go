@@ -5,6 +5,7 @@ import (
 	b64 "encoding/base64"
 	"errors"
 	"fmt"
+	"github.com/c12s/cockpit/cmd/model"
 	"github.com/c12s/cockpit/cmd/model/request"
 	"gopkg.in/yaml.v2"
 	"os"
@@ -125,34 +126,41 @@ func extractPayload(file, region, cluster map[string]yaml.MapSlice, kind string)
 	return nil
 }
 
-func constructStrategy(strategy map[string]string) *request.Strategy {
+func constructStrategy(strategy *model.Strategy) *request.Strategy {
 	s := request.Strategy{}
-	if len(strategy) != 0 {
-		if val, ok := strategy[TYPE]; ok {
-			s.Type = val
-		} else {
-			return nil //TODO: should throw some error
-		}
-
-		if val, ok := strategy[UPDATE]; ok {
-			s.Kind = val
-		} else {
-			return nil //TODO: should throw some error
-		}
-
-		if val, ok := strategy[INTERVAL]; ok {
-			s.Interval = val
-		} else {
-			return nil //TODO: should throw some error
-		}
-	} else {
+	if strategy == nil {
 		return nil
 	}
+	// if len(strategy) != 0 {
+	// 	if val, ok := strategy[TYPE]; ok {
+	// 		s.Type = val
+	// 	} else {
+	// 		return nil //TODO: should throw some error
+	// 	}
+
+	// 	if val, ok := strategy[UPDATE]; ok {
+	// 		s.Kind = val
+	// 	} else {
+	// 		return nil //TODO: should throw some error
+	// 	}
+
+	// 	if val, ok := strategy[INTERVAL]; ok {
+	// 		s.Interval = val
+	// 	} else {
+	// 		return nil //TODO: should throw some error
+	// 	}
+	// } else {
+	// 	return nil
+	// }
+	s.Type = strategy.Type
+	s.Kind = strategy.Update
+	s.Interval = strategy.Interval
+	s.Retry = strategy.Retry
 
 	return &s
 }
 
-func extractStrategy(file, region, cluster map[string]string) *request.Strategy {
+func extractStrategy(file, region, cluster *model.Strategy) *request.Strategy {
 	s := constructStrategy(file)
 	if s != nil {
 		return s

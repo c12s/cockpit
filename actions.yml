@@ -12,8 +12,13 @@ constellations:
       run_go: apt-get upgrade
       check_up_time: apt-get restart
   strategy:
-    type: AtOnce # May be AtOnce | RollingUpdate
+    type: AtOnce # May be AtOnce | RollingUpdate | Canary
     update: all # May be [all | number] | [percentage of clustr nodes]
+    interval: 10d # [ (days | d) (hour | h) |default ]
+    retry: 
+      strategy: Cancel #[Cancel | LinearBackoff | ConstantBackoff | QuadriaticBackoff | ExponentialBackoff | PolynomialBackoff]
+      attempts: 2
+      constant: 1 # a step for ConstantBackoff
   selector:
     labels:
       l1: v1

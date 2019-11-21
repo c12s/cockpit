@@ -98,3 +98,8 @@ type SecretsData struct {
 	NodeId    string `json:"nodeId"`
 	Secrets   string `json:"secrets"`
 }
+
+type Credentials struct {
+	Password string `json:"password"`
+	Username string `json:"username"`
+}

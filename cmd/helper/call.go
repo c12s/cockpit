@@ -292,3 +292,55 @@ func PostCall(timeout time.Duration, address, data string) (error, string) {
 		return nil, fmt.Sprintf("Resp: %d", resp.StatusCode)
 	}
 }
+
+func PostCallExtractToken(timeout time.Duration, address, data string) (error, string, string) {
+	var netClient = &http.Client{
+		Timeout: timeout,
+	}
+
+	req, err := http.NewRequest("POST", address, bytes.NewBuffer([]byte(data)))
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := netClient.Do(req)
+	if err != nil {
+		return err, "", ""
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		body, err2 := ioutil.ReadAll(resp.Body)
+		if err2 != nil {
+			return err2, "", ""
+		}
+		return nil, string(body), resp.Header.Get("Auth-Token")
+	} else {
+		return nil, fmt.Sprintf("Resp: %d", resp.StatusCode), ""
+	}
+}
+
+func PostCallWithHeaders(timeout time.Duration, address, data string, headers map[string]string) (error, string) {
+	var netClient = &http.Client{
+		Timeout: timeout,
+	}
+
+	req, err := http.NewRequest("POST", address, bytes.NewBuffer([]byte(data)))
+	for k, v := range headers {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := netClient.Do(req)
+	if err != nil {
+		return err, ""
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		body, err2 := ioutil.ReadAll(resp.Body)
+		if err2 != nil {
+			return err2, ""
+		}
+		return nil, string(body)
+	} else {
+		return nil, fmt.Sprintf("Resp: %d", resp.StatusCode)
+	}
+}

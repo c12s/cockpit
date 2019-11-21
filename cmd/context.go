@@ -1,13 +1,17 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/c12s/cockpit/cmd/helper"
 	"github.com/c12s/cockpit/cmd/model"
+	"github.com/c12s/cockpit/cmd/model/request"
 	"github.com/spf13/cobra"
 	"os"
 	"os/user"
 	"path/filepath"
+	"time"
 )
 
 var ContextCmd = &cobra.Command{
@@ -32,7 +36,7 @@ func createDir(dir string) error {
 	return nil
 }
 
-func initContext(path, address string) error {
+func setContext(path, address, version, user, token string) error {
 	filename := filepath.Join(path, "context.yml")
 	file, err := os.Create(filename)
 	defer file.Close()
@@ -40,12 +44,18 @@ func initContext(path, address string) error {
 		return err
 	}
 
+	var v = "v1"
+	if len(version) > 0 {
+		v = version
+	}
+
 	c := &model.CContext{
 		Context: &model.Content{
-			Version:   "v1",
+			Version:   v,
 			Address:   address,
 			Namespace: "default",
-			User:      "",
+			User:      user,
+			Token:     token,
 		},
 	}
 
@@ -58,6 +68,48 @@ func initContext(path, address string) error {
 	return nil
 }
 
+func initContext(path, address, version string) error {
+	filename := filepath.Join(path, "context.yml")
+	file, err := os.Create(filename)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+
+	var v = "v1"
+	if len(version) > 0 {
+		v = version
+	}
+
+	c := &model.CContext{
+		Context: &model.Content{
+			Version:   v,
+			Address:   address,
+			Namespace: "default",
+			User:      "",
+			Token:     "",
+		},
+	}
+
+	nerr, data := model.Marshall(c)
+	if nerr != nil {
+		return nerr
+	}
+	fmt.Fprintf(file, data)
+
+	return nil
+}
+
+func getContextPath() (string, error) {
+	usr, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+
+	contextPath := filepath.Join(usr.HomeDir, ".constellations")
+	return contextPath, err
+}
+
 var InitCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Init empty CLI context environment, to interact with region/s cluster/s node/s job/s",
@@ -65,23 +117,59 @@ var InitCmd = &cobra.Command{
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		a := cmd.Flag("address").Value.String()
-		usr, err := user.Current()
+		v := cmd.Flag("version").Value.String()
+		contextPath, err := getContextPath()
 		if err != nil {
 			fmt.Println(err)
+			return
 		}
-
-		contextPath := filepath.Join(usr.HomeDir, ".constellations")
 		fmt.Printf("Empty context initialized in %s. run 'cockpit context login'\n", contextPath)
 		err = createDir(contextPath)
 		if err != nil {
 			fmt.Println(err)
+			return
 		}
 
-		initContext(contextPath, a)
+		initContext(contextPath, a, v)
 	},
 }
 
-func doLogin(username, password string) {}
+func doLogin(username, password string) {
+	crd := &request.Credentials{
+		Username: username,
+		Password: password,
+	}
+
+	err, ctx := helper.GetContext()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	callPath := helper.FormCall("auth", "login", ctx, map[string]string{})
+	data, err := json.Marshal(crd)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	err, resp, token := helper.PostCallExtractToken(10*time.Second, callPath, string(data))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	contextPath, err := getContextPath()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(resp)
+
+	setContext(contextPath, ctx.Address(), ctx.Version(), username, token)
+	fmt.Println("Context set up")
+}
 
 var LoginCmd = &cobra.Command{
 	Use:   "login",

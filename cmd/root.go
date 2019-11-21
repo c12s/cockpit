@@ -14,6 +14,7 @@ func init() {
 	LoginCmd.Flags().StringP("username", "u", "", "provide username to login to system")
 	LoginCmd.Flags().StringP("password", "p", "", "provide password to login to system")
 	InitCmd.Flags().StringP("address", "a", "", "provide service ip address, so CLI can comunicate with rest of the system")
+	InitCmd.Flags().StringP("version", "v", "", "provide service version, so CLI can comunicate with rest of the system [default v1]")
 
 	ConfigsGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for configs selection. [k1:v1,k2:v2,...]")
 	ConfigsGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting configs [any | all]")

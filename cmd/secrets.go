@@ -45,13 +45,18 @@ var SecretsGetCmd = &cobra.Command{
 			q["compare"] = compare
 		}
 
+		h := map[string]string{
+			"Content-Type":   "application/json; charset=UTF-8",
+			"Authentication": ctx.Context.Token,
+		}
+
 		callPath := helper.FormCall("secrets", "list", ctx, q)
-		err1, resp := helper.GetSecretsJson(10*time.Second, callPath)
+		err1, resp := helper.Get(10*time.Second, callPath, h)
 		if err1 != nil {
 			fmt.Println(err1)
 			return
 		}
-		helper.SecretsPrint(resp)
+		helper.Print("secrets", resp)
 	},
 }
 
@@ -83,8 +88,13 @@ var SecretsMutateCmd = &cobra.Command{
 			q := map[string]string{}
 			q["user"] = ctx.Context.User
 
+			h := map[string]string{
+				"Content-Type":   "application/json; charset=UTF-8",
+				"Authentication": ctx.Context.Token,
+			}
+
 			callPath := helper.FormCall("secrets", "mutate", ctx, q)
-			err4, resp := helper.PostCall(10*time.Second, callPath, data)
+			err4, resp := helper.Post(10*time.Second, callPath, data, h)
 			if err4 != nil {
 				fmt.Println(err4)
 				return

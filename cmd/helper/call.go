@@ -3,6 +3,7 @@ package helper
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/c12s/cockpit/cmd/model"
 	"github.com/c12s/cockpit/cmd/model/request"
@@ -49,124 +50,209 @@ func GetContext() (error, *model.CContext) {
 	return nil, ctx
 }
 
-func GetNSJson(timeout time.Duration, url string) (error, *request.NSResponse) {
-	var myClient = &http.Client{
-		Timeout: timeout,
+func Get(timeout time.Duration, url string, h map[string]string) (error, interface{}) {
+	if strings.Contains(url, "namespaces") {
+		return GetNSJson(timeout, url, h)
+	} else if strings.Contains(url, "configs") {
+		return GetConfigsJson(timeout, url, h)
+	} else if strings.Contains(url, "secrets") {
+		return GetSecretsJson(timeout, url, h)
+	} else if strings.Contains(url, "actions") {
+		return GetActionsJson(timeout, url, h)
 	}
-	r, err := myClient.Get(url)
-	if err != nil {
-		return err, nil
-	}
-
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		return err, nil
-	}
-	r.Body.Close()
-
-	rsp := string(body)
-
-	rsp = strings.Replace(rsp, "\\", "", -1)
-	rsp = strings.TrimSuffix(rsp, "\"")
-	rsp = strings.TrimPrefix(rsp, "\"")
-
-	s := &request.NSResponse{}
-	err = json.Unmarshal([]byte(rsp), &s)
-	if err != nil {
-		return err, nil
-	}
-
-	return nil, s
+	return errors.New("undefined kind"), nil
 }
 
-func GetConfigsJson(timeout time.Duration, url string) (error, *request.ConfigResponse) {
-	var myClient = &http.Client{
+func GetNSJson(timeout time.Duration, url string, h map[string]string) (error, *request.NSResponse) {
+	var netClient = &http.Client{
 		Timeout: timeout,
 	}
-	r, err := myClient.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	for k, v := range h {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := netClient.Do(req)
 	if err != nil {
 		return err, nil
 	}
-
-	body, err := ioutil.ReadAll(r.Body)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err, nil
 	}
-	r.Body.Close()
-
 	rsp := string(body)
 
-	rsp = strings.Replace(rsp, "\\", "", -1)
-	rsp = strings.TrimSuffix(rsp, "\"")
-	rsp = strings.TrimPrefix(rsp, "\"")
+	if resp.StatusCode == http.StatusOK {
+		rsp = strings.Replace(rsp, "\\", "", -1)
+		rsp = strings.TrimSuffix(rsp, "\"")
+		rsp = strings.TrimPrefix(rsp, "\"")
 
-	s := &request.ConfigResponse{}
+		s := &request.NSResponse{}
+		err = json.Unmarshal([]byte(rsp), &s)
+		if err != nil {
+			return err, nil
+		}
+		return nil, s
+	}
+
+	var s map[string]string
 	err = json.Unmarshal([]byte(rsp), &s)
 	if err != nil {
 		return err, nil
 	}
 
-	return nil, s
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
+	return nil, nil
 }
 
-func GetActionsJson(timeout time.Duration, url string) (error, *request.ActionsResponse) {
-	var myClient = &http.Client{
+func GetConfigsJson(timeout time.Duration, url string, h map[string]string) (error, *request.ConfigResponse) {
+	var netClient = &http.Client{
 		Timeout: timeout,
 	}
-	r, err := myClient.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	for k, v := range h {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := netClient.Do(req)
 	if err != nil {
 		return err, nil
 	}
-
-	body, err := ioutil.ReadAll(r.Body)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err, nil
 	}
-	r.Body.Close()
-
 	rsp := string(body)
 
-	rsp = strings.Replace(rsp, "\\", "", -1)
-	rsp = strings.TrimSuffix(rsp, "\"")
-	rsp = strings.TrimPrefix(rsp, "\"")
+	if resp.StatusCode == http.StatusOK {
+		rsp = strings.Replace(rsp, "\\", "", -1)
+		rsp = strings.TrimSuffix(rsp, "\"")
+		rsp = strings.TrimPrefix(rsp, "\"")
 
-	s := &request.ActionsResponse{}
+		s := &request.ConfigResponse{}
+		err = json.Unmarshal([]byte(rsp), &s)
+		if err != nil {
+			return err, nil
+		}
+		return nil, s
+	}
+
+	var s map[string]string
 	err = json.Unmarshal([]byte(rsp), &s)
 	if err != nil {
 		return err, nil
 	}
 
-	return nil, s
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
+	return nil, nil
 }
 
-func GetSecretsJson(timeout time.Duration, url string) (error, *request.SecretsResponse) {
-	var myClient = &http.Client{
+func GetActionsJson(timeout time.Duration, url string, h map[string]string) (error, *request.ActionsResponse) {
+	var netClient = &http.Client{
 		Timeout: timeout,
 	}
-	r, err := myClient.Get(url)
+	req, err := http.NewRequest("GET", url, nil)
+	for k, v := range h {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := netClient.Do(req)
 	if err != nil {
 		return err, nil
 	}
-
-	body, err := ioutil.ReadAll(r.Body)
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err, nil
 	}
-	r.Body.Close()
-
 	rsp := string(body)
 
-	rsp = strings.Replace(rsp, "\\", "", -1)
-	rsp = strings.TrimSuffix(rsp, "\"")
-	rsp = strings.TrimPrefix(rsp, "\"")
+	if resp.StatusCode == http.StatusOK {
+		rsp = strings.Replace(rsp, "\\", "", -1)
+		rsp = strings.TrimSuffix(rsp, "\"")
+		rsp = strings.TrimPrefix(rsp, "\"")
 
-	s := &request.SecretsResponse{}
+		s := &request.ActionsResponse{}
+		err = json.Unmarshal([]byte(rsp), &s)
+		if err != nil {
+			return err, nil
+		}
+		return nil, s
+	}
+
+	var s map[string]string
 	err = json.Unmarshal([]byte(rsp), &s)
 	if err != nil {
 		return err, nil
 	}
 
-	return nil, s
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
+	return nil, nil
+}
+
+func GetSecretsJson(timeout time.Duration, url string, h map[string]string) (error, *request.SecretsResponse) {
+	var netClient = &http.Client{
+		Timeout: timeout,
+	}
+	req, err := http.NewRequest("GET", url, nil)
+	for k, v := range h {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := netClient.Do(req)
+	if err != nil {
+		return err, nil
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err, nil
+	}
+	rsp := string(body)
+
+	if resp.StatusCode == http.StatusOK {
+		rsp = strings.Replace(rsp, "\\", "", -1)
+		rsp = strings.TrimSuffix(rsp, "\"")
+		rsp = strings.TrimPrefix(rsp, "\"")
+
+		s := &request.SecretsResponse{}
+		err = json.Unmarshal([]byte(rsp), &s)
+		if err != nil {
+			return err, nil
+		}
+		return nil, s
+	}
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
+	return nil, nil
+}
+
+func Print(kind string, data interface{}) {
+	if kind == "namespaces" {
+		if data.(*request.NSResponse) != nil {
+			NSPrint(data.(*request.NSResponse))
+		}
+	} else if kind == "configs" {
+		if data.(*request.ConfigResponse) != nil {
+			ConfigsPrint(data.(*request.ConfigResponse))
+		}
+	} else if kind == "secrets" {
+		if data.(*request.SecretsResponse) != nil {
+			SecretsPrint(data.(*request.SecretsResponse))
+		}
+	} else if kind == "actions" {
+		if data.(*request.ActionsResponse) != nil {
+			ActionsPrint(data.(*request.ActionsResponse))
+		}
+	}
 }
 
 func ActionsPrint(resp *request.ActionsResponse) {
@@ -208,7 +294,7 @@ func NSPrint(resp *request.NSResponse) {
 	}
 }
 
-func ConfigPrint(resp *request.ConfigResponse) {
+func ConfigsPrint(resp *request.ConfigResponse) {
 	if len(resp.Result) > 0 {
 		// initialize tabwriter
 		w := new(tabwriter.Writer)
@@ -307,18 +393,22 @@ func PostCallExtractToken(timeout time.Duration, address, data string) (error, s
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		body, err2 := ioutil.ReadAll(resp.Body)
-		if err2 != nil {
-			return err2, "", ""
-		}
-		return nil, string(body), resp.Header.Get("Auth-Token")
-	} else {
-		return nil, fmt.Sprintf("Resp: %d", resp.StatusCode), ""
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err, "", ""
 	}
+	rsp := string(body)
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, "", ""
+	}
+
+	return nil, fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]), ""
 }
 
-func PostCallWithHeaders(timeout time.Duration, address, data string, headers map[string]string) (error, string) {
+func Post(timeout time.Duration, address, data string, headers map[string]string) (error, string) {
 	var netClient = &http.Client{
 		Timeout: timeout,
 	}
@@ -334,13 +424,17 @@ func PostCallWithHeaders(timeout time.Duration, address, data string, headers ma
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		body, err2 := ioutil.ReadAll(resp.Body)
-		if err2 != nil {
-			return err2, ""
-		}
-		return nil, string(body)
-	} else {
-		return nil, fmt.Sprintf("Resp: %d", resp.StatusCode)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err, ""
 	}
+	rsp := string(body)
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, ""
+	}
+
+	return nil, fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"])
 }

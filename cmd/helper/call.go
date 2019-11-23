@@ -95,7 +95,14 @@ func GetNSJson(timeout time.Duration, url string, h map[string]string) (error, *
 		}
 		return nil, s
 	}
-	fmt.Println(fmt.Sprintf("Statuc code: %d Message: %s", resp.StatusCode, resp))
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
 	return nil, nil
 }
 
@@ -131,7 +138,14 @@ func GetConfigsJson(timeout time.Duration, url string, h map[string]string) (err
 		}
 		return nil, s
 	}
-	fmt.Println(fmt.Sprintf("Statuc code: %d Message: %s", resp.StatusCode, resp))
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
 	return nil, nil
 }
 
@@ -167,7 +181,14 @@ func GetActionsJson(timeout time.Duration, url string, h map[string]string) (err
 		}
 		return nil, s
 	}
-	fmt.Println(fmt.Sprintf("Statuc code: %d Message: %s", resp.StatusCode, resp))
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
 	return nil, nil
 }
 
@@ -203,19 +224,34 @@ func GetSecretsJson(timeout time.Duration, url string, h map[string]string) (err
 		}
 		return nil, s
 	}
-	fmt.Println(fmt.Sprintf("Statuc code: %d Message: %s", resp.StatusCode, resp))
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
 	return nil, nil
 }
 
 func Print(kind string, data interface{}) {
 	if kind == "namespaces" {
-		NSPrint(data.(*request.NSResponse))
+		if data.(*request.NSResponse) != nil {
+			NSPrint(data.(*request.NSResponse))
+		}
 	} else if kind == "configs" {
-		ConfigsPrint(data.(*request.ConfigResponse))
+		if data.(*request.ConfigResponse) != nil {
+			ConfigsPrint(data.(*request.ConfigResponse))
+		}
 	} else if kind == "secrets" {
-		SecretsPrint(data.(*request.SecretsResponse))
+		if data.(*request.SecretsResponse) != nil {
+			SecretsPrint(data.(*request.SecretsResponse))
+		}
 	} else if kind == "actions" {
-		ActionsPrint(data.(*request.ActionsResponse))
+		if data.(*request.ActionsResponse) != nil {
+			ActionsPrint(data.(*request.ActionsResponse))
+		}
 	}
 }
 
@@ -357,15 +393,19 @@ func PostCallExtractToken(timeout time.Duration, address, data string) (error, s
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		body, err2 := ioutil.ReadAll(resp.Body)
-		if err2 != nil {
-			return err2, "", ""
-		}
-		return nil, string(body), resp.Header.Get("Auth-Token")
-	} else {
-		return nil, fmt.Sprintf("Resp: %d", resp.StatusCode), ""
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err, "", ""
 	}
+	rsp := string(body)
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, "", ""
+	}
+
+	return nil, fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]), ""
 }
 
 func Post(timeout time.Duration, address, data string, headers map[string]string) (error, string) {
@@ -384,13 +424,17 @@ func Post(timeout time.Duration, address, data string, headers map[string]string
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusOK {
-		body, err2 := ioutil.ReadAll(resp.Body)
-		if err2 != nil {
-			return err2, ""
-		}
-		return nil, string(body)
-	} else {
-		return nil, fmt.Sprintf("Resp: %d", resp.StatusCode)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err, ""
 	}
+	rsp := string(body)
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, ""
+	}
+
+	return nil, fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"])
 }

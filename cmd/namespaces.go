@@ -64,10 +64,7 @@ var NamespacesGetCmd = &cobra.Command{
 			fmt.Println(err1)
 			return
 		}
-
-		if resp != nil {
-			helper.Print("namespaces", resp)
-		}
+		helper.Print("namespaces", resp)
 	},
 }
 

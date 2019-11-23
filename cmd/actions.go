@@ -78,10 +78,7 @@ var ActionsGetCmd = &cobra.Command{
 			fmt.Println(err1)
 			return
 		}
-
-		if resp != nil {
-			helper.Print("actions", resp)
-		}
+		helper.Print("actions", resp)
 	},
 }
 

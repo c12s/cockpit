@@ -56,10 +56,7 @@ var ConfigsGetCmd = &cobra.Command{
 			fmt.Println(err1)
 			return
 		}
-
-		if resp != nil {
-			helper.Print("configs", resp)
-		}
+		helper.Print("configs", resp)
 	},
 }
 

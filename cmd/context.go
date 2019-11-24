@@ -123,7 +123,7 @@ var InitCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		fmt.Printf("Empty context initialized in %s. run 'cockpit context login'\n", contextPath)
+		fmt.Printf("Empty context initialized in %s. run 'cockpit context login -u your_username -p your_password'\n", contextPath)
 		err = createDir(contextPath)
 		if err != nil {
 			fmt.Println(err)

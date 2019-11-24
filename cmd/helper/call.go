@@ -405,7 +405,8 @@ func PostCallExtractToken(timeout time.Duration, address, data string) (error, s
 		return err, "", ""
 	}
 
-	return nil, fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]), ""
+	return nil, fmt.Sprintf("Statuss code: %d Message: %s",
+		resp.StatusCode, s["message"]), resp.Header.Get("Auth-Token")
 }
 
 func Post(timeout time.Duration, address, data string, headers map[string]string) (error, string) {

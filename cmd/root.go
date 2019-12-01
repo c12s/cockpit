@@ -33,6 +33,9 @@ func init() {
 	NamespacesGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting namespaces [any | all]")
 	NamespacesGetCmd.Flags().StringP("name", "n", "", "name, when selecting namespaces")
 
+	TraceListCmd.Flags().StringP("tags", "a", "", "list of key-value pairs for tags selection. [k1:v1,k2:v2,...]")
+	TraceGetCmd.Flags().StringP("task", "t", "", "trace id to get complate trace")
+
 	ConfigsCmd.AddCommand(ConfigsGetCmd)
 	ConfigsCmd.AddCommand(ConfigsMutateCmd)
 	RootCmd.AddCommand(ConfigsCmd)
@@ -48,6 +51,10 @@ func init() {
 	NamespacesCmd.AddCommand(NamespacesGetCmd)
 	NamespacesCmd.AddCommand(NamespacesMutateCmd)
 	RootCmd.AddCommand(NamespacesCmd)
+
+	TraceCmd.AddCommand(TraceGetCmd)
+	TraceCmd.AddCommand(TraceListCmd)
+	RootCmd.AddCommand(TraceCmd)
 
 	ContextCmd.AddCommand(InitCmd)
 	ContextCmd.AddCommand(LoginCmd)

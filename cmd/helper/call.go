@@ -59,8 +59,88 @@ func Get(timeout time.Duration, url string, h map[string]string) (error, interfa
 		return GetSecretsJson(timeout, url, h)
 	} else if strings.Contains(url, "actions") {
 		return GetActionsJson(timeout, url, h)
+	} else if strings.Contains(url, "trace/get") {
+		return GetTraceJson(timeout, url, h)
+	} else if strings.Contains(url, "trace/list") {
+		return GetListTraceJson(timeout, url, h)
 	}
 	return errors.New("undefined kind"), nil
+}
+
+func GetListTraceJson(timeout time.Duration, url string, h map[string]string) (error, *request.Traces) {
+	var netClient = &http.Client{
+		Timeout: timeout,
+	}
+	req, err := http.NewRequest("GET", url, nil)
+	for k, v := range h {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := netClient.Do(req)
+	if err != nil {
+		return err, nil
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err, nil
+	}
+	rsp := string(body)
+	if resp.StatusCode == http.StatusOK {
+		s := &request.Traces{}
+		err = json.Unmarshal([]byte(rsp), &s)
+		if err != nil {
+			return err, nil
+		}
+		return nil, s
+	}
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
+	return nil, nil
+}
+
+func GetTraceJson(timeout time.Duration, url string, h map[string]string) (error, *request.Trace) {
+	var netClient = &http.Client{
+		Timeout: timeout,
+	}
+	req, err := http.NewRequest("GET", url, nil)
+	for k, v := range h {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := netClient.Do(req)
+	if err != nil {
+		return err, nil
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err, nil
+	}
+	rsp := string(body)
+	if resp.StatusCode == http.StatusOK {
+		s := &request.Trace{}
+		err = json.Unmarshal([]byte(rsp), &s)
+		if err != nil {
+			return err, nil
+		}
+		return nil, s
+	}
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
+	return nil, nil
 }
 
 func GetNSJson(timeout time.Duration, url string, h map[string]string) (error, *request.NSResponse) {
@@ -252,7 +332,25 @@ func Print(kind string, data interface{}) {
 		if data.(*request.ActionsResponse) != nil {
 			ActionsPrint(data.(*request.ActionsResponse))
 		}
+	} else if kind == "trace/get" {
+		if data.(*request.Trace) != nil {
+			TracePrint(data.(*request.Trace))
+		}
+	} else if kind == "trace/list" {
+		if data.(*request.Traces) != nil {
+			TracesPrint(data.(*request.Traces))
+		}
 	}
+}
+
+func TracePrint(data *request.Trace) {
+	fmt.Println("DEMO")
+	fmt.Println(data)
+}
+
+func TracesPrint(data *request.Traces) {
+	fmt.Println("DEMO")
+	fmt.Println(data)
 }
 
 func ActionsPrint(resp *request.ActionsResponse) {

@@ -103,3 +103,28 @@ type Credentials struct {
 	Password string `json:"password"`
 	Username string `json:"username"`
 }
+
+type SpanContext struct {
+	TraceId       string            `json:"traceId"`
+	SpanId        int64             `json:"spanId"`
+	ParrentSpanId int64             `json:"spanId"`
+	Baggage       map[string]string `json:"baggage"`
+}
+
+type Span struct {
+	Context   SpanContext       `json:"spanContext"`
+	Name      string            `json:"name"`
+	Logs      map[string]string `json:"logs"`
+	Tags      map[string]string `json:"tags"`
+	StartTime int64             `json:"startTime"`
+	EndTime   int64             `json:"endTime"`
+}
+
+type Trace struct {
+	TraceId string `json:"traceId"`
+	Trace   []Span `json:"trace"`
+}
+
+type Traces struct {
+	Traces []Trace `json:"traces"`
+}

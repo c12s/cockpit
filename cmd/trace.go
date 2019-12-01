@@ -35,7 +35,7 @@ var TraceGetCmd = &cobra.Command{
 
 		h := map[string]string{
 			"Content-Type":   "application/json; charset=UTF-8",
-			"Authentication": ctx.Context.Token,
+			"Authorization:": ctx.Context.Token,
 		}
 
 		callPath := helper.FormCall("trace", "get", ctx, q)
@@ -66,7 +66,7 @@ var TraceListCmd = &cobra.Command{
 
 		h := map[string]string{
 			"Content-Type":   "application/json; charset=UTF-8",
-			"Authentication": ctx.Context.Token,
+			"Authorization:": ctx.Context.Token,
 		}
 
 		callPath := helper.FormCall("trace", "list", ctx, q)

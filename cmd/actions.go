@@ -69,7 +69,7 @@ var ActionsGetCmd = &cobra.Command{
 
 		h := map[string]string{
 			"Content-Type":   "application/json; charset=UTF-8",
-			"Authentication": ctx.Context.Token,
+			"Authorization:": ctx.Context.Token,
 		}
 
 		callPath := helper.FormCall("actions", "list", ctx, q)
@@ -112,7 +112,7 @@ var ActionsMutateCmd = &cobra.Command{
 
 			h := map[string]string{
 				"Content-Type":   "application/json; charset=UTF-8",
-				"Authentication": ctx.Context.Token,
+				"Authorization:": ctx.Context.Token,
 			}
 
 			callPath := helper.FormCall("actions", "mutate", ctx, q)

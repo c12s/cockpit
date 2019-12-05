@@ -522,9 +522,10 @@ func PostCallExtractToken(timeout time.Duration, address, data string) (error, s
 }
 
 func Post(timeout time.Duration, address, data string, headers map[string]string) (error, string) {
-	var netClient = &http.Client{
-		Timeout: timeout,
-	}
+	var netClient = newClient(timeout)
+	// var netClient = &http.Client{
+	// 	Timeout: timeout,
+	// }
 
 	req, err := http.NewRequest("POST", address, bytes.NewBuffer([]byte(data)))
 	for k, v := range headers {

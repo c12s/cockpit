@@ -31,11 +31,11 @@ var TraceGetCmd = &cobra.Command{
 
 		q := map[string]string{}
 		q["user"] = ctx.Context.User
-		q["taskId"] = task
+		q["traceId"] = task
 
 		h := map[string]string{
-			"Content-Type":   "application/json; charset=UTF-8",
-			"Authorization:": ctx.Context.Token,
+			"Content-Type":  "application/json; charset=UTF-8",
+			"Authorization": ctx.Context.Token,
 		}
 
 		callPath := helper.FormCall("trace", "get", ctx, q)

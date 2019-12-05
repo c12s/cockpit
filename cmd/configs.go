@@ -46,8 +46,8 @@ var ConfigsGetCmd = &cobra.Command{
 		}
 
 		h := map[string]string{
-			"Content-Type":   "application/json; charset=UTF-8",
-			"Authorization:": ctx.Context.Token,
+			"Content-Type":  "application/json; charset=UTF-8",
+			"Authorization": ctx.Context.Token,
 		}
 
 		callPath := helper.FormCall("configs", "list", ctx, q)
@@ -89,8 +89,8 @@ var ConfigsMutateCmd = &cobra.Command{
 			q["user"] = ctx.Context.User
 
 			h := map[string]string{
-				"Content-Type":   "application/json; charset=UTF-8",
-				"Authorization:": ctx.Context.Token,
+				"Content-Type":  "application/json; charset=UTF-8",
+				"Authorization": ctx.Context.Token,
 			}
 
 			callPath := helper.FormCall("configs", "mutate", ctx, q)

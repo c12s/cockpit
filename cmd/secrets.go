@@ -46,8 +46,8 @@ var SecretsGetCmd = &cobra.Command{
 		}
 
 		h := map[string]string{
-			"Content-Type":   "application/json; charset=UTF-8",
-			"Authorization:": ctx.Context.Token,
+			"Content-Type":  "application/json; charset=UTF-8",
+			"Authorization": ctx.Context.Token,
 		}
 
 		callPath := helper.FormCall("secrets", "list", ctx, q)
@@ -89,8 +89,8 @@ var SecretsMutateCmd = &cobra.Command{
 			q["user"] = ctx.Context.User
 
 			h := map[string]string{
-				"Content-Type":   "application/json; charset=UTF-8",
-				"Authorization:": ctx.Context.Token,
+				"Content-Type":  "application/json; charset=UTF-8",
+				"Authorization": ctx.Context.Token,
 			}
 
 			callPath := helper.FormCall("secrets", "mutate", ctx, q)

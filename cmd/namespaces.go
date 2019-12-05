@@ -54,8 +54,8 @@ var NamespacesGetCmd = &cobra.Command{
 		}
 
 		h := map[string]string{
-			"Content-Type":   "application/json; charset=UTF-8",
-			"Authorization:": ctx.Context.Token,
+			"Content-Type":  "application/json; charset=UTF-8",
+			"Authorization": ctx.Context.Token,
 		}
 
 		callPath := helper.FormCall("namespaces", "list", ctx, q)
@@ -101,8 +101,8 @@ var NamespacesMutateCmd = &cobra.Command{
 			q["user"] = ctx.Context.User
 
 			h := map[string]string{
-				"Content-Type":   "application/json; charset=UTF-8",
-				"Authorization:": ctx.Context.Token,
+				"Content-Type":  "application/json; charset=UTF-8",
+				"Authorization": ctx.Context.Token,
 			}
 
 			callPath := helper.FormCall("namespaces", "mutate", ctx, q)

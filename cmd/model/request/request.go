@@ -107,7 +107,7 @@ type Credentials struct {
 type SpanContext struct {
 	TraceId       string            `json:"traceId"`
 	SpanId        string            `json:"spanId"`
-	ParrentSpanId string            `json:"spanId"`
+	ParrentSpanId string            `json:"parrentSpanId"`
 	Baggage       map[string]string `json:"baggage"`
 }
 

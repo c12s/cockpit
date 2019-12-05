@@ -17,6 +17,19 @@ import (
 	"time"
 )
 
+func checkRedirectFunc(req *http.Request, via []*http.Request) error {
+	req.Header.Add("Authorization", via[0].Header.Get("Authorization"))
+	return nil
+}
+
+func newClient(t time.Duration) *http.Client {
+	var netClient = &http.Client{
+		Timeout:       t,
+		CheckRedirect: checkRedirectFunc,
+	}
+	return netClient
+}
+
 func FormCall(artifact, path string, c *model.CContext, query map[string]string) string {
 	s := []string{"http:/", c.Context.Address, "api", c.Context.Version, artifact, path}
 	pathSegment := strings.Join(s, "/")
@@ -68,9 +81,7 @@ func Get(timeout time.Duration, url string, h map[string]string) (error, interfa
 }
 
 func GetListTraceJson(timeout time.Duration, url string, h map[string]string) (error, *request.Traces) {
-	var netClient = &http.Client{
-		Timeout: timeout,
-	}
+	var netClient = newClient(timeout)
 	req, err := http.NewRequest("GET", url, nil)
 	for k, v := range h {
 		req.Header.Set(k, v)
@@ -106,9 +117,7 @@ func GetListTraceJson(timeout time.Duration, url string, h map[string]string) (e
 }
 
 func GetTraceJson(timeout time.Duration, url string, h map[string]string) (error, *request.Trace) {
-	var netClient = &http.Client{
-		Timeout: timeout,
-	}
+	var netClient = newClient(timeout)
 	req, err := http.NewRequest("GET", url, nil)
 	for k, v := range h {
 		req.Header.Set(k, v)
@@ -125,6 +134,10 @@ func GetTraceJson(timeout time.Duration, url string, h map[string]string) (error
 	}
 	rsp := string(body)
 	if resp.StatusCode == http.StatusOK {
+		rsp = strings.Replace(rsp, "\\", "", -1)
+		rsp = strings.TrimSuffix(rsp, "\"")
+		rsp = strings.TrimPrefix(rsp, "\"")
+
 		s := &request.Trace{}
 		err = json.Unmarshal([]byte(rsp), &s)
 		if err != nil {
@@ -144,9 +157,7 @@ func GetTraceJson(timeout time.Duration, url string, h map[string]string) (error
 }
 
 func GetNSJson(timeout time.Duration, url string, h map[string]string) (error, *request.NSResponse) {
-	var netClient = &http.Client{
-		Timeout: timeout,
-	}
+	var netClient = newClient(timeout)
 	req, err := http.NewRequest("GET", url, nil)
 	for k, v := range h {
 		req.Header.Set(k, v)
@@ -187,9 +198,10 @@ func GetNSJson(timeout time.Duration, url string, h map[string]string) (error, *
 }
 
 func GetConfigsJson(timeout time.Duration, url string, h map[string]string) (error, *request.ConfigResponse) {
-	var netClient = &http.Client{
-		Timeout: timeout,
-	}
+	var netClient = newClient(timeout)
+	// var netClient = &http.Client{
+	// 	Timeout: timeout,
+	// }
 	req, err := http.NewRequest("GET", url, nil)
 	for k, v := range h {
 		req.Header.Set(k, v)
@@ -230,9 +242,10 @@ func GetConfigsJson(timeout time.Duration, url string, h map[string]string) (err
 }
 
 func GetActionsJson(timeout time.Duration, url string, h map[string]string) (error, *request.ActionsResponse) {
-	var netClient = &http.Client{
-		Timeout: timeout,
-	}
+	var netClient = newClient(timeout)
+	// var netClient = &http.Client{
+	// 	Timeout: timeout,
+	// }
 	req, err := http.NewRequest("GET", url, nil)
 	for k, v := range h {
 		req.Header.Set(k, v)
@@ -273,9 +286,10 @@ func GetActionsJson(timeout time.Duration, url string, h map[string]string) (err
 }
 
 func GetSecretsJson(timeout time.Duration, url string, h map[string]string) (error, *request.SecretsResponse) {
-	var netClient = &http.Client{
-		Timeout: timeout,
-	}
+	var netClient = newClient(timeout)
+	// var netClient = &http.Client{
+	// 	Timeout: timeout,
+	// }
 	req, err := http.NewRequest("GET", url, nil)
 	for k, v := range h {
 		req.Header.Set(k, v)

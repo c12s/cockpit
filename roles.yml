@@ -1,0 +1,12 @@
+constellations:
+  version: v1
+  kind: Roles # May be [Roles]
+  metadata:
+    namespace: default
+    taskName: my_tas
+    queue: myqueue2
+    forceNamespaceQueue: false
+  rules: # May contains [labels and namespace with name]
+   user: username
+   resources: ["configs"] # May be Configs, Secrets, Actions, Namespaces, Roles
+   verbs: ["mutate", "list"] # May be mutate, list

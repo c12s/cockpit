@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/user"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"text/tabwriter"
 	"time"
@@ -64,20 +65,63 @@ func GetContext() (error, *model.CContext) {
 }
 
 func Get(timeout time.Duration, url string, h map[string]string) (error, interface{}) {
-	if strings.Contains(url, "namespaces") {
+	if strings.Contains(url, "/namespaces") {
 		return GetNSJson(timeout, url, h)
-	} else if strings.Contains(url, "configs") {
+	} else if strings.Contains(url, "/configs") {
 		return GetConfigsJson(timeout, url, h)
-	} else if strings.Contains(url, "secrets") {
+	} else if strings.Contains(url, "/secrets") {
 		return GetSecretsJson(timeout, url, h)
-	} else if strings.Contains(url, "actions") {
+	} else if strings.Contains(url, "/actions") {
 		return GetActionsJson(timeout, url, h)
-	} else if strings.Contains(url, "trace/get") {
+	} else if strings.Contains(url, "/trace/get") {
 		return GetTraceJson(timeout, url, h)
-	} else if strings.Contains(url, "trace/list") {
+	} else if strings.Contains(url, "/trace/list") {
 		return GetListTraceJson(timeout, url, h)
+	} else if strings.Contains(url, "/roles") {
+		return GetRolesJson(timeout, url, h)
 	}
 	return errors.New("undefined kind"), nil
+}
+
+func GetRolesJson(timeout time.Duration, url string, h map[string]string) (error, *request.RolesResponse) {
+	var netClient = newClient(timeout)
+	req, err := http.NewRequest("GET", url, nil)
+	for k, v := range h {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := netClient.Do(req)
+	if err != nil {
+		return err, nil
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err, nil
+	}
+	rsp := string(body)
+
+	if resp.StatusCode == http.StatusOK {
+		rsp = strings.Replace(rsp, "\\", "", -1)
+		rsp = strings.TrimSuffix(rsp, "\"")
+		rsp = strings.TrimPrefix(rsp, "\"")
+
+		s := &request.RolesResponse{}
+		err = json.Unmarshal([]byte(rsp), &s)
+		if err != nil {
+			return err, nil
+		}
+		return nil, s
+	}
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
+	return nil, nil
 }
 
 func GetListTraceJson(timeout time.Duration, url string, h map[string]string) (error, *request.Traces) {
@@ -354,7 +398,42 @@ func Print(kind string, data interface{}) {
 		if data.(*request.Traces) != nil {
 			TracesPrint(data.(*request.Traces))
 		}
+	} else if kind == "roles" {
+		if data.(*request.RolesResponse) != nil {
+			RolesPrint(data.(*request.RolesResponse))
+		}
 	}
+}
+
+func RolesPrint(resp *request.RolesResponse) {
+	if len(resp.Result) > 0 {
+		// initialize tabwriter
+		w := new(tabwriter.Writer)
+		// minwidth, tabwidth, padding, padchar, flags
+		w.Init(os.Stdout, 0, 8, 1, '\t', 0)
+		defer w.Flush()
+
+		fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t%s\t", "Username", "Namespace", "Resource", "Actions", "Age")
+		fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t%s\t", "--------", "---------", "--------", "-------", "-------")
+		for key, rez := range resp.Result {
+			dt := strings.Split(key, ":")
+			fmt.Fprintf(w, "\n %s\t%s\t%s\t%s\t%s\t", dt[0], dt[1], dt[2], rez, age(dt[3]))
+		}
+		fmt.Fprintf(w, "\n")
+	} else {
+		fmt.Println("No results")
+	}
+}
+
+func age(n string) string {
+	i, err := strconv.ParseInt(n, 10, 64)
+	if err != nil {
+		return "n/a"
+	}
+
+	t1 := time.Unix(0, i)
+	t2 := time.Unix(0, time.Now().UnixNano())
+	return t2.Sub(t1).String()
 }
 
 func TracePrint(data *request.Trace) {

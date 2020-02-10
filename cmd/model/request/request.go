@@ -66,6 +66,24 @@ type NSData struct {
 	Namespace string `json:"namespace"`
 }
 
+type RMutateRequest struct {
+	Version string   `json:"version"`
+	Request string   `json:"request"`
+	Kind    string   `json:"kind"`
+	MTData  Metadata `json:"metadata"`
+	Payload Rules    `json:"rules"`
+}
+
+type Rules struct {
+	User      string   `json:"user"`
+	Resources []string `json:"resources"`
+	Verbs     []string `json:"verbs"`
+}
+
+type RolesResponse struct {
+	Result map[string]string `json:"data"`
+}
+
 type ConfigResponse struct {
 	Result []ConfigData `json:"data"`
 }

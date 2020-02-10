@@ -146,6 +146,18 @@ func namespaces(file *model.NMutateFile) (error, string) {
 	}
 }
 
+func roles(file *model.RolesFile) (error, string) {
+	if file.Content.Payload.User == "" {
+		return errors.New("Error: Username must be provided, for Role artifact!"), ""
+	} else {
+		data, err := helper.FileToJSON(&file.Content)
+		if err != nil {
+			return err, ""
+		}
+		return nil, data
+	}
+}
+
 func mutateFile(n ...string) (*model.MutateFile, error) {
 	path := ""
 	if len(n) > 0 {
@@ -178,6 +190,26 @@ func mutateNFile(n ...string) (*model.NMutateFile, error) {
 	}
 
 	var f model.NMutateFile
+	err = yaml.Unmarshal(yamlFile, &f)
+	if err != nil {
+		return nil, err
+	}
+
+	return &f, nil
+}
+
+func mutateRolesFile(n ...string) (*model.RolesFile, error) {
+	path := ""
+	if len(n) > 0 {
+		path = n[0]
+	}
+
+	yamlFile, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var f model.RolesFile
 	err = yaml.Unmarshal(yamlFile, &f)
 	if err != nil {
 		return nil, err

@@ -9,25 +9,24 @@ import (
 	"time"
 )
 
-var NamespacesCmd = &cobra.Command{
-	Use:   "namespaces",
-	Short: "Get the namespaces from the system",
+var RolesCmd = &cobra.Command{
+	Use:   "roles",
+	Short: "Get the roles from the system",
 	Long:  "change all data inside regions, clusters and nodes",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Please provide some of avalible commands or type help for help")
 	},
 }
-
-var NamespacesGetCmd = &cobra.Command{
+var RolesGetCmd = &cobra.Command{
 	Use:   "list",
-	Short: "Get the namespaces from the system",
+	Short: "Get the roles from the system",
 	Long:  "change all data inside regions, clusters and nodes",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		labels := cmd.Flag("labels").Value.String()
-		compare := cmd.Flag("compare").Value.String()
-		name := cmd.Flag("name").Value.String()
+		users := cmd.Flag("users").Value.String()
+		resources := cmd.Flag("resources").Value.String()
+		namespaces := cmd.Flag("namespaces").Value.String()
 
 		q := map[string]string{}
 		err, ctx := helper.GetContext()
@@ -36,56 +35,38 @@ var NamespacesGetCmd = &cobra.Command{
 			return
 		}
 		q["user"] = ctx.Context.User
-
-		if labels != "" {
-			q["labels"] = labels
-
-		}
-
-		if labels != "" && compare == "" {
-			q["compare"] = "any"
-		} else if labels != "" && compare != "" {
-			q["compare"] = compare
-		}
-
-		if name != "" {
-			q["name"] = name
-
-		}
+		q["users"] = users
+		q["resources"] = resources
+		q["namespaces"] = namespaces
 
 		h := map[string]string{
 			"Content-Type":  "application/json; charset=UTF-8",
 			"Authorization": ctx.Context.Token,
 		}
 
-		callPath := helper.FormCall("namespaces", "list", ctx, q)
+		callPath := helper.FormCall("roles", "list", ctx, q)
 		err1, resp := helper.Get(10*time.Second, callPath, h)
 		if err1 != nil {
-			fmt.Println(err1)
+			fmt.Println("ERROR: ", err1)
 			return
 		}
-		helper.Print("namespaces", resp)
+		helper.Print("roles", resp)
 	},
 }
-
-type Rez struct {
-	Rez map[string]map[string]string `json:"rez"`
-}
-
-var NamespacesMutateCmd = &cobra.Command{
+var RolesMutateCmd = &cobra.Command{
 	Use:   "mutate",
-	Short: "Mutate state of the namespaces for the system",
+	Short: "Mutate state of the roles for the system",
 	Long:  "change all data inside regions, clusters and nodes",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
 		file := cmd.Flag("file").Value.String()
 		if _, err := os.Stat(file); err == nil {
-			f, err := mutateNFile(file)
+			f, err := mutateRolesFile(file)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
 
-			err2, data := namespaces(f)
+			err2, data := roles(f)
 			if err2 != nil {
 				fmt.Println(err)
 				return
@@ -105,7 +86,7 @@ var NamespacesMutateCmd = &cobra.Command{
 				"Authorization": ctx.Context.Token,
 			}
 
-			callPath := helper.FormCall("namespaces", "mutate", ctx, q)
+			callPath := helper.FormCall("roles", "mutate", ctx, q)
 			err4, resp := helper.Post(10*time.Second, callPath, data, h)
 			if err4 != nil {
 				fmt.Println(err4)

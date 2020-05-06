@@ -11,11 +11,14 @@ func init() {
 	ActionsMutateCmd.Flags().StringP("file", "f", "", "mutate region, cluster, nod and/or job with new actions provided in yml file")
 	NamespacesMutateCmd.Flags().StringP("file", "f", "", "mutate system with new namespace provided in yml file")
 	RolesMutateCmd.Flags().StringP("file", "f", "", "mutate system with new roles provided in yml file")
+	RegisterCmd.Flags().StringP("file", "f", "", "mutate system with new user provided in yml file")
 
 	LoginCmd.Flags().StringP("username", "u", "", "provide username to login to system")
 	LoginCmd.Flags().StringP("password", "p", "", "provide password to login to system")
 	InitCmd.Flags().StringP("address", "a", "", "provide service ip address, so CLI can comunicate with rest of the system")
 	InitCmd.Flags().StringP("version", "v", "", "provide service version, so CLI can comunicate with rest of the system [default v1]")
+	SwitchCmd.Flags().StringP("namespace", "n", "", "switch namespace")
+	SwitchCmd.Flags().BoolP("context", "c", false, "switch context")
 
 	ConfigsGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for configs selection. [k1:v1,k2:v2,...]")
 	ConfigsGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting configs [any | all]")
@@ -64,6 +67,8 @@ func init() {
 	ContextCmd.AddCommand(LoginCmd)
 	ContextCmd.AddCommand(LogoutCmd)
 	ContextCmd.AddCommand(DropCmd)
+	ContextCmd.AddCommand(RegisterCmd)
+	ContextCmd.AddCommand(SwitchCmd)
 	RootCmd.AddCommand(ContextCmd)
 
 	RolesCmd.AddCommand(RolesGetCmd)

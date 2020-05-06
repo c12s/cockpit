@@ -37,6 +37,7 @@ var ActionsGetCmd = &cobra.Command{
 			return
 		}
 		q["user"] = ctx.Context.User
+		q["namespace"] = ctx.Context.Namespace
 
 		if labels != "" {
 			q["labels"] = labels
@@ -109,6 +110,7 @@ var ActionsMutateCmd = &cobra.Command{
 
 			q := map[string]string{}
 			q["user"] = ctx.Context.User
+			q["namespace"] = ctx.Context.Namespace
 
 			h := map[string]string{
 				"Content-Type":  "application/json; charset=UTF-8",

@@ -68,6 +68,38 @@ func setContext(path, address, version, user, token string) error {
 	return nil
 }
 
+func updateContext(path, address, version, namespace, user, token string) error {
+	filename := filepath.Join(path, "context.yml")
+	file, err := os.Create(filename)
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+
+	var v = "v1"
+	if len(version) > 0 {
+		v = version
+	}
+
+	c := &model.CContext{
+		Context: &model.Content{
+			Version:   v,
+			Address:   address,
+			Namespace: namespace,
+			User:      user,
+			Token:     token,
+		},
+	}
+
+	nerr, data := model.Marshall(c)
+	if nerr != nil {
+		return nerr
+	}
+	fmt.Fprintf(file, data)
+
+	return nil
+}
+
 func initContext(path, address, version string) error {
 	filename := filepath.Join(path, "context.yml")
 	file, err := os.Create(filename)
@@ -123,7 +155,9 @@ var InitCmd = &cobra.Command{
 			fmt.Println(err)
 			return
 		}
-		fmt.Printf("Empty context initialized in %s. run 'cockpit context login -u your_username -p your_password'\n", contextPath)
+		fmt.Printf("Empty context initialized in %s.\n", contextPath)
+		fmt.Println("Run 'cockpit context register -f your_file.yml' to register")
+		fmt.Println("Run 'cockpit context login -u your_username -p your_password' to login")
 		err = createDir(contextPath)
 		if err != nil {
 			fmt.Println(err)
@@ -194,6 +228,47 @@ var LogoutCmd = &cobra.Command{
 	},
 }
 
+var RegisterCmd = &cobra.Command{
+	Use:   "register",
+	Short: "Register new user to the system",
+	Long:  "Create new user to the platform and create default namespace for him",
+	Args:  cobra.NoArgs,
+	Run: func(cmd *cobra.Command, args []string) {
+		file := cmd.Flag("file").Value.String()
+		if _, err := os.Stat(file); err == nil {
+			f, err := mutateNFile(file)
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+
+			err, ctx := helper.GetContext()
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			err, data := users(f)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+
+			h := map[string]string{
+				"Content-Type": "application/json; charset=UTF-8",
+			}
+
+			callPath := helper.FormCall("auth", "register", ctx, map[string]string{})
+			err, resp := helper.Post(10*time.Second, callPath, data, h)
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(resp)
+		}
+	},
+}
+
 func drop(dir string) error {
 	d, err := os.Open(dir)
 	if err != nil {
@@ -235,5 +310,39 @@ var DropCmd = &cobra.Command{
 			fmt.Println(err)
 		}
 		fmt.Println("Current context dropped!")
+	},
+}
+
+var SwitchCmd = &cobra.Command{
+	Use:   "switch",
+	Short: "Switch namespace or context used",
+	Long:  "Switch used context or namespace that is currently in use",
+	Args:  cobra.NoArgs,
+	Run: func(cmd *cobra.Command, args []string) {
+		ns := cmd.Flag("namespace").Value.String()
+		c, _ := cmd.Flags().GetBool("context")
+
+		path, err := getContextPath()
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+
+		err, ctx := helper.GetContext()
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		if c {
+			fmt.Println("Switch context not implemented yet")
+		} else {
+			fmt.Println("Switch namespace, new one is", ns)
+			err = updateContext(path, ctx.Address(), ctx.Version(), ns, ctx.User(), ctx.Token())
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+		}
 	},
 }

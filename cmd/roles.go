@@ -28,13 +28,15 @@ var RolesGetCmd = &cobra.Command{
 		resources := cmd.Flag("resources").Value.String()
 		namespaces := cmd.Flag("namespaces").Value.String()
 
-		q := map[string]string{}
 		err, ctx := helper.GetContext()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
+
+		q := map[string]string{}
 		q["user"] = ctx.Context.User
+		q["namespace"] = ctx.Context.Namespace
 		q["users"] = users
 		q["resources"] = resources
 		q["namespaces"] = namespaces
@@ -80,6 +82,7 @@ var RolesMutateCmd = &cobra.Command{
 
 			q := map[string]string{}
 			q["user"] = ctx.Context.User
+			q["namespace"] = ctx.Context.Namespace
 
 			h := map[string]string{
 				"Content-Type":  "application/json; charset=UTF-8",

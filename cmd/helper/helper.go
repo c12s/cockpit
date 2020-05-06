@@ -223,6 +223,24 @@ func convertRoleFile(file *model.Roles) (*request.RMutateRequest, error) {
 	}, nil
 }
 
+func convertUFile(file *model.NConstellations) (*request.UMutateRequest, error) {
+	metadata := request.Metadata{
+		TaskName:     file.MTData.TaskName,
+		Timestamp:    timestamp(),
+		Namespace:    file.MTData.Namespace,
+		ForceNSQueue: file.MTData.ForceNSQueue,
+		Queue:        file.MTData.Queue,
+	}
+
+	return &request.UMutateRequest{
+		Version: file.Version,
+		Info:    file.Payload["info"],
+		Labels:  file.Payload[LABELS],
+		Kind:    USERS,
+		MTData:  metadata,
+	}, nil
+}
+
 func FileToJSON(file interface{}) (string, error) {
 	switch v := file.(type) {
 	case *model.Constellations:
@@ -237,7 +255,20 @@ func FileToJSON(file interface{}) (string, error) {
 		}
 		return string(dat), nil
 	case *model.NConstellations:
-		data, err1 := convertNFile(v)
+		if v.Kind == "Namespaces" {
+			data, err1 := convertNFile(v)
+			if err1 != nil {
+				return "", err1
+			}
+
+			dat, err := json.Marshal(data)
+			if err != nil {
+				return "", err
+			}
+			return string(dat), nil
+		}
+
+		data, err1 := convertUFile(v)
 		if err1 != nil {
 			return "", err1
 		}

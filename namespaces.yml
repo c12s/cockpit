@@ -8,7 +8,7 @@ constellations:
     forceNamespaceQueue: false
   payload: # May contains [labels and namespace with name]
     namespace:
-      name: my_namespace2
+      name: user30namespace
     labels:
       l1: v1
       l2: v2

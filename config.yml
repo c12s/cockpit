@@ -25,7 +25,7 @@ constellations:
     labels:
       l1: v1
       l2: v2
-      l3: v3
+      l3: v3  
     compare:
       kind: all # May be [all | any] 
   # region:

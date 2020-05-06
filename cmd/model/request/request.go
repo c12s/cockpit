@@ -55,6 +55,15 @@ type NMutateRequest struct {
 	Labels  map[string]string `json:"labels"`
 }
 
+type UMutateRequest struct {
+	Version string            `json:"version"`
+	Request string            `json:"request"`
+	Kind    string            `json:"kind"`
+	MTData  Metadata          `json:"metadata"`
+	Labels  map[string]string `json:"labels"`
+	Info    map[string]string `json:"info"`
+}
+
 type NSResponse struct {
 	Result []NSData `json:"data"`
 }

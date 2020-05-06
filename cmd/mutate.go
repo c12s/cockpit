@@ -146,6 +146,18 @@ func namespaces(file *model.NMutateFile) (error, string) {
 	}
 }
 
+func users(file *model.NMutateFile) (error, string) {
+	if len(file.Content.Payload) == 0 {
+		return errors.New("Error: USername and password must be provided"), ""
+	} else {
+		data, err := helper.FileToJSON(&file.Content)
+		if err != nil {
+			return err, ""
+		}
+		return nil, data
+	}
+}
+
 func roles(file *model.RolesFile) (error, string) {
 	if file.Content.Payload.User == "" {
 		return errors.New("Error: Username must be provided, for Role artifact!"), ""

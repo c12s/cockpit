@@ -25,6 +25,14 @@ func (c *CContext) Version() string {
 	return c.Context.Version
 }
 
+func (c *CContext) User() string {
+	return c.Context.User
+}
+
+func (c *CContext) Token() string {
+	return c.Context.Token
+}
+
 func Marshall(c *CContext) (error, string) {
 	d, err := yaml.Marshal(c)
 	if err != nil {

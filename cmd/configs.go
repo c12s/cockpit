@@ -26,13 +26,15 @@ var ConfigsGetCmd = &cobra.Command{
 		labels := cmd.Flag("labels").Value.String()
 		compare := cmd.Flag("compare").Value.String()
 
-		q := map[string]string{}
 		err, ctx := helper.GetContext()
 		if err != nil {
 			fmt.Println(err)
 			return
 		}
+
+		q := map[string]string{}
 		q["user"] = ctx.Context.User
+		q["namespace"] = ctx.Context.Namespace
 
 		if labels != "" {
 			q["labels"] = labels
@@ -51,6 +53,7 @@ var ConfigsGetCmd = &cobra.Command{
 		}
 
 		callPath := helper.FormCall("configs", "list", ctx, q)
+		fmt.Println(callPath)
 		err1, resp := helper.Get(10*time.Second, callPath, h)
 		if err1 != nil {
 			fmt.Println(err1)
@@ -87,6 +90,7 @@ var ConfigsMutateCmd = &cobra.Command{
 
 			q := map[string]string{}
 			q["user"] = ctx.Context.User
+			q["namespace"] = ctx.Context.Namespace
 
 			h := map[string]string{
 				"Content-Type":  "application/json; charset=UTF-8",

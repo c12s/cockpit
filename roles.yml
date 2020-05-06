@@ -7,6 +7,6 @@ constellations:
     queue: myqueue2
     forceNamespaceQueue: false
   rules: # May contains [labels and namespace with name]
-   user: username
-   resources: ["configs"] # May be Configs, Secrets, Actions, Namespaces, Roles
-   verbs: ["mutate", "list"] # May be mutate, list
+   user: user30
+   resources: ["configs", "actions", "namespaces", "roles", "secrets"] # May be configs, secrets, actions, namespaces, roles, queue, push
+   verbs: ["mutate", "list"] # May be mutate, list, real_queue_name, push_strategy_name

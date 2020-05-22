@@ -10,11 +10,15 @@ func init() {
 	SecretsMutateCmd.Flags().StringP("file", "f", "", "mutate region, cluster, nod and/or job with new secrets provided in yml file")
 	ActionsMutateCmd.Flags().StringP("file", "f", "", "mutate region, cluster, nod and/or job with new actions provided in yml file")
 	NamespacesMutateCmd.Flags().StringP("file", "f", "", "mutate system with new namespace provided in yml file")
+	RolesMutateCmd.Flags().StringP("file", "f", "", "mutate system with new roles provided in yml file")
+	RegisterCmd.Flags().StringP("file", "f", "", "mutate system with new user provided in yml file")
 
 	LoginCmd.Flags().StringP("username", "u", "", "provide username to login to system")
 	LoginCmd.Flags().StringP("password", "p", "", "provide password to login to system")
 	InitCmd.Flags().StringP("address", "a", "", "provide service ip address, so CLI can comunicate with rest of the system")
 	InitCmd.Flags().StringP("version", "v", "", "provide service version, so CLI can comunicate with rest of the system [default v1]")
+	SwitchCmd.Flags().StringP("namespace", "n", "", "switch namespace")
+	SwitchCmd.Flags().BoolP("context", "c", false, "switch context")
 
 	ConfigsGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for configs selection. [k1:v1,k2:v2,...]")
 	ConfigsGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting configs [any | all]")
@@ -32,6 +36,9 @@ func init() {
 	NamespacesGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for namespaces selection. [k1:v1,k2:v2,...]")
 	NamespacesGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting namespaces [any | all]")
 	NamespacesGetCmd.Flags().StringP("name", "n", "", "name, when selecting namespaces")
+	RolesGetCmd.Flags().StringP("users", "u", "", "list of usernames separated with comma. [john,doe,...]")
+	RolesGetCmd.Flags().StringP("resources", "r", "", "list of resources separated with comma. [configs,actions,...]")
+	RolesGetCmd.Flags().StringP("namespaces", "n", "", "list of namespaces separated with comma. [configs,actions,...]")
 
 	TraceListCmd.Flags().StringP("tags", "a", "", "list of key-value pairs for tags selection. [k1:v1,k2:v2,...]")
 	TraceGetCmd.Flags().StringP("task", "t", "", "trace id to get complate trace")
@@ -60,7 +67,13 @@ func init() {
 	ContextCmd.AddCommand(LoginCmd)
 	ContextCmd.AddCommand(LogoutCmd)
 	ContextCmd.AddCommand(DropCmd)
+	ContextCmd.AddCommand(RegisterCmd)
+	ContextCmd.AddCommand(SwitchCmd)
 	RootCmd.AddCommand(ContextCmd)
+
+	RolesCmd.AddCommand(RolesGetCmd)
+	RolesCmd.AddCommand(RolesMutateCmd)
+	RootCmd.AddCommand(RolesCmd)
 }
 
 var RootCmd = &cobra.Command{

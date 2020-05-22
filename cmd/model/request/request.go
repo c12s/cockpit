@@ -55,6 +55,15 @@ type NMutateRequest struct {
 	Labels  map[string]string `json:"labels"`
 }
 
+type UMutateRequest struct {
+	Version string            `json:"version"`
+	Request string            `json:"request"`
+	Kind    string            `json:"kind"`
+	MTData  Metadata          `json:"metadata"`
+	Labels  map[string]string `json:"labels"`
+	Info    map[string]string `json:"info"`
+}
+
 type NSResponse struct {
 	Result []NSData `json:"data"`
 }
@@ -64,6 +73,24 @@ type NSData struct {
 	Labels    string `json:"labels"`
 	Name      string `json:"name"`
 	Namespace string `json:"namespace"`
+}
+
+type RMutateRequest struct {
+	Version string   `json:"version"`
+	Request string   `json:"request"`
+	Kind    string   `json:"kind"`
+	MTData  Metadata `json:"metadata"`
+	Payload Rules    `json:"rules"`
+}
+
+type Rules struct {
+	User      string   `json:"user"`
+	Resources []string `json:"resources"`
+	Verbs     []string `json:"verbs"`
+}
+
+type RolesResponse struct {
+	Result map[string]string `json:"data"`
 }
 
 type ConfigResponse struct {

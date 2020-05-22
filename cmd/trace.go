@@ -31,6 +31,7 @@ var TraceGetCmd = &cobra.Command{
 
 		q := map[string]string{}
 		q["user"] = ctx.Context.User
+		q["namespace"] = ctx.Context.Namespace
 		q["traceId"] = task
 
 		h := map[string]string{
@@ -62,6 +63,7 @@ var TraceListCmd = &cobra.Command{
 
 		q := map[string]string{}
 		q["user"] = ctx.Context.User
+		q["namespace"] = ctx.Context.Namespace
 		q["tags"] = tags
 
 		h := map[string]string{

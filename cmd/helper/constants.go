@@ -8,6 +8,8 @@ const (
 	SECRETS    = "Secrets"
 	CONFIGS    = "Configs"
 	NAMESPACES = "Namespaces"
+	ROLES      = "Roles"
+	USERS      = "users"
 
 	ENV      = "env"
 	FILES    = "files"

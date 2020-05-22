@@ -194,6 +194,53 @@ func convertNFile(file *model.NConstellations) (*request.NMutateRequest, error) 
 	}, nil
 }
 
+func convertRoleFile(file *model.Roles) (*request.RMutateRequest, error) {
+	err, ctx := GetContext()
+	if err != nil {
+		return nil, err
+	}
+
+	if ctx.Context.User == "" {
+		return nil, errors.New("Please login to continue")
+	}
+
+	return &request.RMutateRequest{
+		Version: file.Version,
+		Request: ctx.Context.User, // user who sent request
+		Kind:    ROLES,
+		MTData: request.Metadata{
+			TaskName:     file.MTData.TaskName,
+			Timestamp:    timestamp(),
+			Namespace:    file.MTData.Namespace,
+			ForceNSQueue: file.MTData.ForceNSQueue,
+			Queue:        file.MTData.Queue,
+		},
+		Payload: request.Rules{
+			User:      file.Payload.User, // user to change rules for
+			Resources: file.Payload.Resources,
+			Verbs:     file.Payload.Verbs,
+		},
+	}, nil
+}
+
+func convertUFile(file *model.NConstellations) (*request.UMutateRequest, error) {
+	metadata := request.Metadata{
+		TaskName:     file.MTData.TaskName,
+		Timestamp:    timestamp(),
+		Namespace:    file.MTData.Namespace,
+		ForceNSQueue: file.MTData.ForceNSQueue,
+		Queue:        file.MTData.Queue,
+	}
+
+	return &request.UMutateRequest{
+		Version: file.Version,
+		Info:    file.Payload["info"],
+		Labels:  file.Payload[LABELS],
+		Kind:    USERS,
+		MTData:  metadata,
+	}, nil
+}
+
 func FileToJSON(file interface{}) (string, error) {
 	switch v := file.(type) {
 	case *model.Constellations:
@@ -206,10 +253,33 @@ func FileToJSON(file interface{}) (string, error) {
 		if err != nil {
 			return "", err
 		}
-
 		return string(dat), nil
 	case *model.NConstellations:
-		data, err1 := convertNFile(v)
+		if v.Kind == "Namespaces" {
+			data, err1 := convertNFile(v)
+			if err1 != nil {
+				return "", err1
+			}
+
+			dat, err := json.Marshal(data)
+			if err != nil {
+				return "", err
+			}
+			return string(dat), nil
+		}
+
+		data, err1 := convertUFile(v)
+		if err1 != nil {
+			return "", err1
+		}
+
+		dat, err := json.Marshal(data)
+		if err != nil {
+			return "", err
+		}
+		return string(dat), nil
+	case *model.Roles:
+		data, err1 := convertRoleFile(v)
 		if err1 != nil {
 			return "", err1
 		}

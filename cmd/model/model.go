@@ -56,3 +56,20 @@ type Strategy struct {
 	Interval string            `yaml:"interval"`
 	Retry    map[string]string `yaml:"retry"`
 }
+
+type RolesFile struct {
+	Content Roles `yaml:"constellations"`
+}
+
+type Roles struct {
+	Version string   `yaml:"version"`
+	Kind    string   `yaml:"kind"`
+	MTData  Metadata `yaml:"metadata"`
+	Payload Rules    `yaml:"rules"`
+}
+
+type Rules struct {
+	User      string   `yaml:"user"`
+	Resources []string `yaml:"resources"`
+	Verbs     []string `yaml:"verbs"`
+}

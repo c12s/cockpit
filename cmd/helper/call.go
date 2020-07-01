@@ -79,8 +79,51 @@ func Get(timeout time.Duration, url string, h map[string]string) (error, interfa
 		return GetListTraceJson(timeout, url, h)
 	} else if strings.Contains(url, "/roles") {
 		return GetRolesJson(timeout, url, h)
+	} else if strings.Contains(url, "/nodes") {
+		return GetNodesJson(timeout, url, h)
 	}
 	return errors.New("undefined kind"), nil
+}
+
+func GetNodesJson(timeout time.Duration, url string, h map[string]string) (error, *request.NodesResponse) {
+	var netClient = newClient(timeout)
+	req, err := http.NewRequest("GET", url, nil)
+	for k, v := range h {
+		req.Header.Set(k, v)
+	}
+
+	resp, err := netClient.Do(req)
+	if err != nil {
+		return err, nil
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err, nil
+	}
+	rsp := string(body)
+
+	if resp.StatusCode == http.StatusOK {
+		rsp = strings.Replace(rsp, "\\", "", -1)
+		rsp = strings.TrimSuffix(rsp, "\"")
+		rsp = strings.TrimPrefix(rsp, "\"")
+
+		s := &request.NodesResponse{}
+		err = json.Unmarshal([]byte(rsp), &s)
+		if err != nil {
+			return err, nil
+		}
+		return nil, s
+	}
+
+	var s map[string]string
+	err = json.Unmarshal([]byte(rsp), &s)
+	if err != nil {
+		return err, nil
+	}
+
+	fmt.Println(fmt.Sprintf("Statuss code: %d Message: %s", resp.StatusCode, s["message"]))
+	return nil, nil
 }
 
 func GetRolesJson(timeout time.Duration, url string, h map[string]string) (error, *request.RolesResponse) {
@@ -402,6 +445,37 @@ func Print(kind string, data interface{}) {
 		if data.(*request.RolesResponse) != nil {
 			RolesPrint(data.(*request.RolesResponse))
 		}
+	} else if kind == "nodes" {
+		if data.(*request.NodesResponse) != nil {
+			NodesPrint(data.(*request.NodesResponse))
+		}
+	}
+}
+
+func joinLabels(l map[string]string) string {
+	tmp := []string{}
+	for k, v := range l {
+		tmp = append(tmp, strings.Join([]string{k, v}, ":"))
+	}
+	return strings.Join(tmp, ",")
+}
+
+func NodesPrint(resp *request.NodesResponse) {
+	if len(resp.Data) > 0 {
+		// initialize tabwriter
+		w := new(tabwriter.Writer)
+		// minwidth, tabwidth, padding, padchar, flags
+		w.Init(os.Stdout, 0, 8, 1, '\t', 0)
+		defer w.Flush()
+
+		fmt.Fprintf(w, "\n %s\t%s\t", "ID", "Labels")
+		fmt.Fprintf(w, "\n %s\t%s\t", "--------", "---------")
+		for _, rez := range resp.Data {
+			fmt.Fprintf(w, "\n %s\t%s\t", rez.ID, joinLabels(rez.Labels))
+		}
+		fmt.Fprintf(w, "\n")
+	} else {
+		fmt.Println("No results")
 	}
 }
 

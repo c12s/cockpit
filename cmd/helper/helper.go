@@ -162,6 +162,15 @@ func convertFile(file *model.Constellations) (*request.MutateRequest, error) {
 }
 
 func convertNFile(file *model.NConstellations) (*request.NMutateRequest, error) {
+	err, ctx := GetContext()
+	if err != nil {
+		return nil, err
+	}
+
+	if ctx.Context.User == "" {
+		return nil, errors.New("Please login to continue")
+	}
+
 	labels := map[string]string{}
 	for key, value := range file.Payload[LABELS] {
 		labels[key] = value
@@ -173,15 +182,6 @@ func convertNFile(file *model.NConstellations) (*request.NMutateRequest, error) 
 		Namespace:    file.MTData.Namespace,
 		ForceNSQueue: file.MTData.ForceNSQueue,
 		Queue:        file.MTData.Queue,
-	}
-
-	err, ctx := GetContext()
-	if err != nil {
-		return nil, err
-	}
-
-	if ctx.Context.User == "" {
-		return nil, errors.New("Please login to continue")
 	}
 
 	return &request.NMutateRequest{
@@ -224,6 +224,15 @@ func convertRoleFile(file *model.Roles) (*request.RMutateRequest, error) {
 }
 
 func convertUFile(file *model.NConstellations) (*request.UMutateRequest, error) {
+	err, ctx := GetContext()
+	if err != nil {
+		return nil, err
+	}
+
+	if ctx.Context.User == "" {
+		return nil, errors.New("Please login to continue")
+	}
+
 	metadata := request.Metadata{
 		TaskName:     file.MTData.TaskName,
 		Timestamp:    timestamp(),
@@ -234,10 +243,79 @@ func convertUFile(file *model.NConstellations) (*request.UMutateRequest, error) 
 
 	return &request.UMutateRequest{
 		Version: file.Version,
+		Request: ctx.Context.User, // user who sent request
 		Info:    file.Payload["info"],
 		Labels:  file.Payload[LABELS],
 		Kind:    USERS,
 		MTData:  metadata,
+	}, nil
+}
+
+func convertTopologyFile(file *model.Topology) (*request.TMutateRequest, error) {
+	err, ctx := GetContext()
+	if err != nil {
+		return nil, err
+	}
+
+	if ctx.Context.User == "" {
+		return nil, errors.New("Please login to continue")
+	}
+
+	metadata := request.Metadata{
+		TaskName:     file.MTData.TaskName,
+		Timestamp:    timestamp(),
+		Namespace:    file.MTData.Namespace,
+		ForceNSQueue: file.MTData.ForceNSQueue,
+		Queue:        file.MTData.Queue,
+	}
+
+	regions := []request.TRegion{}
+	for regionid, clusters := range file.Payload.Topology {
+		tclusters := []request.TCluster{}
+		for clusterid, nodes := range clusters {
+			tnodes := []request.TNode{}
+			retention := ""
+			for nodeid, value := range nodes {
+				if nodeid != "retention" {
+					labels := map[string]string{}
+					for _, v := range value["selector"].(map[interface{}]interface{}) {
+						for vk, vv := range v.(map[interface{}]interface{}) {
+							labels[vk.(string)] = vv.(string)
+						}
+					}
+
+					tnodes = append(tnodes, request.TNode{
+						ID:     nodeid,
+						Name:   value["name"].(string),
+						Labels: labels,
+					})
+				} else {
+					retention = value["period"].(string)
+				}
+			}
+			tclusters = append(tclusters, request.TCluster{
+				ID:        clusterid,
+				Retention: retention,
+				Nodes:     tnodes,
+			})
+		}
+		regions = append(regions, request.TRegion{
+			ID:       regionid,
+			Clusters: tclusters,
+		})
+	}
+	topology := request.Topology{
+		Name:    file.Payload.Name,
+		Labels:  file.Payload.Selector["labels"],
+		Regions: regions,
+	}
+
+	return &request.TMutateRequest{
+		Version: file.Version,
+		Request: ctx.Context.User, // user who sent request
+		Kind:    TOPOLOGY,
+		MTData:  metadata,
+		Payload: topology,
 	}, nil
 }
 
@@ -280,6 +358,18 @@ func FileToJSON(file interface{}) (string, error) {
 		return string(dat), nil
 	case *model.Roles:
 		data, err1 := convertRoleFile(v)
+		if err1 != nil {
+			return "", err1
+		}
+
+		dat, err := json.Marshal(data)
+		if err != nil {
+			return "", err
+		}
+
+		return string(dat), nil
+	case *model.Topology:
+		data, err1 := convertTopologyFile(v)
 		if err1 != nil {
 			return "", err1
 		}

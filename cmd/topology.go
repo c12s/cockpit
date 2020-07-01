@@ -8,9 +8,9 @@ import (
 	"time"
 )
 
-var ConfigsCmd = &cobra.Command{
-	Use:   "configs",
-	Short: "Get the configurations from region/s cluster/s node/s job/s",
+var TopologyCmd = &cobra.Command{
+	Use:   "topology",
+	Short: "Get the topology configurations",
 	Long:  "change all data inside regions, clusters and nodes",
 	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
@@ -18,52 +18,20 @@ var ConfigsCmd = &cobra.Command{
 	},
 }
 
-var ConfigsGetCmd = &cobra.Command{
+var TopologyGetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get the configurations from region/s cluster/s node/s job/s",
 	Long:  "change all data inside regions, clusters and nodes",
 	Run: func(cmd *cobra.Command, args []string) {
 		labels := cmd.Flag("labels").Value.String()
 		compare := cmd.Flag("compare").Value.String()
+		name := cmd.Flag("name").Value.String()
 
-		err, ctx := helper.GetContext()
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		q := map[string]string{}
-		q["user"] = ctx.Context.User
-		q["namespace"] = ctx.Context.Namespace
-
-		if labels != "" {
-			q["labels"] = labels
-
-		}
-
-		if labels != "" && compare == "" {
-			q["compare"] = "any"
-		} else if labels != "" && compare != "" {
-			q["compare"] = compare
-		}
-
-		h := map[string]string{
-			"Content-Type":  "application/json; charset=UTF-8",
-			"Authorization": ctx.Context.Token,
-		}
-
-		callPath := helper.FormCall("configs", "list", ctx, q)
-		fmt.Println(callPath)
-		err1, resp := helper.Get(10*time.Second, callPath, h)
-		if err1 != nil {
-			fmt.Println(err1)
-			return
-		}
-		helper.Print("configs", resp)
+		fmt.Println(labels, compare, name)
 	},
 }
 
-var ConfigsMutateCmd = &cobra.Command{
+var TopologyMutateCmd = &cobra.Command{
 	Use:   "mutate",
 	Short: "Mutate state of the configurations for the region, cluster, node and/or jobs",
 	Long:  "change all data inside regions, clusters and nodes",
@@ -71,20 +39,20 @@ var ConfigsMutateCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		file := cmd.Flag("file").Value.String()
 		if _, err := os.Stat(file); err == nil {
-			f, err := mutateFile(file)
+			f, err := mutateTopology(file)
 			if err != nil {
 				fmt.Println(err)
 			}
 
-			err2, data := kind(f)
-			if err2 != nil {
-				fmt.Println(err2)
+			err, data := topology(f)
+			if err != nil {
+				fmt.Println(err)
 				return
 			}
 
-			err3, ctx := helper.GetContext()
-			if err3 != nil {
-				fmt.Println(err3)
+			err, ctx := helper.GetContext()
+			if err != nil {
+				fmt.Println(err)
 				return
 			}
 
@@ -97,10 +65,10 @@ var ConfigsMutateCmd = &cobra.Command{
 				"Authorization": ctx.Context.Token,
 			}
 
-			callPath := helper.FormCall("configs", "mutate", ctx, q)
-			err4, resp := helper.Post(10*time.Second, callPath, data, h)
-			if err4 != nil {
-				fmt.Println(err4)
+			callPath := helper.FormCall("topology", "mutate", ctx, q)
+			err, resp := helper.Post(10*time.Second, callPath, data, h)
+			if err != nil {
+				fmt.Println(err)
 				return
 			}
 			fmt.Println(resp)

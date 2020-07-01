@@ -155,3 +155,43 @@ type Trace struct {
 type Traces struct {
 	Traces []Trace `json:"traces"`
 }
+
+type TMutateRequest struct {
+	Version string   `json:"version"`
+	Request string   `json:"request"`
+	Kind    string   `json:"kind"`
+	MTData  Metadata `json:"metadata"`
+	Payload Topology `json:"topology"`
+}
+
+type Topology struct {
+	Name    string            `json:"name"`
+	Labels  map[string]string `json:"labels"`
+	Regions []TRegion         `json:"regions"`
+}
+
+type TRegion struct {
+	ID       string     `json:"id"`
+	Clusters []TCluster `json:"clusters"`
+}
+
+type TCluster struct {
+	ID        string  `json:"id"`
+	Retention string  `json:"retention"`
+	Nodes     []TNode `json:"nodes"`
+}
+
+type TNode struct {
+	ID     string            `json:"id"`
+	Labels map[string]string `json:"labels"`
+	Name   string            `json:"name"`
+}
+
+type NodesResponse struct {
+	Data []LNode `json:"nodes"`
+}
+
+type LNode struct {
+	ID     string            `json:"id"`
+	Labels map[string]string `json:"labels"`
+}

@@ -148,7 +148,7 @@ func namespaces(file *model.NMutateFile) (error, string) {
 
 func users(file *model.NMutateFile) (error, string) {
 	if len(file.Content.Payload) == 0 {
-		return errors.New("Error: USername and password must be provided"), ""
+		return errors.New("Error: Username and password must be provided"), ""
 	} else {
 		data, err := helper.FileToJSON(&file.Content)
 		if err != nil {
@@ -170,6 +170,18 @@ func roles(file *model.RolesFile) (error, string) {
 	}
 }
 
+func topology(file *model.TopologyFile) (error, string) {
+	if file.Content.Payload.Name == "" {
+		return errors.New("Error: Name must be provided, for Topology artifact!"), ""
+	} else {
+		data, err := helper.FileToJSON(&file.Content)
+		if err != nil {
+			return err, ""
+		}
+		return nil, data
+	}
+}
+
 func mutateFile(n ...string) (*model.MutateFile, error) {
 	path := ""
 	if len(n) > 0 {
@@ -182,6 +194,26 @@ func mutateFile(n ...string) (*model.MutateFile, error) {
 	}
 
 	var f model.MutateFile
+	err = yaml.Unmarshal(yamlFile, &f)
+	if err != nil {
+		return nil, err
+	}
+
+	return &f, nil
+}
+
+func mutateTopology(n ...string) (*model.TopologyFile, error) {
+	path := ""
+	if len(n) > 0 {
+		path = n[0]
+	}
+
+	yamlFile, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+
+	var f model.TopologyFile
 	err = yaml.Unmarshal(yamlFile, &f)
 	if err != nil {
 		return nil, err

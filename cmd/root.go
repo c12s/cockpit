@@ -12,6 +12,7 @@ func init() {
 	NamespacesMutateCmd.Flags().StringP("file", "f", "", "mutate system with new namespace provided in yml file")
 	RolesMutateCmd.Flags().StringP("file", "f", "", "mutate system with new roles provided in yml file")
 	RegisterCmd.Flags().StringP("file", "f", "", "mutate system with new user provided in yml file")
+	TopologyMutateCmd.Flags().StringP("file", "f", "", "mutate system with new user provided in yml file")
 
 	LoginCmd.Flags().StringP("username", "u", "", "provide username to login to system")
 	LoginCmd.Flags().StringP("password", "p", "", "provide password to login to system")
@@ -42,6 +43,11 @@ func init() {
 
 	TraceListCmd.Flags().StringP("tags", "a", "", "list of key-value pairs for tags selection. [k1:v1,k2:v2,...]")
 	TraceGetCmd.Flags().StringP("task", "t", "", "trace id to get complate trace")
+	TopologyGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for topology selection. [k1:v1,k2:v2,...]")
+	TopologyGetCmd.Flags().StringP("compare", "c", "", "compare rule, when selecting topology [any | all]")
+	TopologyGetCmd.Flags().StringP("name", "n", "", "name, when selecting topology")
+
+	NodesGetCmd.Flags().StringP("labels", "l", "", "list of key-value pairs for topology selection. [k1:v1,k2:v2,...]")
 
 	ConfigsCmd.AddCommand(ConfigsGetCmd)
 	ConfigsCmd.AddCommand(ConfigsMutateCmd)
@@ -74,6 +80,13 @@ func init() {
 	RolesCmd.AddCommand(RolesGetCmd)
 	RolesCmd.AddCommand(RolesMutateCmd)
 	RootCmd.AddCommand(RolesCmd)
+
+	TopologyCmd.AddCommand(TopologyGetCmd)
+	TopologyCmd.AddCommand(TopologyMutateCmd)
+	RootCmd.AddCommand(TopologyCmd)
+
+	NodesCmd.AddCommand(NodesGetCmd)
+	RootCmd.AddCommand(NodesCmd)
 }
 
 var RootCmd = &cobra.Command{

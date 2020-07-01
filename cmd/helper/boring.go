@@ -9,8 +9,49 @@ import (
 	"github.com/c12s/cockpit/cmd/model/request"
 	"gopkg.in/yaml.v2"
 	"os"
+	"regexp"
+	"strconv"
 	"strings"
 )
+
+func tobytes(n int64, unit string) (int64, error) {
+	if val, ok := maper[unit]; ok {
+		return n * val, nil
+	}
+	return 0, errors.New(fmt.Sprintf("%s not valid unit.valid units are b,kb,mb,gb,tb", unit))
+}
+
+func bytestostring(n int64, unit string) (string, error) {
+	b, err := tobytes(n, unit)
+	if err != nil {
+		return "", err
+	}
+	return strconv.FormatInt(b, 10), nil
+
+}
+
+func PrepareLabels(l string) (string, error) {
+	parts := []string{}
+	re := regexp.MustCompile("([0-9]+)([a-z]+)")
+	for _, item := range strings.Split(l, ",") {
+		part := strings.Split(item, ":")
+		if part[0] == "memory" || part[0] == "storage" {
+			m := re.FindStringSubmatch(part[1])
+			n, err := strconv.ParseInt(m[1], 10, 64)
+			if err != nil {
+				return "", err
+			}
+			newVal, err := bytestostring(n, m[2])
+			if err != nil {
+				return "", err
+			}
+			parts = append(parts, strings.Join([]string{part[0], newVal}, ":"))
+		} else {
+			parts = append(parts, item)
+		}
+	}
+	return strings.Join(parts, ","), nil
+}
 
 func toBASE64(data string) string {
 	b64Data := b64.StdEncoding.EncodeToString([]byte(data))

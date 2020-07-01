@@ -1,0 +1,41 @@
+constellations:
+  version: v1
+  kind: Topology # May be [Configs | Secrets | Actions | Topology ]
+  metadata:
+    namespace: default
+    taskName: default
+    queue: default
+    forceNamespaceQueue: true
+  payload: 
+    name: MyTopology
+    selector:
+      labels:
+        l1: v1
+        l2: v2
+        l3: v3
+    topology:
+      region1: 
+        cluster1:
+          retention:
+            period: 24h
+          machineid1:
+            name: whatever
+            selector:
+              labels:
+                l1: v1
+                l2: v2
+                l3: v3
+          machineid2:
+            name: whatever
+            selector:
+              labels:
+                l1: v1
+                l2: v2
+                l3: v3
+          machineid3:
+            name: whatever
+            selector:
+              labels:
+                l1: v1
+                l2: v2
+                l3: v3 

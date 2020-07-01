@@ -73,3 +73,20 @@ type Rules struct {
 	Resources []string `yaml:"resources"`
 	Verbs     []string `yaml:"verbs"`
 }
+
+type TopologyPayload struct {
+	Name     string                                                  `yaml:"name"`
+	Selector map[string]map[string]string                            `yaml:"selector"`
+	Topology map[string]map[string]map[string]map[string]interface{} `yaml:"topology"`
+}
+
+type Topology struct {
+	Version string          `yaml:"version"`
+	Kind    string          `yaml:"kind"`
+	MTData  Metadata        `yaml:"metadata"`
+	Payload TopologyPayload `yaml:"payload"`
+}
+
+type TopologyFile struct {
+	Content Topology `yaml:"constellations"`
+}

@@ -12,8 +12,8 @@ constellations:
       lastname: test
       organisation: testorg
       role: testrole
-      username: user32
-      password: user32
+      username: user33
+      password: user33
     labels:
       l1: v1
       l2: v2

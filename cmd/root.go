@@ -2,8 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/cmd/delete"
 	"github.com/c12s/cockpit/cmd/get"
 	"github.com/c12s/cockpit/cmd/list"
+	"github.com/c12s/cockpit/cmd/put"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -16,6 +18,13 @@ func init() {
 	ListCmd.AddCommand(list.NodesCmd)
 
 	GetCmd.AddCommand(get.NodeCmd)
+
+	put.LabelCmd.AddCommand(put.BoolLabelCmd)
+	put.LabelCmd.AddCommand(put.Float64LabelCmd)
+	put.LabelCmd.AddCommand(put.StringLabelCmd)
+	PutCmd.AddCommand(put.LabelCmd)
+
+	DeleteCmd.AddCommand(delete.LabelCmd)
 
 	RootCmd.AddCommand(ListCmd)
 	RootCmd.AddCommand(GetCmd)

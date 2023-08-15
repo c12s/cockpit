@@ -13,3 +13,6 @@
 
 # Remoe mac specific files
 .DS_Store
+
+# binary
+cockpit

@@ -7,7 +7,7 @@ import (
 	"log"
 )
 
-func NewMagnetar() api.MagnetarClient {
+func newMagnetar() api.MagnetarClient {
 	conn, err := grpc.Dial("localhost:5000", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalln(err)

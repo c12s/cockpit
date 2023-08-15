@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	idFlag         = "nodeid"
+	idFlag         = "node-id"
 	idFlagShort    = "i"
 	keyFlag        = "key"
 	keyFlagSHort   = "k"
@@ -48,7 +48,7 @@ func init() {
 }
 
 var LabelCmd = &cobra.Command{
-	Use:   "nodelabel",
+	Use:   "node-label",
 	Short: "Put node label",
 }
 

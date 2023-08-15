@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	idFlag       = "nodeid"
+	idFlag       = "node-id"
 	idFlagShort  = "i"
 	keyFlag      = "key"
 	keyFlagSHort = "k"
@@ -30,7 +30,7 @@ func init() {
 }
 
 var LabelCmd = &cobra.Command{
-	Use:   "nodelabel",
+	Use:   "node-label",
 	Short: "Delete node label",
 	Run: func(cmd *cobra.Command, args []string) {
 		id, err := cmd.Flags().GetString(idFlag)

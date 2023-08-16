@@ -50,9 +50,9 @@ var ConfigCmd = &cobra.Command{
 		}
 
 		_, err = clients.Kuiper.ApplyConfigGroup(context.Background(), &api.ApplyConfigGroupReq{
-			GroupName: req.GroupName,
-			OrgId:     req.OrgId,
-			Version:   req.Version,
+			GroupName: req.Group.Name,
+			OrgId:     req.Group.OrgId,
+			Version:   req.Group.Version,
 			Namespace: req.Namespace,
 			Queries:   queriesFromDomain(req.Queries),
 			SubId:     req.SubId,
@@ -66,13 +66,11 @@ var ConfigCmd = &cobra.Command{
 }
 
 type ConfigReq struct {
-	GroupName string        `yaml:"GroupName"`
-	OrgId     string        `yaml:"OrgId"`
-	Version   int32         `yaml:"Version"`
-	Namespace string        `yaml:"Namespace"`
-	Queries   []model.Query `yaml:"Queries"`
-	SubId     string        `yaml:"SubId"`
-	SubKind   string        `yaml:"SubKind"`
+	Group     model.ConfigGroup `yaml:"Group"`
+	Namespace string            `yaml:"Namespace"`
+	Queries   []model.Query     `yaml:"Queries"`
+	SubId     string            `yaml:"SubId"`
+	SubKind   string            `yaml:"SubKind"`
 }
 
 func queriesFromDomain(queries []model.Query) []*magnetarapi.Query {

@@ -1,8 +1,9 @@
 SubId: pera
 SubKind: user
-GroupName: dbconfig
-OrgId: org
-Version: 3
+Group:
+  Name: dbconfig
+  OrgId: org
+  Version: 3
 Namespace: dev
 Queries:
   - Key: port

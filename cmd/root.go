@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/cmd/apply"
 	"github.com/c12s/cockpit/cmd/delete"
 	"github.com/c12s/cockpit/cmd/get"
 	"github.com/c12s/cockpit/cmd/list"
@@ -23,13 +24,17 @@ func init() {
 	put.LabelCmd.AddCommand(put.Float64LabelCmd)
 	put.LabelCmd.AddCommand(put.StringLabelCmd)
 	PutCmd.AddCommand(put.LabelCmd)
+	PutCmd.AddCommand(put.ConfigCmd)
 
 	DeleteCmd.AddCommand(delete.LabelCmd)
+
+	ApplyCmd.AddCommand(apply.ConfigCmd)
 
 	RootCmd.AddCommand(ListCmd)
 	RootCmd.AddCommand(GetCmd)
 	RootCmd.AddCommand(PutCmd)
 	RootCmd.AddCommand(DeleteCmd)
+	RootCmd.AddCommand(ApplyCmd)
 	RootCmd.PersistentFlags().String(apiVersionFlag, "1.0.0", "specify c12s API version")
 }
 
@@ -51,6 +56,11 @@ var PutCmd = &cobra.Command{
 var DeleteCmd = &cobra.Command{
 	Use:   "delete",
 	Short: "Delete resources",
+}
+
+var ApplyCmd = &cobra.Command{
+	Use:   "apply",
+	Short: "Apply config",
 }
 
 var RootCmd = &cobra.Command{

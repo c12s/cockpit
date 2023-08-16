@@ -2,6 +2,7 @@ package render
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/model"
 	"github.com/c12s/magnetar/pkg/api"
 	"github.com/fatih/color"
 	"github.com/jedib0t/go-pretty/v6/table"
@@ -10,6 +11,16 @@ import (
 
 func Error(err error) {
 	color.Red(err.Error())
+}
+
+func Config(config model.ConfigGroup) {
+	fmt.Printf("Config name: %s\n", config.Name)
+	fmt.Printf("Organization: %s\n", config.OrgId)
+	fmt.Printf("Version: v%d\n", config.Version)
+	fmt.Printf("Configs: \n")
+	for key, value := range config.Configs {
+		fmt.Printf("\t%s = %s\n", key, value)
+	}
 }
 
 func Node(node *api.NodeStringified) {

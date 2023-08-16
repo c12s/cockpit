@@ -12,3 +12,20 @@ type Query struct {
 	ShouldBe string `yaml:"ShouldBe"`
 	Value    string `yaml:"Value"`
 }
+
+type Policy struct {
+	SubjectScope Resource   `yaml:"SubjectScope"`
+	ObjectScope  Resource   `yaml:"ObjectScope"`
+	Permission   Permission `yaml:"Permission"`
+}
+
+type Resource struct {
+	Id   string `yaml:"Id"`
+	Kind string `yaml:"Kind"`
+}
+
+type Permission struct {
+	Name      string `yaml:"Name"`
+	Kind      string `yaml:"Kind"`
+	Condition string `yaml:"Condition"`
+}

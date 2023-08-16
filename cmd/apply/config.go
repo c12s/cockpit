@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/kuiper/pkg/api"
-	magnetarapi "github.com/c12s/magnetar/pkg/api"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 	"log"
@@ -54,7 +53,7 @@ var ConfigCmd = &cobra.Command{
 			OrgId:     req.Group.OrgId,
 			Version:   req.Group.Version,
 			Namespace: req.Namespace,
-			Queries:   queriesFromDomain(req.Queries),
+			Queries:   model.QueriesFromDomain(req.Queries),
 			SubId:     req.SubId,
 			SubKind:   req.SubKind,
 		})
@@ -71,16 +70,4 @@ type ConfigReq struct {
 	Queries   []model.Query     `yaml:"Queries"`
 	SubId     string            `yaml:"SubId"`
 	SubKind   string            `yaml:"SubKind"`
-}
-
-func queriesFromDomain(queries []model.Query) []*magnetarapi.Query {
-	resp := make([]*magnetarapi.Query, len(queries))
-	for i, query := range queries {
-		resp[i] = &magnetarapi.Query{
-			LabelKey: query.Key,
-			ShouldBe: query.ShouldBe,
-			Value:    query.Value,
-		}
-	}
-	return resp
 }

@@ -53,7 +53,7 @@ var ConfigCmd = &cobra.Command{
 				Name:    req.Group.Name,
 				OrgId:   req.Group.OrgId,
 				Version: req.Group.Version,
-				Configs: configsFromDomain(req.Group.Configs),
+				Configs: model.ConfigsFromDomain(req.Group.Configs),
 			},
 			SubId:   req.SubId,
 			SubKind: req.SubKind,
@@ -67,7 +67,7 @@ var ConfigCmd = &cobra.Command{
 			Name:    resp.Group.Name,
 			OrgId:   resp.Group.OrgId,
 			Version: resp.Group.Version,
-			Configs: configsToDomain(resp.Group.Configs),
+			Configs: model.ConfigsToDomain(resp.Group.Configs),
 		}
 		render.Config(config)
 	},
@@ -77,23 +77,4 @@ type ConfigReq struct {
 	Group   model.ConfigGroup `yaml:"Group"`
 	SubId   string            `yaml:"SubId"`
 	SubKind string            `yaml:"SubKind"`
-}
-
-func configsFromDomain(configs map[string]string) []*api.Config {
-	resp := make([]*api.Config, 0)
-	for key, value := range configs {
-		resp = append(resp, &api.Config{
-			Key:   key,
-			Value: value,
-		})
-	}
-	return resp
-}
-
-func configsToDomain(configs []*api.Config) map[string]string {
-	resp := make(map[string]string)
-	for _, config := range configs {
-		resp[config.Key] = config.Value
-	}
-	return resp
 }

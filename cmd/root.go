@@ -25,8 +25,10 @@ func init() {
 	put.LabelCmd.AddCommand(put.StringLabelCmd)
 	PutCmd.AddCommand(put.LabelCmd)
 	PutCmd.AddCommand(put.ConfigCmd)
+	PutCmd.AddCommand(put.PolicyCmd)
 
 	DeleteCmd.AddCommand(delete.LabelCmd)
+	DeleteCmd.AddCommand(delete.PolicyCmd)
 
 	ApplyCmd.AddCommand(apply.ConfigCmd)
 

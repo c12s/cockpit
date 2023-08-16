@@ -1,0 +1,11 @@
+Policy:
+  SubjectScope:
+    Id: mika
+    Kind: user
+  ObjectScope:
+    Id: dbconfig
+    Kind: config
+  Permission:
+    Name: config.get
+    Kind: allow
+    Condition:

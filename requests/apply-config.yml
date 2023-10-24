@@ -1,0 +1,14 @@
+SubId: pera
+SubKind: user
+Group:
+  Name: dbconfig
+  OrgId: org
+  Version: 3
+Namespace: dev
+Queries:
+  - Key: port
+    ShouldBe: =
+    Value: 1234
+  - Key: port
+    ShouldBe: =
+    Value: 1234

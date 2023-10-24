@@ -1,14 +1,11 @@
 package main
 
 import (
-	"fmt"
+	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/cmd"
-	"os"
 )
 
 func main() {
-	if err := cmd.RootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
+	clients.Init()
+	cmd.Execute()
 }

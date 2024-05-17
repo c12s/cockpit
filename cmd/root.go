@@ -13,6 +13,7 @@ const (
 
 func init() {
 	RootCmd.AddCommand(cmd.LoginCmd)
+	RootCmd.AddCommand(cmd.RegisterCmd)
 
 	RootCmd.PersistentFlags().String(apiVersionFlag, "1.0.0", "specify c12s API version")
 }

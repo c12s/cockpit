@@ -1,8 +1,0 @@
-SubId: pera
-SubKind: user
-Group:
-  Name: dbconfig
-  OrgId: org
-  Version: 3
-  Configs:
-    port: 1234

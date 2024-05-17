@@ -73,7 +73,7 @@ func login(username, password string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	url := clients.Clients.Magnetar + "/apis/core/v1/auth"
+	url := clients.Clients.Gateway + "/apis/core/v1/auth"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(credentialsJSON))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)

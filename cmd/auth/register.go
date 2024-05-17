@@ -89,7 +89,7 @@ func register(email, name, org, password, surname, username string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	url := clients.Clients.Magnetar + "/apis/core/v1/users"
+	url := clients.Clients.Gateway + "/apis/core/v1/users"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(registrationJSON))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)

@@ -18,33 +18,52 @@ type TokenResponse struct {
 	Token string `json:"token"`
 }
 
-//
-//type ConfigGroup struct {
-//	Name    string            `yaml:"Name"`
-//	OrgId   string            `yaml:"OrgId"`
-//	Version int32             `yaml:"Version"`
-//	Configs map[string]string `yaml:"Configs,omitempty"`
-//}
-//
-//type Query struct {
-//	Key      string `yaml:"Key"`
-//	ShouldBe string `yaml:"ShouldBe"`
-//	Value    string `yaml:"Value"`
-//}
-//
-//type Policy struct {
-//	SubjectScope Resource   `yaml:"SubjectScope"`
-//	ObjectScope  Resource   `yaml:"ObjectScope"`
-//	Permission   Permission `yaml:"Permission"`
-//}
-//
-//type Resource struct {
-//	Id   string `yaml:"Id"`
-//	Kind string `yaml:"Kind"`
-//}
-//
-//type Permission struct {
-//	Name      string `yaml:"Name"`
-//	Kind      string `yaml:"Kind"`
-//	Condition string `yaml:"Condition"`
-//}
+type LabelInput struct {
+	Label struct {
+		Key   string      `json:"key"`
+		Value interface{} `json:"value,omitempty"`
+	} `json:"label"`
+	NodeID string `json:"nodeId"`
+	Org    string `json:"org"`
+}
+
+type DeleteLabelInput struct {
+	LabelKey string `json:"labelKey"`
+	NodeID   string `json:"nodeId"`
+	Org      string `json:"org"`
+}
+
+type NodeResponse struct {
+	Node struct {
+		ID     string `json:"id"`
+		Org    string `json:"org"`
+		Labels []struct {
+			Key   string `json:"key"`
+			Value string `json:"value"`
+		} `json:"labels"`
+	} `json:"node"`
+}
+
+type ClaimNodesRequest struct {
+	Org   string      `json:"org,omitempty"`
+	Query []NodeQuery `json:"query,omitempty"`
+}
+
+type NodeQuery struct {
+	LabelKey string      `json:"labelKey"`
+	ShouldBe string      `json:"shouldBe"`
+	Value    interface{} `json:"value"`
+}
+
+type Node struct {
+	ID     string `json:"id"`
+	Org    string `json:"org"`
+	Labels []struct {
+		Key   string `json:"key"`
+		Value string `json:"value"`
+	} `json:"labels"`
+}
+
+type NodesResponse struct {
+	Nodes []Node `json:"nodes"`
+}

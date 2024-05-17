@@ -2,7 +2,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/c12s/cockpit/cmd/auth"
+	auth "github.com/c12s/cockpit/cmd/auth"
+	delete "github.com/c12s/cockpit/cmd/delete"
+	list "github.com/c12s/cockpit/cmd/list"
+	put "github.com/c12s/cockpit/cmd/put"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -12,10 +15,35 @@ const (
 )
 
 func init() {
-	RootCmd.AddCommand(cmd.LoginCmd)
-	RootCmd.AddCommand(cmd.RegisterCmd)
+	RootCmd.AddCommand(auth.LoginCmd)
+	RootCmd.AddCommand(auth.RegisterCmd)
+
+	ListCmd.AddCommand(list.NodesCmd)
+	list.NodesCmd.AddCommand(list.AllocatedNodesCmd)
+	RootCmd.AddCommand(ListCmd)
+
+	PutCmd.AddCommand(put.LabelsCmd)
+	RootCmd.AddCommand(PutCmd)
+
+	DeleteCmd.AddCommand(delete.DeleteNodeLabelsCmd)
+	RootCmd.AddCommand(DeleteCmd)
 
 	RootCmd.PersistentFlags().String(apiVersionFlag, "1.0.0", "specify c12s API version")
+}
+
+var DeleteCmd = &cobra.Command{
+	Use:   "delete",
+	Short: "Delete resources",
+}
+
+var PutCmd = &cobra.Command{
+	Use:   "put",
+	Short: "Put resources",
+}
+
+var ListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List nodes",
 }
 
 var RootCmd = &cobra.Command{

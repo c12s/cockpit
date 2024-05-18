@@ -33,17 +33,6 @@ type DeleteLabelInput struct {
 	Org      string `json:"org"`
 }
 
-type NodeResponse struct {
-	Node struct {
-		ID     string `json:"id"`
-		Org    string `json:"org"`
-		Labels []struct {
-			Key   string `json:"key"`
-			Value string `json:"value"`
-		} `json:"labels"`
-	} `json:"node"`
-}
-
 type ClaimNodesRequest struct {
 	Org   string      `json:"org,omitempty"`
 	Query []NodeQuery `json:"query,omitempty"`

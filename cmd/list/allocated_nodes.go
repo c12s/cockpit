@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/utils"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -16,7 +17,9 @@ import (
 const (
 	allocatedNodesShortDescription = "List organization nodes"
 	allocatedNodesLongDescription  = "You can search for nodes organization has allocated. \n" +
-		"You can add query to search nodes by labels."
+		"You can add query to search nodes by labels.\n\n" +
+		"Example:\n" +
+		"allocated --org \"org\" --query '[{\"labelKey\": \"labelKey\", \"shouldBe\": \">||<||==\", \"value\": \"2\"}]'"
 	orgFlag        = "org"
 	queryFlag      = "query"
 	orgFlagShort   = "o"
@@ -34,9 +37,9 @@ var AllocatedNodesCmd = &cobra.Command{
 	Short: allocatedNodesShortDescription,
 	Long:  allocatedNodesLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
-		token, err := ioutil.ReadFile(tokenFile)
+		token, err := utils.ReadTokenFromFile()
 		if err != nil {
-			fmt.Printf("Error reading token: %v\n", err)
+			fmt.Printf("%v", err)
 			os.Exit(1)
 		}
 

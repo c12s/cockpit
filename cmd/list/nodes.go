@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
@@ -15,8 +16,9 @@ import (
 const (
 	nodesShortDescription = "Retrieve a list of all available nodes"
 	nodesLongDescription  = "Retrieve a comprehensive list of all available nodes in the system.\n" +
-		"These nodes can be allocated to your organization based on your requirements."
-	tokenFile = "token.txt"
+		"These nodes can be allocated to your organization based on your requirements.\n\n" +
+		"Example:\n" +
+		"nodes --query '[{\"labelKey\": \"labelKey\", \"shouldBe\": \"> || < || =\", \"value\": \"2\"}]'"
 )
 
 var (
@@ -28,9 +30,9 @@ var NodesCmd = &cobra.Command{
 	Short: nodesShortDescription,
 	Long:  nodesLongDescription,
 	Run: func(cmd *cobra.Command, args []string) {
-		token, err := ioutil.ReadFile(tokenFile)
+		token, err := utils.ReadTokenFromFile()
 		if err != nil {
-			fmt.Printf("Error reading token: %v\n", err)
+			fmt.Printf("%v", err)
 			os.Exit(1)
 		}
 
@@ -59,7 +61,7 @@ func init() {
 	NodesCmd.Flags().StringVarP(&query, "query", "q", "", "Query JSON for node allocation")
 }
 
-func sendRequest(url string, token []byte, body interface{}) error {
+func sendRequest(url, token string, body interface{}) error {
 	var req *http.Request
 	var err error
 
@@ -80,7 +82,7 @@ func sendRequest(url string, token []byte, body interface{}) error {
 		}
 	}
 
-	req.Header.Set("Authorization", "Bearer "+string(token))
+	req.Header.Set("Authorization", "Bearer "+token)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)

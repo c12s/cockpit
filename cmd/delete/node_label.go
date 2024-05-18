@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 const (
@@ -16,8 +18,7 @@ const (
 	deleteNodeLabelsLongDesc  = "Delete a specific label from a node using its key.\n" +
 		"Provide the node ID, organization, and label key to remove the label.\n\n" +
 		"Example:\n" +
-		"delete-node-labels --nodeId <nodeID> --org <organization> --key <labelKey>"
-	tokenFile   = "token.txt"
+		"label --nodeId \"nodeID\" --org \"organization\" --key \"labelKey\""
 	contentType = "application/json"
 	authHeader  = "Authorization"
 
@@ -49,15 +50,15 @@ func executeDeleteLabel(cmd *cobra.Command, args []string) {
 	org, _ := cmd.Flags().GetString(flagOrg)
 	key, _ := cmd.Flags().GetString(flagKey)
 
-	token, err := ioutil.ReadFile(tokenFile)
+	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		return
+		fmt.Printf("%v", err)
+		os.Exit(1)
 	}
 
 	if err := deleteLabel(nodeId, org, key, string(token)); err != nil {
 		fmt.Printf("Error deleting label: %v\n", err)
-		return
+		os.Exit(1)
 	}
 
 	fmt.Println("Label deleted successfully.")

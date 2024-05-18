@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/utils"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -16,9 +18,10 @@ import (
 const (
 	shortLabelDescription = "Add a label to a node."
 	longLabelDescription  = "This command allows you to add a new label to a specified node, enhancing node metadata. \n" +
-		"Provide a key-value pair to define the label. If the label already exists, its value will be updated to the new specified value."
+		"Provide a key-value pair to define the label. If the label already exists, its value will be updated to the new specified value.\n\n" +
+		"Example:\n" +
+		"label --key \"newLabel\" --value \"value||true||25.00\" --nodeId \"nodeId\" --org \"orgId\""
 
-	tokenFilePath   = "token.txt"
 	contentTypeJSON = "application/json"
 	authHeader      = "Authorization"
 	bearer          = "Bearer "
@@ -42,14 +45,6 @@ const (
 	descOrg    = "Organization"
 )
 
-func getToken() (string, error) {
-	token, err := ioutil.ReadFile(tokenFilePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read token file: %w", err)
-	}
-	return string(token), nil
-}
-
 var LabelsCmd = &cobra.Command{
 	Use:   "label",
 	Short: shortLabelDescription,
@@ -60,23 +55,23 @@ var LabelsCmd = &cobra.Command{
 		nodeId, _ := cmd.Flags().GetString("nodeId")
 		org, _ := cmd.Flags().GetString("org")
 
-		token, err := getToken()
+		token, err := utils.ReadTokenFromFile()
 		if err != nil {
-			fmt.Println("Error getting token:", err)
-			return
+			fmt.Printf("%v", err)
+			os.Exit(1)
 		}
 
 		value, url, err := determineValueTypeAndURL(valueStr)
 		if err != nil {
 			fmt.Println("Error determining value type:", err)
-			return
+			os.Exit(1)
 		}
 
 		labelInput := createLabelInput(key, value, nodeId, org)
 
 		if err := sendLabelRequest(labelInput, url, token); err != nil {
 			fmt.Println("Error:", err)
-			return
+			os.Exit(1)
 		}
 
 		fmt.Println("Label added or updated successfully.")

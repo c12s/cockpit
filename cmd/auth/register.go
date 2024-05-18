@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
 	"io"
 	"net/http"
@@ -17,7 +18,9 @@ import (
 const (
 	shortRegisterDescription = "Register a new user"
 	longRegisterDescription  = "Register a new user by providing an email, name, organization, surname, and username. \n" +
-		"Once these details are entered, you will be prompted to input your password."
+		"Once these details are entered, you will be prompted to input your password.\n\n" +
+		"Example:\n" +
+		"register --email \"example@gmail.com\" --name \"name\" --org \"org\" --surname \"surname\" --username \"username\""
 	flagEmail     = "email"
 	flagName      = "name"
 	flagOrg       = "org"
@@ -43,7 +46,7 @@ var RegisterCmd = &cobra.Command{
 	Short: shortRegisterDescription,
 	Long:  longRegisterDescription,
 	Run: func(cmd *cobra.Command, args []string) {
-		password, err := PromptForPassword()
+		password, err := utils.PromptForPassword()
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)

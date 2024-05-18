@@ -7,20 +7,21 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"golang.org/x/term"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"syscall"
 	"time"
 )
 
 const (
 	shortLoginDescription = "Login into application"
 	longLoginDescription  = "Input your username after that you will be prompted to input your password.\n" +
-		"Your token will be saved in the token.txt file, which will be sent with all of your request headers."
+		"Your token will be saved in the token.txt file, which will be sent with all of your request headers.\n\n" +
+		"Example:\n" +
+		"login --username \"username\""
 	tokenPath = "token.txt"
 )
 
@@ -29,7 +30,7 @@ var LoginCmd = &cobra.Command{
 	Short: shortLoginDescription,
 	Long:  longLoginDescription,
 	Run: func(cmd *cobra.Command, args []string) {
-		password, err := PromptForPassword()
+		password, err := utils.PromptForPassword()
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
@@ -47,16 +48,6 @@ var LoginCmd = &cobra.Command{
 func init() {
 	LoginCmd.Flags().StringVarP(&username, flagUsername, shortUsername, "", "Username for login")
 	LoginCmd.MarkFlagRequired(flagUsername)
-}
-
-func PromptForPassword() (string, error) {
-	fmt.Print("Enter password: ")
-	passwordBytes, err := term.ReadPassword(int(syscall.Stdin))
-	if err != nil {
-		return "", fmt.Errorf("failed to read password: %v", err)
-	}
-	fmt.Println()
-	return string(passwordBytes), nil
 }
 
 func login(username, password string) error {

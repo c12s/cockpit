@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	auth "github.com/c12s/cockpit/cmd/auth"
+	claim "github.com/c12s/cockpit/cmd/claim"
 	delete "github.com/c12s/cockpit/cmd/delete"
 	list "github.com/c12s/cockpit/cmd/list"
 	put "github.com/c12s/cockpit/cmd/put"
@@ -28,7 +29,15 @@ func init() {
 	DeleteCmd.AddCommand(delete.DeleteNodeLabelsCmd)
 	RootCmd.AddCommand(DeleteCmd)
 
+	ClaimCmd.AddCommand(claim.ClaimNodesCmd)
+	RootCmd.AddCommand(ClaimCmd)
+
 	RootCmd.PersistentFlags().String(apiVersionFlag, "1.0.0", "specify c12s API version")
+}
+
+var ClaimCmd = &cobra.Command{
+	Use:   "claim",
+	Short: "Claim resources",
 }
 
 var DeleteCmd = &cobra.Command{

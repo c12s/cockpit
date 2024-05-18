@@ -56,3 +56,7 @@ type Node struct {
 type NodesResponse struct {
 	Nodes []Node `json:"nodes"`
 }
+
+type ClaimNodesResponse struct {
+	Nodes []Node `json:"node"`
+}

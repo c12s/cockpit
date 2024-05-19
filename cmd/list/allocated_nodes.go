@@ -1,17 +1,15 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"io/ioutil"
-	"net/http"
-	"os"
-
 	"github.com/spf13/cobra"
+	"os"
+	"time"
 )
 
 const (
@@ -19,102 +17,80 @@ const (
 	allocatedNodesLongDescription  = "You can search for nodes organization has allocated. \n" +
 		"You can add query to search nodes by labels.\n\n" +
 		"Example:\n" +
-		"allocated --org \"org\" --query '[{\"labelKey\": \"labelKey\", \"shouldBe\": \">||<||==\", \"value\": \"2\"}]'"
-	orgFlag        = "org"
-	queryFlag      = "query"
-	orgFlagShort   = "o"
-	queryFlagShort = "q"
-	orgFlagValue   = ""
-	queryFlagValue = ""
-)
+		"nodes-allocated --org \"org\" --query '[{\"labelKey\": \"labelKey\", \"shouldBe\": \">||<||==\", \"value\": \"2\"}]'"
 
-var (
-	org string
+	// Flag Constants
+	orgFlag   = "org"
+	queryFlag = "query"
+
+	// Flag Shorthand Constants
+	orgFlagShortHand   = "o"
+	queryFlagShortHand = "q"
+
+	// Flag Descriptions
+	orgDesc   = "Organization name (required)"
+	queryDesc = "Query JSON for node allocation"
 )
 
 var AllocatedNodesCmd = &cobra.Command{
 	Use:   "allocated",
 	Short: allocatedNodesShortDescription,
 	Long:  allocatedNodesLongDescription,
-	Run: func(cmd *cobra.Command, args []string) {
-		token, err := utils.ReadTokenFromFile()
-		if err != nil {
-			fmt.Printf("%v", err)
-			os.Exit(1)
-		}
-
-		var url string
-		var request model.ClaimNodesRequest
-
-		if query == "" {
-			url = clients.Clients.Gateway + "/apis/core/v1/nodes/allocated"
-			request = model.ClaimNodesRequest{
-				Org: org,
-			}
-		} else {
-			url = clients.Clients.Gateway + "/apis/core/v1/nodes/allocated/query_match"
-			var nodeQueries []model.NodeQuery
-			if err := json.Unmarshal([]byte(query), &nodeQueries); err != nil {
-				fmt.Printf("Error parsing query JSON: %v\n", err)
-				os.Exit(1)
-			}
-			request = model.ClaimNodesRequest{
-				Org:   org,
-				Query: nodeQueries,
-			}
-		}
-
-		if err := sendRequestForAllocatedNodes(url, request, string(token)); err != nil {
-			fmt.Printf("Error processing nodes: %v\n", err)
-			os.Exit(1)
-		}
-	},
+	Run:   executeAllocatedNodes,
 }
 
-func init() {
-	AllocatedNodesCmd.Flags().StringVarP(&org, orgFlag, orgFlagShort, orgFlagValue, "Organization name")
-	AllocatedNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShort, queryFlagValue, "Query JSON for node allocation")
-	AllocatedNodesCmd.MarkFlagRequired(orgFlag)
-}
-
-func sendRequestForAllocatedNodes(url string, requestBody model.ClaimNodesRequest, token string) error {
-	requestJSON, err := json.Marshal(requestBody)
+func executeAllocatedNodes(cmd *cobra.Command, args []string) {
+	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		return fmt.Errorf("failed to marshal request: %v", err)
+		fmt.Printf("Error reading token: %v\n", err)
+		os.Exit(1)
 	}
 
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", url, bytes.NewBuffer(requestJSON))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %v", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %v", err)
+	var url string
+	var request model.ClaimNodesRequest
+	if query == "" {
+		url = clients.AllocatedNodesEndpoint
+		request.Org = org
+	} else {
+		url = clients.AllocatedNodesQueryEndpoint
+		var nodeQueries []model.NodeQuery
+		if err := json.Unmarshal([]byte(query), &nodeQueries); err != nil {
+			fmt.Printf("Error parsing query JSON: %v\n", err)
+			os.Exit(1)
 		}
-		return fmt.Errorf("request failed with status %d %s: %s", resp.StatusCode, resp.Status, string(bodyBytes))
+		request = model.ClaimNodesRequest{
+			Org:   org,
+			Query: nodeQueries,
+		}
 	}
 
 	var nodesResponse model.NodesResponse
-	if err := json.NewDecoder(resp.Body).Decode(&nodesResponse); err != nil {
-		return fmt.Errorf("failed to decode response: %v", err)
+	err = utils.SendHTTPRequest(model.HTTPRequestConfig{
+		URL:         url,
+		Method:      "GET",
+		RequestBody: request,
+		Response:    &nodesResponse,
+		Token:       token,
+		Timeout:     10 * time.Second,
+	})
+
+	if err != nil {
+		fmt.Printf("Error making request: %v\n", err)
+		os.Exit(1)
 	}
 
 	if len(nodesResponse.Nodes) == 0 {
 		fmt.Println("No nodes were found.")
 	} else {
-		model.RenderNodes(nodesResponse.Nodes)
+		fmt.Println("")
+		render.RenderNodes(nodesResponse.Nodes)
 	}
+	println()
+}
 
-	return nil
+func init() {
+	AllocatedNodesCmd.Flags().StringVarP(&org, orgFlag, orgFlagShortHand, "", orgDesc)
+	AllocatedNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShortHand, "", queryDesc)
+	AllocatedNodesCmd.MarkFlagRequired(orgFlag)
+	//AllocatedNodesCmd.MarkFlagRequired(queryFlag)
 }

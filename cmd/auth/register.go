@@ -21,16 +21,27 @@ const (
 		"Once these details are entered, you will be prompted to input your password.\n\n" +
 		"Example:\n" +
 		"register --email \"example@gmail.com\" --name \"name\" --org \"org\" --surname \"surname\" --username \"username\""
-	flagEmail     = "email"
-	flagName      = "name"
-	flagOrg       = "org"
-	flagSurname   = "surname"
-	flagUsername  = "username"
+
+	// Flag Constants
+	flagEmail    = "email"
+	flagName     = "name"
+	flagOrg      = "org"
+	flagSurname  = "surname"
+	flagUsername = "username"
+
+	// Flag Shorthand Constants
 	shortEmail    = "e"
 	shortName     = "n"
 	shortOrg      = "o"
 	shortSurname  = "s"
 	shortUsername = "u"
+
+	// Flag Descriptions
+	emailDesc    = "Email for registration"
+	nameDesc     = "Name for registration"
+	orgDesc      = "Organization for registration"
+	surnameDesc  = "Surname for registration"
+	usernameDesc = "Username for registration"
 )
 
 var (
@@ -57,15 +68,16 @@ var RegisterCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		fmt.Println("Registration successful!")
+		fmt.Println()
 	},
 }
 
 func init() {
-	RegisterCmd.Flags().StringVarP(&email, flagEmail, shortEmail, "", "Email for registration")
-	RegisterCmd.Flags().StringVarP(&name, flagName, shortName, "", "Name for registration")
-	RegisterCmd.Flags().StringVarP(&org, flagOrg, shortOrg, "", "Organization for registration")
-	RegisterCmd.Flags().StringVarP(&surname, flagSurname, shortSurname, "", "Surname for registration")
-	RegisterCmd.Flags().StringVarP(&username, flagUsername, shortUsername, "", "Username for registration")
+	RegisterCmd.Flags().StringVarP(&email, flagEmail, shortEmail, "", emailDesc)
+	RegisterCmd.Flags().StringVarP(&name, flagName, shortName, "", nameDesc)
+	RegisterCmd.Flags().StringVarP(&org, flagOrg, shortOrg, "", orgDesc)
+	RegisterCmd.Flags().StringVarP(&surname, flagSurname, shortSurname, "", surnameDesc)
+	RegisterCmd.Flags().StringVarP(&username, flagUsername, shortUsername, "", usernameDesc)
 
 	RegisterCmd.MarkFlagRequired(flagEmail)
 	RegisterCmd.MarkFlagRequired(flagName)
@@ -92,7 +104,7 @@ func register(email, name, org, password, surname, username string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	url := clients.Clients.Gateway + "/apis/core/v1/users"
+	url := clients.RegisterEndpoint
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(registrationJSON))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)

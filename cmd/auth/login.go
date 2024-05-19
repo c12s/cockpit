@@ -41,7 +41,7 @@ var LoginCmd = &cobra.Command{
 			os.Exit(1)
 		}
 		fmt.Println("Login successful!")
-		fmt.Printf("")
+		fmt.Println()
 	},
 }
 
@@ -64,7 +64,7 @@ func login(username, password string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	url := clients.Clients.Gateway + "/apis/core/v1/auth"
+	url := clients.LoginEndpoint
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(credentialsJSON))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)

@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 type Credentials struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
@@ -18,11 +20,13 @@ type TokenResponse struct {
 	Token string `json:"token"`
 }
 
+type Label struct {
+	Key   string      `json:"key"`
+	Value interface{} `json:"value"`
+}
+
 type LabelInput struct {
-	Label struct {
-		Key   string      `json:"key"`
-		Value interface{} `json:"value,omitempty"`
-	} `json:"label"`
+	Label  Label  `json:"label"`
 	NodeID string `json:"nodeId"`
 	Org    string `json:"org"`
 }
@@ -53,10 +57,24 @@ type Node struct {
 	} `json:"labels"`
 }
 
+type NodeResponse struct {
+	Node Node `json:"node"`
+}
+
 type NodesResponse struct {
 	Nodes []Node `json:"nodes"`
 }
 
 type ClaimNodesResponse struct {
 	Nodes []Node `json:"node"`
+}
+
+type HTTPRequestConfig struct {
+	URL         string
+	Method      string
+	Headers     map[string]string
+	RequestBody interface{}
+	Response    interface{}
+	Token       string
+	Timeout     time.Duration
 }

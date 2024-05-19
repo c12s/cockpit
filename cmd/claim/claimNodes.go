@@ -1,13 +1,12 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"net/http"
 	"os"
 	"time"
 
@@ -19,15 +18,24 @@ const (
 	claimNodesLongDescription  = "Claims nodes for an organization based on a defined query that specifies criteria like labels.\n\n" +
 		"Example:\n" +
 		"claim-nodes --org 'myOrg' --query '[{\"labelKey\": \"key\", \"shouldBe\": \"<||=||>\", \"value\": \"value\"}]'"
-	orgFlag     = "org"
-	queryFlag   = "query"
-	orgFlagSh   = "o"
-	queryFlagSh = "q"
+
+	// Flag Constants
+	orgFlag   = "org"
+	queryFlag = "query"
+
+	// Flag Shorthand Constants
+	orgFlagShortHand   = "o"
+	queryFlagShortHand = "q"
+
+	// Flag Descriptions
+	orgDesc   = "Organization name (required)"
+	queryDesc = "Query in JSON format specifying node selection criteria (required)"
 )
 
 var (
-	org   string
-	query string
+	org      string
+	query    string
+	response model.ClaimNodesResponse
 )
 
 var ClaimNodesCmd = &cobra.Command{
@@ -40,7 +48,7 @@ var ClaimNodesCmd = &cobra.Command{
 func executeClaimNodes(cmd *cobra.Command, args []string) {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		fmt.Printf("%v", err)
+		fmt.Printf("Error reading token: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -55,52 +63,32 @@ func executeClaimNodes(cmd *cobra.Command, args []string) {
 
 	if err := claimNodes(request, token); err != nil {
 		fmt.Printf("Error claiming nodes: %v\n", err)
+		os.Exit(1)
 	}
-}
 
-func init() {
-	ClaimNodesCmd.Flags().StringVarP(&org, orgFlag, orgFlagSh, "", "Organization name (required)")
-	ClaimNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagSh, "", "Query in JSON format specifying node selection criteria (required)")
-	ClaimNodesCmd.MarkFlagRequired(orgFlag)
-	ClaimNodesCmd.MarkFlagRequired(queryFlag)
+	if len(response.Nodes) == 0 {
+		fmt.Println("No nodes were found.")
+	} else {
+		render.RenderNodes(response.Nodes)
+	}
+	fmt.Println()
 }
 
 func claimNodes(request model.ClaimNodesRequest, token string) error {
-	claimNodesURL := clients.Clients.Gateway + "/apis/core/v1/nodes"
-	requestJSON, err := json.Marshal(request)
-	if err != nil {
-		return fmt.Errorf("failed to marshal request: %v", err)
-	}
+	claimNodesURL := clients.ClaimNodesEndpoint
 
-	client := &http.Client{Timeout: 10 * time.Second}
-	req, err := http.NewRequest("PATCH", claimNodesURL, bytes.NewBuffer(requestJSON))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %v", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("request failed with status %s", resp.Status)
-	}
-
-	var nodesResponse model.ClaimNodesResponse
-	if err := json.NewDecoder(resp.Body).Decode(&nodesResponse); err != nil {
-		return fmt.Errorf("failed to decode response: %v", err)
-	}
-
-	if len(nodesResponse.Nodes) == 0 {
-		fmt.Println("No nodes were found.")
-	} else {
-		model.RenderNodes(nodesResponse.Nodes)
-	}
-
-	return nil
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
+		URL:         claimNodesURL,
+		Method:      "PATCH",
+		Token:       token,
+		RequestBody: request,
+		Response:    &response,
+		Timeout:     10 * time.Second,
+	})
+}
+func init() {
+	ClaimNodesCmd.Flags().StringVarP(&org, orgFlag, orgFlagShortHand, "", orgDesc)
+	ClaimNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShortHand, "", queryDesc)
+	ClaimNodesCmd.MarkFlagRequired(orgFlag)
+	ClaimNodesCmd.MarkFlagRequired(queryFlag)
 }

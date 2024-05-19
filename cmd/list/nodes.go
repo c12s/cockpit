@@ -1,16 +1,15 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"io/ioutil"
-	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -22,93 +21,61 @@ const (
 )
 
 var (
-	query string
+	query         string
+	org           string
+	nodesResponse model.NodesResponse
 )
 
 var NodesCmd = &cobra.Command{
 	Use:   "nodes",
 	Short: nodesShortDescription,
 	Long:  nodesLongDescription,
-	Run: func(cmd *cobra.Command, args []string) {
-		token, err := utils.ReadTokenFromFile()
-		if err != nil {
-			fmt.Printf("%v", err)
-			os.Exit(1)
-		}
-
-		url := clients.Clients.Gateway + "/apis/core/v1/nodes/available"
-		if query != "" {
-			url += "/query_match"
-			var nodeQueries []model.NodeQuery
-			if err := json.Unmarshal([]byte(query), &nodeQueries); err != nil {
-				fmt.Printf("Error parsing query JSON: %v\n", err)
-				os.Exit(1)
-			}
-			request := map[string][]model.NodeQuery{"query": nodeQueries}
-			err = sendRequest(url, token, request)
-		} else {
-			err = sendRequest(url, token, nil)
-		}
-
-		if err != nil {
-			fmt.Printf("Error: %v\n", err)
-			os.Exit(1)
-		}
-	},
+	Run:   executeRetrieveNodes,
 }
 
-func init() {
-	NodesCmd.Flags().StringVarP(&query, "query", "q", "", "Query JSON for node allocation")
-}
-
-func sendRequest(url, token string, body interface{}) error {
-	var req *http.Request
-	var err error
-
-	if body != nil {
-		bodyJSON, err := json.Marshal(body)
-		if err != nil {
-			return fmt.Errorf("failed to marshal request body: %v", err)
-		}
-		req, err = http.NewRequest("GET", url, bytes.NewBuffer(bodyJSON))
-		if err != nil {
-			return fmt.Errorf("failed to create request: %v", err)
-		}
-		req.Header.Set("Content-Type", "application/json")
-	} else {
-		req, err = http.NewRequest("GET", url, nil)
-		if err != nil {
-			return fmt.Errorf("failed to create request: %v", err)
-		}
-	}
-
-	req.Header.Set("Authorization", "Bearer "+token)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
+func executeRetrieveNodes(cmd *cobra.Command, args []string) {
+	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		return fmt.Errorf("failed to send request: %v", err)
+		fmt.Printf("Error reading token: %v\n", err)
+		os.Exit(1)
 	}
-	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("failed to read response body: %v", err)
+	url := clients.AvailableNodesEndpoint
+	var nodeQueries []model.NodeQuery
+	var requestBody interface{}
+	if query != "" {
+		url = clients.AvailableNodesQueryEndpoint
+		if err := json.Unmarshal([]byte(query), &nodeQueries); err != nil {
+			fmt.Printf("Error parsing query JSON: %v\n", err)
+			println()
+			os.Exit(1)
 		}
-		return fmt.Errorf("request failed with status %d %s: %s", resp.StatusCode, resp.Status, string(bodyBytes))
+		requestBody = map[string][]model.NodeQuery{"query": nodeQueries}
 	}
 
-	var nodesResponse model.NodesResponse
-	if err := json.NewDecoder(resp.Body).Decode(&nodesResponse); err != nil {
-		return fmt.Errorf("failed to decode response: %v", err)
+	err = utils.SendHTTPRequest(model.HTTPRequestConfig{
+		URL:         url,
+		Method:      "GET",
+		Headers:     map[string]string{"Content-Type": "application/json"},
+		RequestBody: requestBody,
+		Response:    &nodesResponse,
+		Token:       token,
+		Timeout:     10 * time.Second,
+	})
+	if err != nil {
+		fmt.Printf("Error making request: %v\n", err)
+		println()
+		os.Exit(1)
 	}
 
 	if len(nodesResponse.Nodes) == 0 {
 		fmt.Println("No nodes were found.")
 	} else {
-		model.RenderNodes(nodesResponse.Nodes)
+		render.RenderNodes(nodesResponse.Nodes)
 	}
+	println()
+}
 
-	return nil
+func init() {
+	NodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShortHand, "", queryFlag)
 }

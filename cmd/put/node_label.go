@@ -1,18 +1,15 @@
 package cmd
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"io/ioutil"
-	"net/http"
+	"github.com/spf13/cobra"
 	"os"
 	"strconv"
-
-	"github.com/spf13/cobra"
+	"time"
 )
 
 const (
@@ -20,11 +17,7 @@ const (
 	longLabelDescription  = "This command allows you to add a new label to a specified node, enhancing node metadata. \n" +
 		"Provide a key-value pair to define the label. If the label already exists, its value will be updated to the new specified value.\n\n" +
 		"Example:\n" +
-		"label --key \"newLabel\" --value \"value||true||25.00\" --nodeId \"nodeId\" --org \"orgId\""
-
-	contentTypeJSON = "application/json"
-	authHeader      = "Authorization"
-	bearer          = "Bearer "
+		"put-label --key \"newLabel\" --value \"value||true||25.00\" --nodeId \"nodeId\" --org \"orgId\""
 
 	// Flag Constants
 	flagKey    = "key"
@@ -39,66 +32,81 @@ const (
 	flagShorthandOrg    = "o"
 
 	// Flag Descriptions
-	descKey    = "Label key"
-	descValue  = "Label value"
-	descNodeID = "Node ID"
-	descOrg    = "Organization"
+	descKey    = "Label key (required)"
+	descValue  = "Label value (required)"
+	descNodeID = "Node ID (required)"
+	descOrg    = "Organization (required)"
+)
+
+var (
+	nodeId       string
+	org          string
+	key          string
+	value        string
+	nodeResponse model.NodeResponse
 )
 
 var LabelsCmd = &cobra.Command{
 	Use:   "label",
 	Short: shortLabelDescription,
 	Long:  longLabelDescription,
-	Run: func(cmd *cobra.Command, args []string) {
-		key, _ := cmd.Flags().GetString("key")
-		valueStr, _ := cmd.Flags().GetString("value")
-		nodeId, _ := cmd.Flags().GetString("nodeId")
-		org, _ := cmd.Flags().GetString("org")
+	Run:   executeLabelCommand,
+}
 
-		token, err := utils.ReadTokenFromFile()
-		if err != nil {
-			fmt.Printf("%v", err)
-			os.Exit(1)
-		}
+func executeLabelCommand(cmd *cobra.Command, args []string) {
+	key, _ := cmd.Flags().GetString(flagKey)
+	valueStr, _ := cmd.Flags().GetString(flagValue)
+	nodeId, _ := cmd.Flags().GetString(flagNodeID)
+	org, _ := cmd.Flags().GetString(flagOrg)
 
-		value, url, err := determineValueTypeAndURL(valueStr)
-		if err != nil {
-			fmt.Println("Error determining value type:", err)
-			os.Exit(1)
-		}
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		fmt.Printf("Error reading token: %v\n", err)
+		os.Exit(1)
+	}
 
-		labelInput := createLabelInput(key, value, nodeId, org)
+	value, url, err := determineValueTypeAndURL(valueStr)
+	if err != nil {
+		fmt.Printf("Error determining value type: %v\n", err)
+		os.Exit(1)
+	}
 
-		if err := sendLabelRequest(labelInput, url, token); err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(1)
-		}
+	labelInput := createLabelInput(key, value, nodeId, org)
+	err = sendLabelRequest(labelInput, url, token)
+	if err != nil {
+		fmt.Printf("Error processing label: %v\n", err)
+		os.Exit(1)
+	}
 
-		fmt.Println("Label added or updated successfully.")
-	},
+	render.RenderNode(nodeResponse.Node)
+	fmt.Println("Label added or updated successfully.")
+	println()
+}
+
+func sendLabelRequest(input model.LabelInput, url, token string) error {
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
+		URL:         url,
+		Method:      "POST",
+		RequestBody: input,
+		Token:       token,
+		Response:    &nodeResponse,
+		Timeout:     10 * time.Second,
+	})
 }
 
 func determineValueTypeAndURL(valueStr string) (interface{}, string, error) {
-	labelEndpointBase := clients.Clients.Gateway + "/apis/core/v1/labels"
-
 	if floatValue, err := strconv.ParseFloat(valueStr, 64); err == nil {
-		labelEndpointFloat64 := labelEndpointBase + "/float64"
-		return floatValue, labelEndpointFloat64, nil
+		return floatValue, clients.LabelsFloatEndpoint, nil
 	}
 	if boolValue, err := strconv.ParseBool(valueStr); err == nil {
-		labelEndpointBool := labelEndpointBase + "/bool"
-		return boolValue, labelEndpointBool, nil
+		return boolValue, clients.LabelsBoolEndpoint, nil
 	}
-	labelEndpointString := labelEndpointBase + "/string"
-	return valueStr, labelEndpointString, nil
+	return valueStr, clients.LabelsStringEndpoint, nil
 }
 
 func createLabelInput(key string, value interface{}, nodeId string, org string) model.LabelInput {
 	return model.LabelInput{
-		Label: struct {
-			Key   string      `json:"key"`
-			Value interface{} `json:"value,omitempty"`
-		}{
+		Label: model.Label{
 			Key:   key,
 			Value: value,
 		},
@@ -107,43 +115,11 @@ func createLabelInput(key string, value interface{}, nodeId string, org string) 
 	}
 }
 
-func sendLabelRequest(input model.LabelInput, url string, token string) error {
-	payload, err := json.Marshal(input)
-	if err != nil {
-		return fmt.Errorf("error creating JSON payload: %v", err)
-	}
-
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
-	if err != nil {
-		return fmt.Errorf("error creating HTTP request: %v", err)
-	}
-
-	req.Header.Set("Content-Type", contentTypeJSON)
-	req.Header.Set(authHeader, bearer+token)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("error making HTTP request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			return fmt.Errorf("error reading response body: %v", err)
-		}
-		return fmt.Errorf("error response from server: %s", body)
-	}
-
-	return nil
-}
-
 func init() {
-	LabelsCmd.Flags().StringP(flagKey, flagShorthandKey, "", descKey)
-	LabelsCmd.Flags().StringP(flagValue, flagShorthandValue, "", descValue)
-	LabelsCmd.Flags().StringP(flagNodeID, flagShorthandNodeID, "", descNodeID)
-	LabelsCmd.Flags().StringP(flagOrg, flagShorthandOrg, "", descOrg)
+	LabelsCmd.Flags().StringVarP(&key, flagKey, flagShorthandKey, "", descKey)
+	LabelsCmd.Flags().StringVarP(&value, flagValue, flagShorthandValue, "", descValue)
+	LabelsCmd.Flags().StringVarP(&nodeId, flagNodeID, flagShorthandNodeID, "", descNodeID)
+	LabelsCmd.Flags().StringVarP(&org, flagOrg, flagShorthandOrg, "", descOrg)
 
 	LabelsCmd.MarkFlagRequired(flagKey)
 	LabelsCmd.MarkFlagRequired(flagValue)

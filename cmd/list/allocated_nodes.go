@@ -46,13 +46,13 @@ func executeAllocatedNodes(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	var url string
+	var allocatedNodesURL string
 	var request model.ClaimNodesRequest
 	if query == "" {
-		url = clients.AllocatedNodesEndpoint
+		allocatedNodesURL = clients.BuildURL("core", "v1", "ListOrgOwnedNodes")
 		request.Org = org
 	} else {
-		url = clients.AllocatedNodesQueryEndpoint
+		allocatedNodesURL = clients.BuildURL("core", "v1", "QueryOrgOwnedNodes")
 		var nodeQueries []model.NodeQuery
 		if err := json.Unmarshal([]byte(query), &nodeQueries); err != nil {
 			fmt.Printf("Error parsing query JSON: %v\n", err)
@@ -66,7 +66,7 @@ func executeAllocatedNodes(cmd *cobra.Command, args []string) {
 
 	var nodesResponse model.NodesResponse
 	err = utils.SendHTTPRequest(model.HTTPRequestConfig{
-		URL:         url,
+		URL:         allocatedNodesURL,
 		Method:      "GET",
 		RequestBody: request,
 		Response:    &nodesResponse,
@@ -92,5 +92,4 @@ func init() {
 	AllocatedNodesCmd.Flags().StringVarP(&org, orgFlag, orgFlagShortHand, "", orgDesc)
 	AllocatedNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShortHand, "", queryDesc)
 	AllocatedNodesCmd.MarkFlagRequired(orgFlag)
-	//AllocatedNodesCmd.MarkFlagRequired(queryFlag)
 }

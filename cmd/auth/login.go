@@ -64,8 +64,8 @@ func login(username, password string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	url := clients.LoginEndpoint
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(credentialsJSON))
+	loginURL := clients.BuildURL("core", "v1", "LoginUser")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, loginURL, bytes.NewBuffer(credentialsJSON))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)
 	}

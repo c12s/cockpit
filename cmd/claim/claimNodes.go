@@ -75,7 +75,7 @@ func executeClaimNodes(cmd *cobra.Command, args []string) {
 }
 
 func claimNodes(request model.ClaimNodesRequest, token string) error {
-	claimNodesURL := clients.ClaimNodesEndpoint
+	claimNodesURL := clients.BuildURL("core", "v1", "ClaimOwnership")
 
 	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         claimNodesURL,

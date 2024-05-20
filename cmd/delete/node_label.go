@@ -71,7 +71,7 @@ func executeDeleteLabel(cmd *cobra.Command, args []string) {
 }
 
 func deleteLabel(token string) error {
-	url := clients.LabelsEndpoint
+	deleteLabelURL := clients.BuildURL("core", "v1", "DeleteLabel")
 	input := model.DeleteLabelInput{
 		LabelKey: key,
 		NodeID:   nodeId,
@@ -79,7 +79,7 @@ func deleteLabel(token string) error {
 	}
 
 	return utils.SendHTTPRequest(model.HTTPRequestConfig{
-		URL:         url,
+		URL:         deleteLabelURL,
 		Method:      "DELETE",
 		RequestBody: input,
 		Token:       token,

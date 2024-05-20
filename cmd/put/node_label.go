@@ -54,18 +54,13 @@ var LabelsCmd = &cobra.Command{
 }
 
 func executeLabelCommand(cmd *cobra.Command, args []string) {
-	key, _ := cmd.Flags().GetString(flagKey)
-	valueStr, _ := cmd.Flags().GetString(flagValue)
-	nodeId, _ := cmd.Flags().GetString(flagNodeID)
-	org, _ := cmd.Flags().GetString(flagOrg)
-
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		fmt.Printf("Error reading token: %v\n", err)
 		os.Exit(1)
 	}
 
-	value, url, err := determineValueTypeAndURL(valueStr)
+	value, url, err := determineValueTypeAndURL(value)
 	if err != nil {
 		fmt.Printf("Error determining value type: %v\n", err)
 		os.Exit(1)
@@ -96,12 +91,12 @@ func sendLabelRequest(input model.LabelInput, url, token string) error {
 
 func determineValueTypeAndURL(valueStr string) (interface{}, string, error) {
 	if floatValue, err := strconv.ParseFloat(valueStr, 64); err == nil {
-		return floatValue, clients.LabelsFloatEndpoint, nil
+		return floatValue, clients.BuildURL("core", "v1", "PutFloat64Label"), nil
 	}
 	if boolValue, err := strconv.ParseBool(valueStr); err == nil {
-		return boolValue, clients.LabelsBoolEndpoint, nil
+		return boolValue, clients.BuildURL("core", "v1", "PutBoolLabel"), nil
 	}
-	return valueStr, clients.LabelsStringEndpoint, nil
+	return valueStr, clients.BuildURL("core", "v1", "PutStringLabel"), nil
 }
 
 func createLabelInput(key string, value interface{}, nodeId string, org string) model.LabelInput {

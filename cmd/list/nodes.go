@@ -34,17 +34,11 @@ var NodesCmd = &cobra.Command{
 }
 
 func executeRetrieveNodes(cmd *cobra.Command, args []string) {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
-	}
-
-	url := clients.AvailableNodesEndpoint
+	url := clients.BuildURL("core", "v1", "ListNodePool")
 	var nodeQueries []model.NodeQuery
 	var requestBody interface{}
 	if query != "" {
-		url = clients.AvailableNodesQueryEndpoint
+		url = clients.BuildURL("core", "v1", "QueryNodePool")
 		if err := json.Unmarshal([]byte(query), &nodeQueries); err != nil {
 			fmt.Printf("Error parsing query JSON: %v\n", err)
 			println()
@@ -53,13 +47,12 @@ func executeRetrieveNodes(cmd *cobra.Command, args []string) {
 		requestBody = map[string][]model.NodeQuery{"query": nodeQueries}
 	}
 
-	err = utils.SendHTTPRequest(model.HTTPRequestConfig{
+	err := utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
 		Method:      "GET",
 		Headers:     map[string]string{"Content-Type": "application/json"},
 		RequestBody: requestBody,
 		Response:    &nodesResponse,
-		Token:       token,
 		Timeout:     10 * time.Second,
 	})
 	if err != nil {

@@ -104,8 +104,8 @@ func register(email, name, org, password, surname, username string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	url := clients.RegisterEndpoint
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewBuffer(registrationJSON))
+	registerURL := clients.BuildURL("core", "v1", "RegisterUser")
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, registerURL, bytes.NewBuffer(registrationJSON))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %v", err)
 	}

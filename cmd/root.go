@@ -4,9 +4,12 @@ import (
 	"fmt"
 	auth "github.com/c12s/cockpit/cmd/auth"
 	claim "github.com/c12s/cockpit/cmd/claim"
+	create "github.com/c12s/cockpit/cmd/create"
 	delete "github.com/c12s/cockpit/cmd/delete"
+	get "github.com/c12s/cockpit/cmd/get"
 	list "github.com/c12s/cockpit/cmd/list"
 	put "github.com/c12s/cockpit/cmd/put"
+	validate "github.com/c12s/cockpit/cmd/validate"
 	"github.com/spf13/cobra"
 	"os"
 )
@@ -27,10 +30,21 @@ func init() {
 	RootCmd.AddCommand(PutCmd)
 
 	DeleteCmd.AddCommand(delete.DeleteNodeLabelsCmd)
+	DeleteCmd.AddCommand(delete.DeleteSchemaCmd)
 	RootCmd.AddCommand(DeleteCmd)
 
 	ClaimCmd.AddCommand(claim.ClaimNodesCmd)
 	RootCmd.AddCommand(ClaimCmd)
+
+	GetCmd.AddCommand(get.GetSchemaCmd)
+	get.GetSchemaCmd.AddCommand(get.GetSchemaVersionCmd)
+	RootCmd.AddCommand(GetCmd)
+
+	ValidateCmd.AddCommand(validate.ValidateSchemaVersionCmd)
+	RootCmd.AddCommand(ValidateCmd)
+
+	CreateCmd.AddCommand(create.CreateSchemaCmd)
+	RootCmd.AddCommand(CreateCmd)
 
 	RootCmd.PersistentFlags().String(apiVersionFlag, "1.0.0", "specify c12s API version")
 }
@@ -52,7 +66,22 @@ var PutCmd = &cobra.Command{
 
 var ListCmd = &cobra.Command{
 	Use:   "list",
-	Short: "List nodes",
+	Short: "List resources",
+}
+
+var CreateCmd = &cobra.Command{
+	Use:   "create",
+	Short: "Create resources",
+}
+
+var GetCmd = &cobra.Command{
+	Use:   "get",
+	Short: "Get resources",
+}
+
+var ValidateCmd = &cobra.Command{
+	Use:   "validate",
+	Short: "Get resources",
 }
 
 var RootCmd = &cobra.Command{

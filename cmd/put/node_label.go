@@ -54,12 +54,6 @@ var LabelsCmd = &cobra.Command{
 }
 
 func executeLabelCommand(cmd *cobra.Command, args []string) {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
-	}
-
 	value, url, err := determineValueTypeAndURL(value)
 	if err != nil {
 		fmt.Printf("Error determining value type: %v\n", err)
@@ -67,7 +61,7 @@ func executeLabelCommand(cmd *cobra.Command, args []string) {
 	}
 
 	labelInput := createLabelInput(key, value, nodeId, org)
-	err = sendLabelRequest(labelInput, url, token)
+	err = sendLabelRequest(labelInput, url)
 	if err != nil {
 		fmt.Printf("Error processing label: %v\n", err)
 		os.Exit(1)
@@ -78,7 +72,13 @@ func executeLabelCommand(cmd *cobra.Command, args []string) {
 	println()
 }
 
-func sendLabelRequest(input model.LabelInput, url, token string) error {
+func sendLabelRequest(input model.LabelInput, url string) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		fmt.Printf("Error reading token: %v\n", err)
+		os.Exit(1)
+	}
+
 	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
 		Method:      "POST",

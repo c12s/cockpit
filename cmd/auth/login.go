@@ -1,17 +1,12 @@
 package cmd
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"time"
 )
@@ -45,63 +40,39 @@ var LoginCmd = &cobra.Command{
 	},
 }
 
-func init() {
-	LoginCmd.Flags().StringVarP(&username, flagUsername, shortUsername, "", "Username for login")
-	LoginCmd.MarkFlagRequired(flagUsername)
-}
-
 func login(username, password string) error {
 	credentials := model.Credentials{
 		Username: username,
 		Password: password,
 	}
 
-	credentialsJSON, err := json.Marshal(credentials)
-	if err != nil {
-		return fmt.Errorf("failed to marshal credentials: %v", err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
 	loginURL := clients.BuildURL("core", "v1", "LoginUser")
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, loginURL, bytes.NewBuffer(credentialsJSON))
+	tokenResponse := model.TokenResponse{}
+
+	err := utils.SendHTTPRequest(model.HTTPRequestConfig{
+		URL:         loginURL,
+		Method:      "POST",
+		RequestBody: credentials,
+		Response:    &tokenResponse,
+		Timeout:     10 * time.Second,
+	})
+
 	if err != nil {
-		return fmt.Errorf("failed to create request: %v", err)
+		return fmt.Errorf("failed to send login request: %v", err)
 	}
 
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response: %v", err)
-	}
-	bodyString := string(bodyBytes)
-
-	if resp.StatusCode == http.StatusOK {
-		var tokenResponse model.TokenResponse
-		if err := json.Unmarshal(bodyBytes, &tokenResponse); err != nil {
-			return fmt.Errorf("failed to decode response: %v", err)
-		}
-
-		if err := saveTokenToFile(tokenResponse.Token); err != nil {
-			return fmt.Errorf("failed to save token: %v", err)
-		}
-
-		return nil
+	if err := saveTokenToFile(tokenResponse.Token); err != nil {
+		return fmt.Errorf("failed to save token: %v", err)
 	}
 
-	return fmt.Errorf("login failed: %s", bodyString)
+	return nil
 }
-
 func saveTokenToFile(token string) error {
 	tokenFilePath := tokenPath
 	return ioutil.WriteFile(tokenFilePath, []byte(token), 0600)
+}
+
+func init() {
+	LoginCmd.Flags().StringVarP(&username, flagUsername, shortUsername, "", "Username for login")
+	LoginCmd.MarkFlagRequired(flagUsername)
 }

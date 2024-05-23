@@ -50,13 +50,7 @@ var DeleteNodeLabelsCmd = &cobra.Command{
 }
 
 func executeDeleteLabel(cmd *cobra.Command, args []string) {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
-	}
-
-	err = deleteLabel(token)
+	err := deleteLabel()
 
 	if err != nil {
 		fmt.Printf("Error deleting label: %v\n", err)
@@ -65,18 +59,20 @@ func executeDeleteLabel(cmd *cobra.Command, args []string) {
 
 	fmt.Println()
 	render.RenderNode(nodeResponse.Node)
-
 	fmt.Println("Label deleted successfully.")
 	println()
 }
 
-func deleteLabel(token string) error {
-	deleteLabelURL := clients.BuildURL("core", "v1", "DeleteLabel")
-	input := model.DeleteLabelInput{
-		LabelKey: key,
-		NodeID:   nodeId,
-		Org:      org,
+func deleteLabel() error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		fmt.Printf("Error reading token: %v\n", err)
+		os.Exit(1)
 	}
+
+	deleteLabelURL := clients.BuildURL("core", "v1", "DeleteLabel")
+
+	input := createLabelInput()
 
 	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         deleteLabelURL,
@@ -86,6 +82,14 @@ func deleteLabel(token string) error {
 		Response:    &nodeResponse,
 		Timeout:     10 * time.Second,
 	})
+}
+
+func createLabelInput() model.DeleteLabelInput {
+	return model.DeleteLabelInput{
+		LabelKey: key,
+		NodeID:   nodeId,
+		Org:      org,
+	}
 }
 
 func init() {

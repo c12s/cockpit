@@ -12,13 +12,17 @@ const (
 )
 
 func RenderNodes(nodes []model.Node) {
-	for _, node := range nodes {
-		fmt.Printf("%sNode ID: %s%s\n", Bold, Bold, node.ID)
-		fmt.Println(strings.Repeat("-", 45))
-		for _, label := range node.Labels {
-			fmt.Printf("  - %s%s: %s%s\n", Reset, label.Key, Reset, label.Value)
+	if len(nodes) == 0 {
+		fmt.Println("No nodes were found.")
+	} else {
+		for _, node := range nodes {
+			fmt.Printf("%sNode ID: %s%s\n", Bold, Bold, node.ID)
+			fmt.Println(strings.Repeat("-", 45))
+			for _, label := range node.Labels {
+				fmt.Printf("  - %s%s: %s%s\n", Reset, label.Key, Reset, label.Value)
+			}
+			fmt.Println(strings.Repeat("-", 45))
 		}
-		fmt.Println(strings.Repeat("-", 45))
 	}
 }
 

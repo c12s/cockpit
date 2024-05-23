@@ -1,16 +1,11 @@
 package cmd
 
 import (
-	"bytes"
-	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"io"
-	"net/http"
 	"os"
 	"time"
 )
@@ -72,6 +67,26 @@ var RegisterCmd = &cobra.Command{
 	},
 }
 
+func register(email, name, org, password, surname, username string) error {
+	registrationDetails := model.RegistrationDetails{
+		Email:    email,
+		Name:     name,
+		Org:      org,
+		Password: password,
+		Surname:  surname,
+		Username: username,
+	}
+
+	registerURL := clients.BuildURL("core", "v1", "RegisterUser")
+
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
+		URL:         registerURL,
+		Method:      "POST",
+		RequestBody: registrationDetails,
+		Timeout:     10 * time.Second,
+	})
+}
+
 func init() {
 	RegisterCmd.Flags().StringVarP(&email, flagEmail, shortEmail, "", emailDesc)
 	RegisterCmd.Flags().StringVarP(&name, flagName, shortName, "", nameDesc)
@@ -84,50 +99,4 @@ func init() {
 	RegisterCmd.MarkFlagRequired(flagOrg)
 	RegisterCmd.MarkFlagRequired(flagSurname)
 	RegisterCmd.MarkFlagRequired(flagUsername)
-}
-
-func register(email, name, org, password, surname, username string) error {
-	registrationDetails := model.RegistrationDetails{
-		Email:    email,
-		Name:     name,
-		Org:      org,
-		Password: password,
-		Surname:  surname,
-		Username: username,
-	}
-
-	registrationJSON, err := json.Marshal(registrationDetails)
-	if err != nil {
-		return fmt.Errorf("failed to marshal registration details: %v", err)
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	registerURL := clients.BuildURL("core", "v1", "RegisterUser")
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, registerURL, bytes.NewBuffer(registrationJSON))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %v", err)
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	resp, err := client.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to send request: %v", err)
-	}
-	defer resp.Body.Close()
-
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to read response: %v", err)
-	}
-	bodyString := string(bodyBytes)
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("registration failed: %s", bodyString)
-	}
-
-	return nil
 }

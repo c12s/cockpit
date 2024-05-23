@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
@@ -17,7 +16,8 @@ const (
 	nodesLongDescription  = "Retrieve a comprehensive list of all available nodes in the system.\n" +
 		"These nodes can be allocated to your organization based on your requirements.\n\n" +
 		"Example:\n" +
-		"nodes --query '[{\"labelKey\": \"labelKey\", \"shouldBe\": \"> || < || =\", \"value\": \"2\"}]'"
+		"nodes --query 'labelKey >||=||< value' \n" +
+		"nodes --query 'memory-totalGB > 2'"
 )
 
 var (
@@ -34,20 +34,36 @@ var NodesCmd = &cobra.Command{
 }
 
 func executeRetrieveNodes(cmd *cobra.Command, args []string) {
-	url := clients.BuildURL("core", "v1", "ListNodePool")
-	var nodeQueries []model.NodeQuery
-	var requestBody interface{}
-	if query != "" {
-		url = clients.BuildURL("core", "v1", "QueryNodePool")
-		if err := json.Unmarshal([]byte(query), &nodeQueries); err != nil {
-			fmt.Printf("Error parsing query JSON: %v\n", err)
-			println()
-			os.Exit(1)
-		}
-		requestBody = map[string][]model.NodeQuery{"query": nodeQueries}
+	requestBody, url, err := prepareRequest(query)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 
-	err := utils.SendHTTPRequest(model.HTTPRequestConfig{
+	if err := sendNodeRequest(requestBody, url); err != nil {
+		fmt.Printf("Error making request: %v\n", err)
+		os.Exit(1)
+	}
+
+	render.RenderNodes(nodesResponse.Nodes)
+}
+
+func prepareRequest(query string) (interface{}, string, error) {
+	if query == "" {
+		return nil, clients.BuildURL("core", "v1", "ListNodePool"), nil
+	}
+
+	nodeQueries, err := utils.CreateNodeQuery(query)
+	if err != nil {
+		return nil, "", err
+	}
+	requestBody := map[string][]model.NodeQuery{"query": nodeQueries}
+	url := clients.BuildURL("core", "v1", "QueryNodePool")
+	return requestBody, url, nil
+}
+
+func sendNodeRequest(requestBody interface{}, url string) error {
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
 		Method:      "GET",
 		Headers:     map[string]string{"Content-Type": "application/json"},
@@ -55,18 +71,6 @@ func executeRetrieveNodes(cmd *cobra.Command, args []string) {
 		Response:    &nodesResponse,
 		Timeout:     10 * time.Second,
 	})
-	if err != nil {
-		fmt.Printf("Error making request: %v\n", err)
-		println()
-		os.Exit(1)
-	}
-
-	if len(nodesResponse.Nodes) == 0 {
-		fmt.Println("No nodes were found.")
-	} else {
-		render.RenderNodes(nodesResponse.Nodes)
-	}
-	println()
 }
 
 func init() {

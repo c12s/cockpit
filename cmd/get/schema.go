@@ -52,7 +52,7 @@ var GetSchemaCmd = &cobra.Command{
 }
 
 func executeGetSchema(cmd *cobra.Command, args []string) {
-	config := createRequestConfig()
+	config := createSchemaRequestConfig()
 
 	err := utils.SendHTTPRequest(config)
 	if err != nil {
@@ -67,7 +67,7 @@ func executeGetSchema(cmd *cobra.Command, args []string) {
 	}
 }
 
-func createRequestConfig() model.HTTPRequestConfig {
+func createSchemaRequestConfig() model.HTTPRequestConfig {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		fmt.Printf("Error reading token: %v\n", err)

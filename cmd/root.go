@@ -37,6 +37,8 @@ func init() {
 	RootCmd.AddCommand(ClaimCmd)
 
 	GetCmd.AddCommand(get.GetSchemaCmd)
+	GetCmd.AddCommand(ConfigCmd)
+	ConfigCmd.AddCommand(get.GetConfigGroupCmd)
 	get.GetSchemaCmd.AddCommand(get.GetSchemaVersionCmd)
 	RootCmd.AddCommand(GetCmd)
 
@@ -77,6 +79,11 @@ var CreateCmd = &cobra.Command{
 var GetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get resources",
+}
+
+var ConfigCmd = &cobra.Command{
+	Use:   "config",
+	Short: "Manipulate with config",
 }
 
 var ValidateCmd = &cobra.Command{

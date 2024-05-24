@@ -125,6 +125,14 @@ func MarshalSchemaResponse(response *model.SchemaResponse) ([]byte, error) {
 	return []byte(yamlString), nil
 }
 
+func MarshalAppConfigResponseToYAML(response *model.AppConfigResponse) ([]byte, error) {
+	yamlData, err := yaml.Marshal(response)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert to YAML: %v", err)
+	}
+	return yamlData, nil
+}
+
 func MarshalSchemaVersionResponse(response *model.SchemaVersionResponse) ([]byte, error) {
 	type SchemaData struct {
 		Schema       string `yaml:"schema"`

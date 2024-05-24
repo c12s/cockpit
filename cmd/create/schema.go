@@ -24,7 +24,7 @@ const (
 		"Example:\n" +
 		"create-schema --organization 'c12s' --schema_name 'schema' --version 'v1.0.0' --path '/path/to/schema.yaml'"
 
-	organizationFlag = "organization"
+	organizationFlag = "org"
 	schemaNameFlag   = "schema_name"
 	versionFlag      = "version"
 	filePathFlag     = "path"

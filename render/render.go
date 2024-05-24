@@ -13,7 +13,7 @@ const (
 	Reset = "\033[0m"
 )
 
-func HandleAppConfigResponse(response *model.AppConfigResponse, outputFormat string) {
+func HandleSingleConfigGroupResponse(response *model.SingleConfigGroupResponse, outputFormat string) {
 	if outputFormat == "json" {
 		jsonData, err := json.MarshalIndent(response, "", "  ")
 		if err != nil {
@@ -32,6 +32,27 @@ func HandleAppConfigResponse(response *model.AppConfigResponse, outputFormat str
 		fmt.Println(string(yamlData))
 	}
 }
+
+func HandleConfigGroupResponse(response *model.ConfigGroupsResponse, outputFormat string) {
+	if outputFormat == "json" {
+		jsonData, err := json.MarshalIndent(response, "", "  ")
+		if err != nil {
+			fmt.Printf("Error converting response to JSON: %v\n", err)
+			return
+		}
+		fmt.Println("Config Group (JSON):")
+		fmt.Println(string(jsonData))
+	} else {
+		yamlData, err := yaml.Marshal(response)
+		if err != nil {
+			fmt.Printf("Error converting response to YAML: %v\n", err)
+			return
+		}
+		fmt.Println("Config group (YAML):")
+		fmt.Println(string(yamlData))
+	}
+}
+
 func HandleSchemaVersionResponse(response *model.SchemaVersionResponse) {
 	println()
 	fmt.Println("Message:", response.Message)

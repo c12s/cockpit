@@ -101,7 +101,7 @@ func saveSchemaResponseToYAML(response *model.SchemaResponse) error {
 			return fmt.Errorf("failed to convert to YAML: %v", err)
 		}
 
-		fileName := fmt.Sprintf("./schemas/schema.yaml")
+		fileName := fmt.Sprintf("./schema_files/schema.yaml")
 		err = ioutil.WriteFile(fileName, yamlData, 0644)
 		if err != nil {
 			return fmt.Errorf("failed to write YAML file: %v", err)

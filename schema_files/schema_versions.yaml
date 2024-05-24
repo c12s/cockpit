@@ -1,0 +1,86 @@
+message: Schema versions retrieved successfully!
+schemaVersions:
+  - schemaDetails:
+      organization: c12s
+      schemaName: schema
+      version: v1.0.0
+    schemaData:
+      schema: 
+        properties:
+          db_config:
+            properties:
+              address:
+                type: string
+              port:
+                type: string
+            required:
+            - address
+            - port
+            type: object
+        required:
+        - db_config
+        type: object
+      creationTime: "2024-05-23T12:14:42.506181810Z"
+  - schemaDetails:
+      organization: c12s
+      schemaName: schema2
+      version: v1.0.0
+    schemaData:
+      schema: 
+        properties:
+          db_config:
+            properties:
+              address:
+                type: string
+              port:
+                type: string
+            required:
+            - address
+            - port
+            type: object
+        required:
+        - db_config
+        type: object
+      creationTime: "2024-05-23T20:58:44.278655636Z"
+  - schemaDetails:
+      organization: c12s
+      schemaName: schema3
+      version: v1.0.0
+    schemaData:
+      schema: 
+        properties:
+          db_config:
+            properties:
+              address:
+                type: string
+              port:
+                type: string
+            required:
+            - address
+            - port
+            type: object
+        required:
+        - db_config
+        type: object
+      creationTime: "2024-05-23T21:06:36.140279189Z"
+  - schemaDetails:
+      organization: c12s
+      schemaName: schema5
+      version: v1.0.0
+    schemaData:
+      schema: 
+        properties:
+          db_config:
+            properties:
+              address:
+                type: string
+              port:
+                type: string
+            required:
+            - address
+            - port
+            type: object
+        required:
+        - db_config
+        type: object
+      creationTime: "2024-05-24T20:43:16.790009200Z"

@@ -23,6 +23,8 @@ func init() {
 	RootCmd.AddCommand(auth.RegisterCmd)
 
 	ListCmd.AddCommand(list.NodesCmd)
+	ListCmd.AddCommand(ListConfigCmd)
+	ListConfigCmd.AddCommand(list.ListConfigGroupCmd)
 	list.NodesCmd.AddCommand(list.AllocatedNodesCmd)
 	RootCmd.AddCommand(ListCmd)
 
@@ -37,8 +39,8 @@ func init() {
 	RootCmd.AddCommand(ClaimCmd)
 
 	GetCmd.AddCommand(get.GetSchemaCmd)
-	GetCmd.AddCommand(ConfigCmd)
-	ConfigCmd.AddCommand(get.GetConfigGroupCmd)
+	GetCmd.AddCommand(GetConfigCmd)
+	GetConfigCmd.AddCommand(get.GetSingleConfigGroupCmd)
 	get.GetSchemaCmd.AddCommand(get.GetSchemaVersionCmd)
 	RootCmd.AddCommand(GetCmd)
 
@@ -81,7 +83,12 @@ var GetCmd = &cobra.Command{
 	Short: "Get resources",
 }
 
-var ConfigCmd = &cobra.Command{
+var ListConfigCmd = &cobra.Command{
+	Use:   "config",
+	Short: "Manipulate with config",
+}
+
+var GetConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manipulate with config",
 }

@@ -18,12 +18,6 @@ type ConfigGroup struct {
 	ParamSets    []ParamSet `json:"paramSets" yaml:"paramSets"`
 }
 
-type SingleConfigGroupRequest struct {
-	Name         string `json:"name" yaml:"name"`
-	Organization string `json:"organization" yaml:"organization"`
-	Version      string `json:"version" yaml:"version"`
-}
-
 type ConfigGroupsResponse struct {
 	Groups []ConfigGroup `json:"groups" yaml:"groups"`
 }
@@ -40,4 +34,19 @@ type SingleConfigGroupResponse struct {
 			Value string `json:"value" yaml:"value"`
 		} `json:"paramSet" yaml:"paramSet"`
 	} `json:"paramSets" yaml:"paramSets"`
+}
+
+type ConfigGroupReference struct {
+	Name         string `json:"name" yaml:"name"`
+	Organization string `json:"organization" yaml:"organization"`
+	Version      string `json:"version" yaml:"version"`
+}
+
+type ConfigGroupDiffRequest struct {
+	Reference ConfigGroupReference `json:"reference" yaml:"reference"`
+	Diff      ConfigGroupReference `json:"diff" yaml:"diff"`
+}
+
+type ConfigGroupDiffResponse struct {
+	Diffs map[string]interface{} `json:"diffs" yaml:"diffs"`
 }

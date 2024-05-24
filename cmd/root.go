@@ -6,6 +6,7 @@ import (
 	claim "github.com/c12s/cockpit/cmd/claim"
 	create "github.com/c12s/cockpit/cmd/create"
 	delete "github.com/c12s/cockpit/cmd/delete"
+	diff "github.com/c12s/cockpit/cmd/diff"
 	get "github.com/c12s/cockpit/cmd/get"
 	list "github.com/c12s/cockpit/cmd/list"
 	put "github.com/c12s/cockpit/cmd/put"
@@ -50,6 +51,10 @@ func init() {
 	CreateCmd.AddCommand(create.CreateSchemaCmd)
 	RootCmd.AddCommand(CreateCmd)
 
+	DiffCmd.AddCommand(DiffConfigCmd)
+	DiffConfigCmd.AddCommand(diff.DiffConfigGroupCmd)
+	RootCmd.AddCommand(DiffCmd)
+
 	RootCmd.PersistentFlags().String(apiVersionFlag, "1.0.0", "specify c12s API version")
 }
 
@@ -83,12 +88,22 @@ var GetCmd = &cobra.Command{
 	Short: "Get resources",
 }
 
+var DiffCmd = &cobra.Command{
+	Use:   "diff",
+	Short: "Diff resources",
+}
+
 var ListConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manipulate with config",
 }
 
 var GetConfigCmd = &cobra.Command{
+	Use:   "config",
+	Short: "Manipulate with config",
+}
+
+var DiffConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manipulate with config",
 }

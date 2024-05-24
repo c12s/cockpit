@@ -53,6 +53,26 @@ func HandleConfigGroupResponse(response *model.ConfigGroupsResponse, outputForma
 	}
 }
 
+func HandleConfigGroupDiffResponse(response *model.ConfigGroupDiffResponse, outputFormat string) {
+	if outputFormat == "json" {
+		jsonData, err := json.MarshalIndent(response, "", "  ")
+		if err != nil {
+			fmt.Printf("Error converting response to JSON: %v\n", err)
+			return
+		}
+		fmt.Println("Config Group Diff (JSON):")
+		fmt.Println(string(jsonData))
+	} else {
+		yamlData, err := yaml.Marshal(response)
+		if err != nil {
+			fmt.Printf("Error converting response to YAML: %v\n", err)
+			return
+		}
+		fmt.Println("Config Group Diff (YAML):")
+		fmt.Println(string(yamlData))
+	}
+}
+
 func HandleSchemaVersionResponse(response *model.SchemaVersionResponse) {
 	println()
 	fmt.Println("Message:", response.Message)

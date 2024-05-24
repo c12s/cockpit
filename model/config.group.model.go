@@ -18,6 +18,14 @@ type ConfigGroup struct {
 	ParamSets    []ParamSet `json:"paramSets" yaml:"paramSets"`
 }
 
+type DeleteConfigGroupResponse struct {
+	Organization string     `json:"organization" yaml:"organization"`
+	Name         string     `json:"name" yaml:"name"`
+	Version      string     `json:"version" yaml:"version"`
+	CreatedAt    string     `json:"createdAt" yaml:"createdAt"`
+	ParamSets    []ParamSet `json:"paramSets" yaml:"paramSets"`
+}
+
 type ConfigGroupsResponse struct {
 	Groups []ConfigGroup `json:"groups" yaml:"groups"`
 }

@@ -34,6 +34,8 @@ func init() {
 
 	DeleteCmd.AddCommand(delete.DeleteNodeLabelsCmd)
 	DeleteCmd.AddCommand(delete.DeleteSchemaCmd)
+	DeleteCmd.AddCommand(DeleteConfigCmd)
+	DeleteConfigCmd.AddCommand(delete.DeleteConfigGroupCmd)
 	RootCmd.AddCommand(DeleteCmd)
 
 	ClaimCmd.AddCommand(claim.ClaimNodesCmd)
@@ -104,6 +106,11 @@ var GetConfigCmd = &cobra.Command{
 }
 
 var DiffConfigCmd = &cobra.Command{
+	Use:   "config",
+	Short: "Manipulate with config",
+}
+
+var DeleteConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Manipulate with config",
 }

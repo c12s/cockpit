@@ -30,6 +30,8 @@ func init() {
 	RootCmd.AddCommand(ListCmd)
 
 	PutCmd.AddCommand(put.LabelsCmd)
+	PutCmd.AddCommand(PutConfigGroupCmd)
+	PutConfigGroupCmd.AddCommand(put.PutConfigGroupCmd)
 	RootCmd.AddCommand(PutCmd)
 
 	DeleteCmd.AddCommand(delete.DeleteNodeLabelsCmd)
@@ -88,6 +90,11 @@ var CreateCmd = &cobra.Command{
 var GetCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Get resources",
+}
+
+var PutConfigGroupCmd = &cobra.Command{
+	Use:   "config",
+	Short: "Put resources",
 }
 
 var DiffCmd = &cobra.Command{

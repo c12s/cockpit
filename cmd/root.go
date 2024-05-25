@@ -9,6 +9,7 @@ import (
 	diff "github.com/c12s/cockpit/cmd/diff"
 	get "github.com/c12s/cockpit/cmd/get"
 	list "github.com/c12s/cockpit/cmd/list"
+	place "github.com/c12s/cockpit/cmd/place"
 	put "github.com/c12s/cockpit/cmd/put"
 	validate "github.com/c12s/cockpit/cmd/validate"
 	"github.com/spf13/cobra"
@@ -60,6 +61,10 @@ func init() {
 	DiffConfigCmd.AddCommand(diff.DiffConfigGroupCmd)
 	RootCmd.AddCommand(DiffCmd)
 
+	PlaceCmd.AddCommand(PlaceConfigGroupCmd)
+	PlaceConfigGroupCmd.AddCommand(place.PlaceConfigGroupPlacementsCmd)
+	RootCmd.AddCommand(PlaceCmd)
+
 	RootCmd.PersistentFlags().String(apiVersionFlag, "1.0.0", "specify c12s API version")
 }
 
@@ -93,9 +98,19 @@ var GetCmd = &cobra.Command{
 	Short: "Get resources",
 }
 
+var PlaceCmd = &cobra.Command{
+	Use:   "place",
+	Short: "Place resources",
+}
+
 var PutConfigGroupCmd = &cobra.Command{
 	Use:   "config",
 	Short: "Put resources",
+}
+
+var PlaceConfigGroupCmd = &cobra.Command{
+	Use:   "config",
+	Short: "Place resources",
 }
 
 var DiffCmd = &cobra.Command{

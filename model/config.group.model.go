@@ -71,3 +71,16 @@ type Task struct {
 	AcceptedAt string `json:"acceptedAt" yaml:"acceptedAt"`
 	ResolvedAt string `json:"resolvedAt" yaml:"resolvedAt"`
 }
+
+type PlaceConfigGroupPlacementsRequest struct {
+	Config    ConfigGroupReference `json:"config" yaml:"config"`
+	Namespace string               `json:"namespace" yaml:"namespace"`
+	Strategy  struct {
+		Name  string `json:"name" yaml:"name"`
+		Query []struct {
+			LabelKey string `json:"labelKey" yaml:"labelKey"`
+			ShouldBe string `json:"shouldBe" yaml:"shouldBe"`
+			Value    string `json:"value" yaml:"value"`
+		} `json:"query" yaml:"query"`
+	} `json:"strategy" yaml:"strategy"`
+}

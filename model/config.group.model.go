@@ -1,8 +1,30 @@
 package model
 
-type Param struct {
-	Key   string `json:"key" yaml:"key"`
-	Value string `json:"value" yaml:"value"`
+type PlaceConfigGroupPlacementsRequest struct {
+	Config    ConfigGroupReference `json:"config" yaml:"config"`
+	Namespace string               `json:"namespace" yaml:"namespace"`
+	Strategy  struct {
+		Name  string `json:"name" yaml:"name"`
+		Query []struct {
+			LabelKey string `json:"labelKey" yaml:"labelKey"`
+			ShouldBe string `json:"shouldBe" yaml:"shouldBe"`
+			Value    string `json:"value" yaml:"value"`
+		} `json:"query" yaml:"query"`
+	} `json:"strategy" yaml:"strategy"`
+}
+
+type SingleConfigGroupResponse struct {
+	Organization string `json:"organization" yaml:"organization"`
+	Name         string `json:"name" yaml:"name"`
+	Version      string `json:"version" yaml:"version"`
+	CreatedAt    string `json:"createdAt" yaml:"createdAt"`
+	ParamSets    []struct {
+		Name     string `json:"name" yaml:"name"`
+		ParamSet []struct {
+			Key   string `json:"key" yaml:"key"`
+			Value string `json:"value" yaml:"value"`
+		} `json:"paramSet" yaml:"paramSet"`
+	} `json:"paramSets" yaml:"paramSets"`
 }
 
 type ParamSet struct {
@@ -18,30 +40,8 @@ type ConfigGroup struct {
 	ParamSets    []ParamSet `json:"paramSets" yaml:"paramSets"`
 }
 
-type DeleteConfigGroupResponse struct {
-	Organization string     `json:"organization" yaml:"organization"`
-	Name         string     `json:"name" yaml:"name"`
-	Version      string     `json:"version" yaml:"version"`
-	CreatedAt    string     `json:"createdAt" yaml:"createdAt"`
-	ParamSets    []ParamSet `json:"paramSets" yaml:"paramSets"`
-}
-
 type ConfigGroupsResponse struct {
 	Groups []ConfigGroup `json:"groups" yaml:"groups"`
-}
-
-type SingleConfigGroupResponse struct {
-	Organization string `json:"organization" yaml:"organization"`
-	Name         string `json:"name" yaml:"name"`
-	Version      string `json:"version" yaml:"version"`
-	CreatedAt    string `json:"createdAt" yaml:"createdAt"`
-	ParamSets    []struct {
-		Name     string `json:"name" yaml:"name"`
-		ParamSet []struct {
-			Key   string `json:"key" yaml:"key"`
-			Value string `json:"value" yaml:"value"`
-		} `json:"paramSet" yaml:"paramSet"`
-	} `json:"paramSets" yaml:"paramSets"`
 }
 
 type ConfigGroupReference struct {
@@ -72,15 +72,7 @@ type Task struct {
 	ResolvedAt string `json:"resolvedAt" yaml:"resolvedAt"`
 }
 
-type PlaceConfigGroupPlacementsRequest struct {
-	Config    ConfigGroupReference `json:"config" yaml:"config"`
-	Namespace string               `json:"namespace" yaml:"namespace"`
-	Strategy  struct {
-		Name  string `json:"name" yaml:"name"`
-		Query []struct {
-			LabelKey string `json:"labelKey" yaml:"labelKey"`
-			ShouldBe string `json:"shouldBe" yaml:"shouldBe"`
-			Value    string `json:"value" yaml:"value"`
-		} `json:"query" yaml:"query"`
-	} `json:"strategy" yaml:"strategy"`
+type Param struct {
+	Key   string `json:"key" yaml:"key"`
+	Value string `json:"value" yaml:"value"`
 }

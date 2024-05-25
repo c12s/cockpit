@@ -29,7 +29,7 @@ const (
 	versionFlag      = "version"
 	filePathFlag     = "path"
 
-	organizationFlagShorthand = "o"
+	organizationFlagShorthand = "r"
 	schemaNameFlagShorthand   = "s"
 	versionFlagShorthand      = "v"
 	filePathFlagShorthand     = "p"

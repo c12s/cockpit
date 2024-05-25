@@ -20,16 +20,16 @@ const (
 		"claim-nodes --org 'myOrg' --query 'memory-totalGB > 2'"
 
 	// Flag Constants
-	orgFlag   = "org"
-	queryFlag = "query"
+	organizationFlag = "org"
+	queryFlag        = "query"
 
 	// Flag Shorthand Constants
-	orgFlagShortHand   = "o"
-	queryFlagShortHand = "q"
+	organizationFlagShortHand = "r"
+	queryFlagShortHand        = "q"
 
 	// Flag Descriptions
-	orgDesc   = "Organization name (required)"
-	queryDesc = "Query label for finding specific nodes (required)"
+	organizationDesc = "Organization name (required)"
+	queryDesc        = "Query label for finding specific nodes (required)"
 )
 
 var (
@@ -94,8 +94,8 @@ func sendClaimNodeRequest(requestBody interface{}) error {
 }
 
 func init() {
-	ClaimNodesCmd.Flags().StringVarP(&org, orgFlag, orgFlagShortHand, "", orgDesc)
+	ClaimNodesCmd.Flags().StringVarP(&org, organizationFlag, organizationFlagShortHand, "", organizationDesc)
 	ClaimNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShortHand, "", queryDesc)
-	ClaimNodesCmd.MarkFlagRequired(orgFlag)
+	ClaimNodesCmd.MarkFlagRequired(organizationFlag)
 	ClaimNodesCmd.MarkFlagRequired(queryFlag)
 }

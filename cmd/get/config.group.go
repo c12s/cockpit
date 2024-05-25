@@ -28,11 +28,15 @@ const (
 
 	// Flag Shorthand Constants
 	shortFlagName   = "n"
-	shortFlagOutput = "f"
+	shortFlagOutput = "o"
 
 	// Flag Descriptions
 	descName   = "Configuration name (required)"
 	descOutput = "Output format (yaml or json)"
+
+	// Path to files
+	getConfigFilePathJSON = "./config_group_files/single-config.json"
+	getConfigFilePathYAML = "./config_group_files/single-config.yaml"
 )
 
 var (
@@ -95,21 +99,21 @@ func saveAppConfigResponseToFiles(response *model.SingleConfigGroupResponse) err
 		if err != nil {
 			return fmt.Errorf("failed to convert to JSON: %v", err)
 		}
-		err = ioutil.WriteFile("./config_group_files/single_config.json", jsonData, 0644)
+		err = ioutil.WriteFile(getConfigFilePathJSON, jsonData, 0644)
 		if err != nil {
 			return fmt.Errorf("failed to write JSON file: %v", err)
 		}
-		fmt.Printf("App config saved to ./config_group_files/single_config_group.json\n")
+		fmt.Printf("App config saved to %s\n", getConfigFilePathJSON)
 	} else {
 		yamlData, err := utils.MarshalAppConfigResponseToYAML(response)
 		if err != nil {
 			return fmt.Errorf("failed to convert to YAML: %v", err)
 		}
-		err = ioutil.WriteFile("./config_group_files/single_config_group.yaml", yamlData, 0644)
+		err = ioutil.WriteFile(getConfigFilePathYAML, yamlData, 0644)
 		if err != nil {
 			return fmt.Errorf("failed to write YAML file: %v", err)
 		}
-		fmt.Printf("App config saved to ./config_group_files/single_config.yaml\n")
+		fmt.Printf("App config saved to %s\n", getConfigFilePathYAML)
 	}
 
 	return nil

@@ -24,7 +24,7 @@ const (
 	queryFlag = "query"
 
 	// Flag Shorthand Constants
-	orgFlagShortHand   = "o"
+	orgFlagShortHand   = "r"
 	queryFlagShortHand = "q"
 
 	// Flag Descriptions

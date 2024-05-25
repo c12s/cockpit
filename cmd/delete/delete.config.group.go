@@ -90,11 +90,11 @@ func displayResponseAsJSON(response *model.ConfigGroup) {
 }
 
 func init() {
-	DeleteConfigGroupCmd.Flags().StringVarP(&organization, flagOrg, shortFlagOrg, "", descOrg)
+	DeleteConfigGroupCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
 	DeleteConfigGroupCmd.Flags().StringVarP(&name, flagName, shortFlagName, "", descName)
 	DeleteConfigGroupCmd.Flags().StringVarP(&version, flagVersion, shortFlagVersion, "", descVersion)
 
-	DeleteConfigGroupCmd.MarkFlagRequired(flagOrg)
+	DeleteConfigGroupCmd.MarkFlagRequired(flagOrganization)
 	DeleteConfigGroupCmd.MarkFlagRequired(flagName)
 	DeleteConfigGroupCmd.MarkFlagRequired(flagVersion)
 }

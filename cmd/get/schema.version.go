@@ -43,6 +43,9 @@ func executeGetSchemaVersion(cmd *cobra.Command, args []string) {
 
 	render.HandleSchemaVersionResponse(config.Response.(*model.SchemaVersionResponse))
 
+	//if config.Response.(*model.SchemaVersionResponse).Message !=  {
+	//
+	//}
 	err = saveVersionResponseToYAML(config.Response.(*model.SchemaVersionResponse))
 	if err != nil {
 		log.Fatalf("Failed to save response to YAML file: %v", err)
@@ -50,19 +53,23 @@ func executeGetSchemaVersion(cmd *cobra.Command, args []string) {
 }
 
 func saveVersionResponseToYAML(response *model.SchemaVersionResponse) error {
-	yamlData, err := utils.MarshalSchemaVersionResponse(response)
-	if err != nil {
-		return fmt.Errorf("failed to convert to YAML: %v", err)
-	}
+	if len(response.SchemaVersions) != 0 {
+		yamlData, err := utils.MarshalSchemaVersionResponse(response)
+		if err != nil {
+			return fmt.Errorf("failed to convert to YAML: %v", err)
+		}
 
-	fileName := fmt.Sprintf("./schema_files/schema_versions.yaml")
-	err = ioutil.WriteFile(fileName, yamlData, 0644)
-	if err != nil {
-		return fmt.Errorf("failed to write YAML file: %v", err)
-	}
+		fileName := fmt.Sprintf("./schema_files/schema-versions.yaml")
+		err = ioutil.WriteFile(fileName, yamlData, 0644)
+		if err != nil {
+			return fmt.Errorf("failed to write YAML file: %v", err)
+		}
 
-	fmt.Printf("Schema saved to %s\n", fileName)
-	return nil
+		fmt.Printf("Schema saved to %s\n", fileName)
+		return nil
+	} else {
+		return nil
+	}
 }
 
 func createSchemaVersionRequestConfig() model.HTTPRequestConfig {

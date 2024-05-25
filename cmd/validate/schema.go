@@ -25,7 +25,7 @@ const (
 	flagConfigPath   = "path"
 
 	// Flag Shorthand Constants
-	shortFlagOrganization = "o"
+	shortFlagOrganization = "r"
 	shortFlagSchemaName   = "s"
 	shortFlagVersion      = "v"
 	shortFlagConfigPath   = "p"

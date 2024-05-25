@@ -19,7 +19,7 @@ import (
 const (
 	putConfigGroupShortDesc = "Send a configuration group to the server"
 	putConfigGroupLongDesc  = "This command sends a configuration group read from a file (JSON or YAML)\n" +
-		"to the server and displays the server's response in JSON format.\n\n" +
+		"to the server and displays the server's response in the same format as the input file.\n\n" +
 		"Example:\n" +
 		"put-config-group --path 'path to yaml or JSON file'"
 )
@@ -27,6 +27,7 @@ const (
 var (
 	filePath    string
 	putResponse model.ConfigGroup
+	inputFormat string
 )
 
 var PutConfigGroupCmd = &cobra.Command{
@@ -49,7 +50,7 @@ func executePutConfigGroup(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	displayResponseAsJSON(&putResponse)
+	displayResponse(&putResponse, inputFormat)
 }
 
 func readConfigFile(path string) (map[string]interface{}, error) {
@@ -61,11 +62,13 @@ func readConfigFile(path string) (map[string]interface{}, error) {
 	}
 
 	if strings.HasSuffix(path, ".yaml") {
+		inputFormat = "yaml"
 		err = yaml.Unmarshal(fileContent, &configData)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal YAML: %v", err)
 		}
 	} else if strings.HasSuffix(path, ".json") {
+		inputFormat = "json"
 		err = json.Unmarshal(fileContent, &configData)
 		if err != nil {
 			return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
@@ -96,6 +99,14 @@ func createPutRequestConfig(configData map[string]interface{}) model.HTTPRequest
 	}
 }
 
+func displayResponse(response *model.ConfigGroup, format string) {
+	if format == "json" {
+		displayResponseAsJSON(response)
+	} else {
+		displayResponseAsYAML(response)
+	}
+}
+
 func displayResponseAsJSON(response *model.ConfigGroup) {
 	jsonData, err := json.MarshalIndent(response, "", "  ")
 	if err != nil {
@@ -104,6 +115,16 @@ func displayResponseAsJSON(response *model.ConfigGroup) {
 	}
 	fmt.Println("Config Group Response (JSON):")
 	fmt.Println(string(jsonData))
+}
+
+func displayResponseAsYAML(response *model.ConfigGroup) {
+	yamlData, err := yaml.Marshal(response)
+	if err != nil {
+		fmt.Printf("Error converting response to YAML: %v\n", err)
+		return
+	}
+	fmt.Println("Config Group Response (YAML):")
+	fmt.Println(string(yamlData))
 }
 
 func init() {

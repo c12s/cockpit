@@ -20,16 +20,20 @@ const (
 	listConfigGroupLongDesc  = "This command retrieves the configuration groups from a specified endpoint\n" +
 		"displays them in a nicely formatted way, and saves them to both YAML and JSON files.\n\n" +
 		"Example:\n" +
-		"list-config-group --org 'org'"
+		"list-config-group --organization 'org'"
 
 	// Flag Constants
 	outputFlag = "output"
 
 	// Flag Shorthand Constants
-	outputFlagShortHand = "f"
+	outputFlagShortHand = "o"
 
 	// Flag Descriptions
 	outputDesc = "Output format (yaml or json)"
+
+	// Path to files
+	listConfigFilePathJSON = "./config_group_files/list-config.json"
+	listConfigFilePathYAML = "./config_group_files/list-config.yaml"
 )
 
 var (
@@ -90,21 +94,21 @@ func saveConfigGroupResponseToFiles(response *model.ConfigGroupsResponse) error 
 		if err != nil {
 			return fmt.Errorf("failed to convert to JSON: %v", err)
 		}
-		err = ioutil.WriteFile("./config_group_files/list_config.json", jsonData, 0644)
+		err = ioutil.WriteFile(listConfigFilePathJSON, jsonData, 0644)
 		if err != nil {
 			return fmt.Errorf("failed to write JSON file: %v", err)
 		}
-		fmt.Printf("Config group saved to ./config_group_files/config_groups.json\n")
+		fmt.Printf("Config group saved to %s\n", listConfigFilePathJSON)
 	} else {
 		yamlData, err := utils.MarshalConfigGroupResponseToYAML(response)
 		if err != nil {
 			return fmt.Errorf("failed to convert to YAML: %v", err)
 		}
-		err = ioutil.WriteFile("./config_group_files/config_groups.yaml", yamlData, 0644)
+		err = ioutil.WriteFile(listConfigFilePathYAML, yamlData, 0644)
 		if err != nil {
 			return fmt.Errorf("failed to write YAML file: %v", err)
 		}
-		fmt.Printf("Config group saved to ./config_group_files/list_config.yaml\n")
+		fmt.Printf("Config group saved to %s\n", listConfigFilePathYAML)
 	}
 
 	return nil

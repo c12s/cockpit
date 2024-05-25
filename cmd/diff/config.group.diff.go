@@ -21,7 +21,7 @@ const (
 	diffConfigGroupLongDesc  = "This command compares two configuration groups specified by their names and versions\n" +
 		"displays the differences in a nicely formatted way, and saves them to both YAML and JSON files.\n\n" +
 		"Example:\n" +
-		"diff-config-group --org 'org' --names 'nats_config|nats_config2' --versions 'v1.0.1|v1.0.0'"
+		"diff-config-group --org 'org' --names 'name1|name2' --versions 'version1|version2'"
 
 	// Flag Constants
 	flagOrg      = "org"
@@ -30,16 +30,20 @@ const (
 	flagOutput   = "output"
 
 	// Flag Shorthand Constants
-	shortFlagOrg      = "o"
+	shortFlagOrg      = "r"
 	shortFlagNames    = "n"
 	shortFlagVersions = "v"
-	shortFlagOutput   = "f"
+	shortFlagOutput   = "o"
 
 	// Flag Descriptions
 	descOrg      = "Organization (required)"
 	descNames    = "Configuration group names separated by '|' (required)"
 	descVersions = "Configuration group versions separated by '|' (required)"
 	descOutput   = "Output format (yaml or json)"
+
+	// Path to files
+	diffConfigFilePathJSON = "./config_group_files/config-group-diff.json"
+	diffConfigFilePathYAML = "./config_group_files/config-group-diff.yaml"
 )
 
 var (
@@ -118,21 +122,21 @@ func saveDiffConfigGroupResponseToFiles(response *model.ConfigGroupDiffResponse)
 		if err != nil {
 			return fmt.Errorf("failed to convert to JSON: %v", err)
 		}
-		err = ioutil.WriteFile("./config_group_files/config_group_diff.json", jsonData, 0644)
+		err = ioutil.WriteFile(diffConfigFilePathJSON, jsonData, 0644)
 		if err != nil {
 			return fmt.Errorf("failed to write JSON file: %v", err)
 		}
-		fmt.Printf("Config group diff saved to ./config_group_files/config_group_diff.json\n")
+		fmt.Printf("Config group diff saved to %s\n", diffConfigFilePathJSON)
 	} else {
 		yamlData, err := utils.MarshalConfigGroupDiffResponseToYAML(response)
 		if err != nil {
 			return fmt.Errorf("failed to convert to YAML: %v", err)
 		}
-		err = ioutil.WriteFile("./config_group_files/config_group_diff.yaml", yamlData, 0644)
+		err = ioutil.WriteFile(diffConfigFilePathYAML, yamlData, 0644)
 		if err != nil {
 			return fmt.Errorf("failed to write YAML file: %v", err)
 		}
-		fmt.Printf("Config group diff saved to ./config_group_files/config_group_diff.yaml\n")
+		fmt.Printf("Config group diff saved to %s\n", diffConfigFilePathYAML)
 	}
 
 	return nil

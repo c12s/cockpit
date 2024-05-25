@@ -27,7 +27,7 @@ const (
 	flagVersion      = "version"
 
 	// Flag Shorthand Constants
-	shortFlagOrganization = "o"
+	shortFlagOrganization = "r"
 	shortFlagSchemaName   = "s"
 	shortFlagVersion      = "v"
 

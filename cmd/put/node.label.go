@@ -29,7 +29,7 @@ const (
 	flagShorthandKey    = "k"
 	flagShorthandValue  = "v"
 	flagShorthandNodeID = "n"
-	flagShorthandOrg    = "o"
+	flagShorthandOrg    = "r"
 
 	// Flag Descriptions
 	descKey    = "Label key (required)"

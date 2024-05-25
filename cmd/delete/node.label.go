@@ -21,17 +21,14 @@ const (
 
 	// Flag Constants
 	flagNodeID = "nodeId"
-	flagOrg    = "org"
 	flagKey    = "key"
 
 	// Flag Shorthand Constants
 	shortFlagNodeID = "n"
-	shortFlagOrg    = "o"
 	shortFlagKey    = "k"
 
 	// Flag Descriptions
 	descNodeID = "Node ID (required)"
-	descOrg    = "Organization (required)"
 	descKey    = "Label key (required)"
 )
 
@@ -94,10 +91,10 @@ func createLabelInput() model.DeleteLabelInput {
 
 func init() {
 	DeleteNodeLabelsCmd.Flags().StringVarP(&nodeId, flagNodeID, shortFlagNodeID, "", descNodeID)
-	DeleteNodeLabelsCmd.Flags().StringVarP(&org, flagOrg, shortFlagOrg, "", descOrg)
+	DeleteNodeLabelsCmd.Flags().StringVarP(&org, flagOrganization, shortFlagOrganization, "", descOrganization)
 	DeleteNodeLabelsCmd.Flags().StringVarP(&key, flagKey, shortFlagKey, "", descKey)
 
 	DeleteNodeLabelsCmd.MarkFlagRequired(flagNodeID)
-	DeleteNodeLabelsCmd.MarkFlagRequired(flagOrg)
+	DeleteNodeLabelsCmd.MarkFlagRequired(flagOrganization)
 	DeleteNodeLabelsCmd.MarkFlagRequired(flagKey)
 }

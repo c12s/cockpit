@@ -27,7 +27,7 @@ const (
 	// Flag Shorthand Constants
 	shortEmail    = "e"
 	shortName     = "n"
-	shortOrg      = "o"
+	shortOrg      = "r"
 	shortSurname  = "s"
 	shortUsername = "u"
 

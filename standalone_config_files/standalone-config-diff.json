@@ -1,0 +1,12 @@
+{
+  "diffs": [
+    {
+      "type": "replacement",
+      "diff": {
+        "key": "port",
+        "new_value": "5432",
+        "old_value": "1234"
+      }
+    }
+  ]
+}

@@ -62,6 +62,8 @@ func init() {
 	RootCmd.AddCommand(CreateCmd)
 
 	DiffCmd.AddCommand(DiffConfigCmd)
+	DiffCmd.AddCommand(DiffStandaloneConfigCmd)
+	DiffStandaloneConfigCmd.AddCommand(diff.DiffStandaloneConfigCmd)
 	DiffConfigCmd.AddCommand(diff.DiffConfigGroupCmd)
 	RootCmd.AddCommand(DiffCmd)
 
@@ -134,6 +136,11 @@ var GetConfigCmd = &cobra.Command{
 
 var DiffConfigCmd = &cobra.Command{
 	Use:   "config",
+	Short: "Manipulate with config",
+}
+
+var DiffStandaloneConfigCmd = &cobra.Command{
+	Use:   "standalone",
 	Short: "Manipulate with config",
 }
 

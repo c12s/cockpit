@@ -7,8 +7,10 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/model"
 	"golang.org/x/term"
+	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"syscall"
 )
 
@@ -82,4 +84,31 @@ func ReadTokenFromFile() (string, error) {
 		return "", fmt.Errorf("failed to read token file: %w", err)
 	}
 	return string(token), nil
+}
+
+func SaveResponseToFile(response interface{}, filePath string) error {
+	if strings.HasSuffix(filePath, ".json") {
+		jsonData, err := json.MarshalIndent(response, "", "  ")
+		if err != nil {
+			return fmt.Errorf("failed to convert to JSON: %v", err)
+		}
+		err = ioutil.WriteFile(filePath, jsonData, 0644)
+		if err != nil {
+			return fmt.Errorf("failed to write JSON file: %v", err)
+		}
+		fmt.Printf("Response saved to %s\n", filePath)
+	} else if strings.HasSuffix(filePath, ".yaml") {
+		yamlData, err := yaml.Marshal(response)
+		if err != nil {
+			return fmt.Errorf("failed to convert to YAML: %v", err)
+		}
+		err = ioutil.WriteFile(filePath, yamlData, 0644)
+		if err != nil {
+			return fmt.Errorf("failed to write YAML file: %v", err)
+		}
+		fmt.Printf("Response saved to %s\n", filePath)
+	} else {
+		return fmt.Errorf("unsupported file extension")
+	}
+	return nil
 }

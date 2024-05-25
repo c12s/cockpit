@@ -58,3 +58,16 @@ type ConfigGroupDiffRequest struct {
 type ConfigGroupDiffResponse struct {
 	Diffs map[string]interface{} `json:"diffs" yaml:"diffs"`
 }
+
+type ConfigGroupPlacementsResponse struct {
+	Tasks []Task `json:"tasks" yaml:"tasks"`
+}
+
+type Task struct {
+	ID         string `json:"id" yaml:"id"`
+	Node       string `json:"node" yaml:"node"`
+	Namespace  string `json:"namespace" yaml:"namespace"`
+	Status     string `json:"status" yaml:"status"`
+	AcceptedAt string `json:"acceptedAt" yaml:"acceptedAt"`
+	ResolvedAt string `json:"resolvedAt" yaml:"resolvedAt"`
+}

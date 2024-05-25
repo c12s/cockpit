@@ -26,6 +26,7 @@ func init() {
 	ListCmd.AddCommand(list.NodesCmd)
 	ListCmd.AddCommand(ListConfigCmd)
 	ListConfigCmd.AddCommand(list.ListConfigGroupCmd)
+	list.ListConfigGroupCmd.AddCommand(list.ListConfigGroupPlacementsCmd)
 	list.NodesCmd.AddCommand(list.AllocatedNodesCmd)
 	RootCmd.AddCommand(ListCmd)
 

@@ -73,6 +73,20 @@ func HandleDeleteConfigGroupResponse(response *model.ConfigGroup, outputFormat s
 	}
 }
 
+func HandleConfigGroupPlacementsResponse(response *model.ConfigGroupPlacementsResponse) {
+	fmt.Println("Config Group Placements:")
+	for _, task := range response.Tasks {
+		fmt.Printf("%sTask ID: %s%s\n", Bold, task.ID, Reset)
+		fmt.Println(strings.Repeat("-", 45))
+		fmt.Printf("  Node: %s\n", task.Node)
+		fmt.Printf("  Namespace: %s\n", task.Namespace)
+		fmt.Printf("  Status: %s\n", task.Status)
+		fmt.Printf("  Accepted At: %s\n", task.AcceptedAt)
+		fmt.Printf("  Resolved At: %s\n", task.ResolvedAt)
+		fmt.Println(strings.Repeat("-", 45))
+	}
+}
+
 func HandleConfigGroupDiffResponse(response *model.ConfigGroupDiffResponse, outputFormat string) {
 	if outputFormat == "json" {
 		jsonData, err := json.MarshalIndent(response, "", "  ")

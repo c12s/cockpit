@@ -67,3 +67,14 @@ func SaveStandaloneConfigResponseToFile(response *model.StandaloneConfigsRespons
 	}
 	return nil
 }
+
+func DisplayStandaloneResponseAsJSON(response *model.StandaloneConfig) {
+	jsonData, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		fmt.Printf("Error converting response to JSON: %v\n", err)
+		return
+	}
+	fmt.Println("Deleted Standalone Config (JSON):")
+	fmt.Println(string(jsonData))
+	fmt.Println("Standalone configuration deleted successfully!")
+}

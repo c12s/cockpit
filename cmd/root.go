@@ -40,6 +40,8 @@ func init() {
 
 	DeleteCmd.AddCommand(delete.DeleteNodeLabelsCmd)
 	DeleteCmd.AddCommand(delete.DeleteSchemaCmd)
+	DeleteCmd.AddCommand(DeleteStandaloneConfigCmd)
+	DeleteStandaloneConfigCmd.AddCommand(delete.DeleteStandaloneConfigCmd)
 	DeleteCmd.AddCommand(DeleteConfigCmd)
 	DeleteConfigCmd.AddCommand(delete.DeleteConfigGroupCmd)
 	RootCmd.AddCommand(DeleteCmd)
@@ -81,6 +83,11 @@ var ClaimCmd = &cobra.Command{
 
 var DeleteCmd = &cobra.Command{
 	Use:   "delete",
+	Short: "Delete resources",
+}
+
+var DeleteStandaloneConfigCmd = &cobra.Command{
+	Use:   "standalone",
 	Short: "Delete resources",
 }
 

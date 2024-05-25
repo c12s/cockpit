@@ -35,6 +35,8 @@ func init() {
 
 	PutCmd.AddCommand(put.LabelsCmd)
 	PutCmd.AddCommand(PutConfigGroupCmd)
+	PutCmd.AddCommand(PutStandaloneConfigCmd)
+	PutStandaloneConfigCmd.AddCommand(put.PutStandaloneConfigCmd)
 	PutConfigGroupCmd.AddCommand(put.PutConfigGroupCmd)
 	RootCmd.AddCommand(PutCmd)
 
@@ -93,6 +95,11 @@ var DeleteStandaloneConfigCmd = &cobra.Command{
 
 var PutCmd = &cobra.Command{
 	Use:   "put",
+	Short: "Put resources",
+}
+
+var PutStandaloneConfigCmd = &cobra.Command{
+	Use:   "standalone",
 	Short: "Put resources",
 }
 

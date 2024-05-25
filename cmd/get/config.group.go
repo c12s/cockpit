@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -33,10 +31,6 @@ const (
 	// Flag Descriptions
 	descName   = "Configuration name (required)"
 	descOutput = "Output format (yaml or json)"
-
-	// Path to files
-	getConfigFilePathJSON = "./config_group_files/single-config.json"
-	getConfigFilePathYAML = "./config_group_files/single-config.yaml"
 )
 
 var (
@@ -62,7 +56,7 @@ func executeGetAppConfig(cmd *cobra.Command, args []string) {
 
 	render.HandleSingleConfigGroupResponse(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
 
-	err = saveAppConfigResponseToFiles(config.Response.(*model.SingleConfigGroupResponse))
+	err = utils.SaveAppConfigResponseToFiles(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
 	if err != nil {
 		log.Fatalf("Failed to save response to files: %v", err)
 	}
@@ -91,32 +85,6 @@ func createRequestConfig() model.HTTPRequestConfig {
 		RequestBody: requestBody,
 		Response:    &appConfigResponse,
 	}
-}
-
-func saveAppConfigResponseToFiles(response *model.SingleConfigGroupResponse) error {
-	if outputFormat == "json" {
-		jsonData, err := json.MarshalIndent(response, "", "  ")
-		if err != nil {
-			return fmt.Errorf("failed to convert to JSON: %v", err)
-		}
-		err = ioutil.WriteFile(getConfigFilePathJSON, jsonData, 0644)
-		if err != nil {
-			return fmt.Errorf("failed to write JSON file: %v", err)
-		}
-		fmt.Printf("App config saved to %s\n", getConfigFilePathJSON)
-	} else {
-		yamlData, err := utils.MarshalAppConfigResponseToYAML(response)
-		if err != nil {
-			return fmt.Errorf("failed to convert to YAML: %v", err)
-		}
-		err = ioutil.WriteFile(getConfigFilePathYAML, yamlData, 0644)
-		if err != nil {
-			return fmt.Errorf("failed to write YAML file: %v", err)
-		}
-		fmt.Printf("App config saved to %s\n", getConfigFilePathYAML)
-	}
-
-	return nil
 }
 
 func init() {

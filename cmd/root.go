@@ -47,6 +47,8 @@ func init() {
 
 	GetCmd.AddCommand(get.GetSchemaCmd)
 	GetCmd.AddCommand(GetConfigCmd)
+	GetCmd.AddCommand(GetStandaloneConfigCmd)
+	GetStandaloneConfigCmd.AddCommand(get.GetStandaloneConfigCmd)
 	GetConfigCmd.AddCommand(get.GetSingleConfigGroupCmd)
 	get.GetSchemaCmd.AddCommand(get.GetSchemaVersionCmd)
 	RootCmd.AddCommand(GetCmd)
@@ -135,6 +137,11 @@ var DiffConfigCmd = &cobra.Command{
 
 var DeleteConfigCmd = &cobra.Command{
 	Use:   "config",
+	Short: "Manipulate with config",
+}
+
+var GetStandaloneConfigCmd = &cobra.Command{
+	Use:   "standalone",
 	Short: "Manipulate with config",
 }
 

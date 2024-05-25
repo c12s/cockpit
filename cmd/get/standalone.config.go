@@ -42,7 +42,7 @@ func executeGetStandaloneConfig(cmd *cobra.Command, args []string) {
 
 	render.HandleSingleConfigGroupResponse(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
 
-	err = utils.SaveStandaloneConfigResponseToFiles(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
+	err = utils.SaveSingleStandaloneConfigResponseToFiles(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
 	if err != nil {
 		log.Fatalf("Failed to save response to files: %v", err)
 	}

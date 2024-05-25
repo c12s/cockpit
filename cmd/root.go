@@ -26,6 +26,8 @@ func init() {
 
 	ListCmd.AddCommand(list.NodesCmd)
 	ListCmd.AddCommand(ListConfigCmd)
+	ListCmd.AddCommand(ListStandaloneConfigCmd)
+	ListStandaloneConfigCmd.AddCommand(list.ListStandaloneConfigCmd)
 	ListConfigCmd.AddCommand(list.ListConfigGroupCmd)
 	list.ListConfigGroupCmd.AddCommand(list.ListConfigGroupPlacementsCmd)
 	list.NodesCmd.AddCommand(list.AllocatedNodesCmd)
@@ -141,6 +143,11 @@ var DeleteConfigCmd = &cobra.Command{
 }
 
 var GetStandaloneConfigCmd = &cobra.Command{
+	Use:   "standalone",
+	Short: "Manipulate with config",
+}
+
+var ListStandaloneConfigCmd = &cobra.Command{
 	Use:   "standalone",
 	Short: "Manipulate with config",
 }

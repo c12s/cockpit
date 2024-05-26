@@ -1,0 +1,18 @@
+{
+  "config": {
+    "name": "db_config",
+    "organization": "c12s",
+    "version": "v1.0.0"
+  },
+  "namespace": "dev",
+  "strategy": {
+    "name": "default",
+    "query": [
+      {
+        "labelKey": "newlabel",
+        "shouldBe": ">",
+        "value": "2"
+      }
+    ]
+  }
+}

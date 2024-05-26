@@ -67,7 +67,7 @@ func createPlacementsRequestConfig() model.HTTPRequestConfig {
 
 	url := clients.BuildURL("core", "v1", "ListPlacementTaskByConfigGroup")
 
-	requestBody := model.ConfigGroupReference{
+	requestBody := model.ConfigReference{
 		Name:         name,
 		Organization: organization,
 		Version:      version,

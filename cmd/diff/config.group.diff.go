@@ -94,12 +94,12 @@ func createDiffRequestConfig() model.HTTPRequestConfig {
 	}
 
 	requestBody := model.ConfigGroupDiffRequest{
-		Reference: model.ConfigGroupReference{
+		Reference: model.ConfigReference{
 			Name:         namesList[0],
 			Organization: organization,
 			Version:      versionsList[0],
 		},
-		Diff: model.ConfigGroupReference{
+		Diff: model.ConfigReference{
 			Name:         namesList[1],
 			Organization: organization,
 			Version:      versionsList[1],

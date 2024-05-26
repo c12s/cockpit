@@ -1,8 +1,8 @@
 package model
 
 type PlaceConfigGroupPlacementsRequest struct {
-	Config    ConfigGroupReference `json:"config" yaml:"config"`
-	Namespace string               `json:"namespace" yaml:"namespace"`
+	Config    ConfigReference `json:"config" yaml:"config"`
+	Namespace string          `json:"namespace" yaml:"namespace"`
 	Strategy  struct {
 		Name  string `json:"name" yaml:"name"`
 		Query []struct {
@@ -44,15 +44,15 @@ type ConfigGroupsResponse struct {
 	Groups []ConfigGroup `json:"groups" yaml:"groups"`
 }
 
-type ConfigGroupReference struct {
+type ConfigReference struct {
 	Name         string `json:"name" yaml:"name"`
 	Organization string `json:"organization" yaml:"organization"`
 	Version      string `json:"version" yaml:"version"`
 }
 
 type ConfigGroupDiffRequest struct {
-	Reference ConfigGroupReference `json:"reference" yaml:"reference"`
-	Diff      ConfigGroupReference `json:"diff" yaml:"diff"`
+	Reference ConfigReference `json:"reference" yaml:"reference"`
+	Diff      ConfigReference `json:"diff" yaml:"diff"`
 }
 
 type ConfigGroupDiffResponse struct {

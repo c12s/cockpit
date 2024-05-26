@@ -57,7 +57,7 @@ func createStandaloneRequestConfig() model.HTTPRequestConfig {
 
 	url := clients.BuildURL("core", "v1", "GetStandaloneConfig")
 
-	requestBody := model.ConfigGroupReference{
+	requestBody := model.ConfigReference{
 		Organization: organization,
 		Name:         name,
 		Version:      version,

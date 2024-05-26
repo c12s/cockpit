@@ -28,6 +28,7 @@ func init() {
 	ListCmd.AddCommand(ListConfigCmd)
 	ListCmd.AddCommand(ListStandaloneConfigCmd)
 	ListStandaloneConfigCmd.AddCommand(list.ListStandaloneConfigCmd)
+	list.ListStandaloneConfigCmd.AddCommand(list.ListStandaloneConfigPlacementsCmd)
 	ListConfigCmd.AddCommand(list.ListConfigGroupCmd)
 	list.ListConfigGroupCmd.AddCommand(list.ListConfigGroupPlacementsCmd)
 	list.NodesCmd.AddCommand(list.AllocatedNodesCmd)
@@ -72,6 +73,8 @@ func init() {
 	RootCmd.AddCommand(DiffCmd)
 
 	PlaceCmd.AddCommand(PlaceConfigGroupCmd)
+	PlaceCmd.AddCommand(PlaceStandaloneConfigGroupCmd)
+	PlaceStandaloneConfigGroupCmd.AddCommand(place.PlaceStandaloneConfigPlacementsCmd)
 	PlaceConfigGroupCmd.AddCommand(place.PlaceConfigGroupPlacementsCmd)
 	RootCmd.AddCommand(PlaceCmd)
 
@@ -130,6 +133,11 @@ var PutConfigGroupCmd = &cobra.Command{
 
 var PlaceConfigGroupCmd = &cobra.Command{
 	Use:   "config",
+	Short: "Place resources",
+}
+
+var PlaceStandaloneConfigGroupCmd = &cobra.Command{
+	Use:   "standalone",
 	Short: "Place resources",
 }
 

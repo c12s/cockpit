@@ -62,7 +62,7 @@ func createDeleteConfigGroupRequestConfig() model.HTTPRequestConfig {
 
 	url := clients.BuildURL("core", "v1", "DeleteConfigGroup")
 
-	requestBody := model.ConfigGroupReference{
+	requestBody := model.ConfigReference{
 		Organization: organization,
 		Name:         name,
 		Version:      version,

@@ -71,7 +71,7 @@ func createRequestConfig() model.HTTPRequestConfig {
 
 	url := clients.BuildURL("core", "v1", "GetConfigGroup")
 
-	requestBody := model.ConfigGroupReference{
+	requestBody := model.ConfigReference{
 		Organization: organization,
 		Name:         name,
 		Version:      version,

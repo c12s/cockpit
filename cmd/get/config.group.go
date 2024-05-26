@@ -18,7 +18,7 @@ const (
 	getAppConfigLongDesc  = "This command retrieves the specific configuration\n" +
 		"displays it in a nicely formatted way, and saves it to both YAML and JSON files.\n\n" +
 		"Example:\n" +
-		"get-group-config --org 'org' --name 'app_config' --version 'v1.0.0'"
+		"get-config-group --org 'org' --name 'app_config' --version 'v1.0.0'"
 
 	// Flag Constants
 	flagName   = "name"
@@ -31,6 +31,10 @@ const (
 	// Flag Descriptions
 	descName   = "Configuration name (required)"
 	descOutput = "Output format (yaml or json)"
+
+	// Path to files
+	getConfigFilePathJSON = "./response/config-group/single-config.json"
+	getConfigFilePathYAML = "./response/config-group/single-config.yaml"
 )
 
 var (
@@ -56,7 +60,12 @@ func executeGetAppConfig(cmd *cobra.Command, args []string) {
 
 	render.HandleSingleConfigGroupResponse(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
 
-	err = utils.SaveAppConfigResponseToFiles(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
+	filePath := getConfigFilePathYAML
+	if outputFormat == "json" {
+		filePath = getConfigFilePathJSON
+	}
+
+	err = utils.SaveConfigResponseToFile(config.Response.(*model.SingleConfigGroupResponse), filePath)
 	if err != nil {
 		log.Fatalf("Failed to save response to files: %v", err)
 	}

@@ -5,8 +5,45 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/model"
 	"gopkg.in/yaml.v3"
+	"io/ioutil"
 	"strings"
 )
+
+func SaveSchemaResponseToYAML(response *model.SchemaResponse, filePath string) error {
+	if response.SchemaData.Schema != "" {
+		yamlData, err := MarshalSchemaResponse(response)
+		if err != nil {
+			return fmt.Errorf("failed to convert to YAML: %v", err)
+		}
+
+		err = ioutil.WriteFile(filePath, yamlData, 0644)
+		if err != nil {
+			return fmt.Errorf("failed to write YAML file: %v", err)
+		}
+
+		fmt.Printf("Schema saved to %s\n", filePath)
+	}
+	return nil
+}
+
+func SaveVersionResponseToYAML(response *model.SchemaVersionResponse, filePath string) error {
+	if len(response.SchemaVersions) != 0 {
+		yamlData, err := MarshalSchemaVersionResponse(response)
+		if err != nil {
+			return fmt.Errorf("failed to convert to YAML: %v", err)
+		}
+
+		err = ioutil.WriteFile(filePath, yamlData, 0644)
+		if err != nil {
+			return fmt.Errorf("failed to write YAML file: %v", err)
+		}
+
+		fmt.Printf("Schema saved to %s\n", filePath)
+		return nil
+	} else {
+		return nil
+	}
+}
 
 func MarshalSchemaResponse(response *model.SchemaResponse) ([]byte, error) {
 	type SchemaData struct {

@@ -1,0 +1,12 @@
+name: app_config
+organization: c12s
+paramSets:
+  - name: db_config
+    paramSet:
+      - key: port
+        value: "4444"
+  - name: media_path_config
+    paramSet:
+      - key: path
+        value: "/media"
+version: v1.0.1

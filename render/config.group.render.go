@@ -48,8 +48,8 @@ func HandleConfigGroupResponse(response *model.ConfigGroupsResponse, outputForma
 	}
 }
 
-func HandleConfigGroupPlacementsResponse(response *model.ConfigGroupPlacementsResponse) {
-	fmt.Println("Config Group Placements:")
+func HandleConfigPlacementsResponse(response *model.ConfigGroupPlacementsResponse) {
+	fmt.Println("Config Placements:")
 	for _, task := range response.Tasks {
 		fmt.Printf("%sTask ID: %s%s\n", Bold, task.ID, Reset)
 		fmt.Println(strings.Repeat("-", 45))

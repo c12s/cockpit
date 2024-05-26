@@ -44,7 +44,7 @@ func executePlaceStandaloneConfigPlacements(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println()
-	render.HandleConfigGroupPlacementsResponse(&placementsResponse)
+	render.HandleConfigPlacementsResponse(&placementsResponse)
 }
 
 func createStandaloneConfigPlacementsRequestConfig() model.HTTPRequestConfig {

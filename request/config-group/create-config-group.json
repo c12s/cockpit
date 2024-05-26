@@ -1,0 +1,25 @@
+{
+  "name": "app_config",
+  "organization": "c12s",
+  "paramSets": [
+    {
+      "paramSet": [
+        {
+          "value": "4444",
+          "key": "port"
+        }
+      ],
+      "name": "db_config"
+    },
+    {
+      "paramSet": [
+        {
+          "value": "/media",
+          "key": "path"
+        }
+      ],
+      "name": "media_path_config"
+    }
+  ],
+  "version": "v1.0.0"
+}

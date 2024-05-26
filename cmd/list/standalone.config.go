@@ -19,6 +19,9 @@ const (
 		"displays them in a nicely formatted way, and saves them to both YAML and JSON files.\n\n" +
 		"Example:\n" +
 		"list-standalone-config --org 'c12s'"
+
+	listStandaloneConfigFilePathJSON = "./response/standalone-config/list-standalone-config.json"
+	listStandaloneConfigFilePathYAML = "./response/standalone-config/list-standalone-config.yaml"
 )
 
 var (
@@ -40,9 +43,14 @@ func executeListStandaloneConfig(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	render.HandleStandaloneConfigResponse(&listResponse, outputFormat)
+	render.HandleStandaloneConfigResponse(config.Response.(*model.StandaloneConfigsResponse), outputFormat)
 
-	err = utils.SaveStandaloneConfigResponseToFile(&listResponse, outputFormat)
+	filePath := listStandaloneConfigFilePathYAML
+	if outputFormat == "json" {
+		filePath = listStandaloneConfigFilePathJSON
+	}
+
+	err = utils.SaveConfigResponseToFile(config.Response.(*model.StandaloneConfigsResponse), filePath)
 	if err != nil {
 		log.Fatalf("Failed to save response to file: %v", err)
 	}

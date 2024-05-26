@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"log"
 	"os"
@@ -39,7 +40,7 @@ func executeDeleteStandaloneConfig(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	utils.DisplayStandaloneResponseAsJSON(&deleteStandaloneConfigResponse)
+	render.DisplayStandaloneResponseAsJSON(&deleteStandaloneConfigResponse)
 }
 
 func createDeleteStandaloneConfigRequestConfig() model.HTTPRequestConfig {

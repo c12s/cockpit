@@ -86,7 +86,7 @@ func ReadTokenFromFile() (string, error) {
 	return string(token), nil
 }
 
-func SaveResponseToFile(response interface{}, filePath string) error {
+func SaveConfigResponseToFile(response interface{}, filePath string) error {
 	if strings.HasSuffix(filePath, ".json") {
 		jsonData, err := json.MarshalIndent(response, "", "  ")
 		if err != nil {

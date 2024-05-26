@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -35,6 +34,9 @@ const (
 	descOrganization = "Organization name (required)"
 	descSchemaName   = "Schema name (required)"
 	descVersion      = "Schema version (required)"
+
+	//Path to file
+	saveSchemaToFile = "response/schema/schema.yaml"
 )
 
 var (
@@ -61,7 +63,7 @@ func executeGetSchema(cmd *cobra.Command, args []string) {
 
 	render.HandleSchemaResponse(config.Response.(*model.SchemaResponse))
 
-	err = saveSchemaResponseToYAML(config.Response.(*model.SchemaResponse))
+	err = utils.SaveSchemaResponseToYAML(config.Response.(*model.SchemaResponse), saveSchemaToFile)
 	if err != nil {
 		log.Fatalf("Failed to save response to YAML file: %v", err)
 	}
@@ -92,24 +94,6 @@ func createSchemaRequestConfig() model.HTTPRequestConfig {
 		RequestBody: requestBody,
 		Response:    &schemaResponse,
 	}
-}
-
-func saveSchemaResponseToYAML(response *model.SchemaResponse) error {
-	if response.SchemaData.Schema != "" {
-		yamlData, err := utils.MarshalSchemaResponse(response)
-		if err != nil {
-			return fmt.Errorf("failed to convert to YAML: %v", err)
-		}
-
-		fileName := fmt.Sprintf("./schema_files/schema.yaml")
-		err = ioutil.WriteFile(fileName, yamlData, 0644)
-		if err != nil {
-			return fmt.Errorf("failed to write YAML file: %v", err)
-		}
-
-		fmt.Printf("Schema saved to %s\n", fileName)
-	}
-	return nil
 }
 
 func init() {

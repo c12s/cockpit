@@ -19,6 +19,10 @@ const (
 		"displays it in a nicely formatted way, and saves it to both YAML and JSON files.\n\n" +
 		"Example:\n" +
 		"get-standalone-config --org 'c12s' --name 'db_config' --version 'v1.0.0'"
+
+	// Path to files
+	getStandaloneConfigFilePathJSON = "./response/standalone-config/standalone-config.json"
+	getStandaloneConfigFilePathYAML = "./response/standalone-config/standalone-config.yaml"
 )
 
 var (
@@ -42,7 +46,12 @@ func executeGetStandaloneConfig(cmd *cobra.Command, args []string) {
 
 	render.HandleSingleConfigGroupResponse(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
 
-	err = utils.SaveSingleStandaloneConfigResponseToFiles(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
+	filePath := getStandaloneConfigFilePathYAML
+	if outputFormat == "json" {
+		filePath = getStandaloneConfigFilePathJSON
+	}
+
+	err = utils.SaveConfigResponseToFile(config.Response.(*model.SingleConfigGroupResponse), filePath)
 	if err != nil {
 		log.Fatalf("Failed to save response to files: %v", err)
 	}

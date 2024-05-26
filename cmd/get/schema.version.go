@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -20,6 +19,9 @@ const (
 		"displays them in a nicely formatted way, and saves them to a YAML file. \n\n" +
 		"Example:\n" +
 		"get-schema-version --org 'org' --schema_name 'schema_name'"
+
+	//Path to file
+	saveSchemaVersionToFile = "response/schema/schema-version.yaml"
 )
 
 var (
@@ -43,32 +45,9 @@ func executeGetSchemaVersion(cmd *cobra.Command, args []string) {
 
 	render.HandleSchemaVersionResponse(config.Response.(*model.SchemaVersionResponse))
 
-	//if config.Response.(*model.SchemaVersionResponse).Message !=  {
-	//
-	//}
-	err = saveVersionResponseToYAML(config.Response.(*model.SchemaVersionResponse))
+	err = utils.SaveVersionResponseToYAML(config.Response.(*model.SchemaVersionResponse), saveSchemaVersionToFile)
 	if err != nil {
 		log.Fatalf("Failed to save response to YAML file: %v", err)
-	}
-}
-
-func saveVersionResponseToYAML(response *model.SchemaVersionResponse) error {
-	if len(response.SchemaVersions) != 0 {
-		yamlData, err := utils.MarshalSchemaVersionResponse(response)
-		if err != nil {
-			return fmt.Errorf("failed to convert to YAML: %v", err)
-		}
-
-		fileName := fmt.Sprintf("./schema_files/schema-versions.yaml")
-		err = ioutil.WriteFile(fileName, yamlData, 0644)
-		if err != nil {
-			return fmt.Errorf("failed to write YAML file: %v", err)
-		}
-
-		fmt.Printf("Schema saved to %s\n", fileName)
-		return nil
-	} else {
-		return nil
 	}
 }
 

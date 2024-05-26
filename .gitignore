@@ -20,8 +20,8 @@ cockpit
 # txt files
 token.txt
 
-# json files
-config_group_files/*.json
-
 # yaml files
-config_group_files/*.yaml
+response
+
+# tests scripts
+*.sh

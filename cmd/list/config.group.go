@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"io/ioutil"
 	"log"
 	"os"
 	"time"
@@ -59,7 +57,12 @@ func executeListConfigGroup(cmd *cobra.Command, args []string) {
 
 	render.HandleConfigGroupResponse(config.Response.(*model.ConfigGroupsResponse), outputFormat)
 
-	err = saveConfigGroupResponseToFiles(config.Response.(*model.ConfigGroupsResponse))
+	filePath := listConfigFilePathYAML
+	if outputFormat == "json" {
+		filePath = listConfigFilePathJSON
+	}
+
+	err = utils.SaveConfigResponseToFile(config.Response.(*model.ConfigGroupsResponse), filePath)
 	if err != nil {
 		log.Fatalf("Failed to save response to files: %v", err)
 	}
@@ -86,32 +89,6 @@ func createListRequestConfig() model.HTTPRequestConfig {
 		RequestBody: requestBody,
 		Response:    &configGroupResponse,
 	}
-}
-
-func saveConfigGroupResponseToFiles(response *model.ConfigGroupsResponse) error {
-	if outputFormat == "json" {
-		jsonData, err := json.MarshalIndent(response, "", "  ")
-		if err != nil {
-			return fmt.Errorf("failed to convert to JSON: %v", err)
-		}
-		err = ioutil.WriteFile(listConfigFilePathJSON, jsonData, 0644)
-		if err != nil {
-			return fmt.Errorf("failed to write JSON file: %v", err)
-		}
-		fmt.Printf("Config group saved to %s\n", listConfigFilePathJSON)
-	} else {
-		yamlData, err := utils.MarshalConfigGroupResponseToYAML(response)
-		if err != nil {
-			return fmt.Errorf("failed to convert to YAML: %v", err)
-		}
-		err = ioutil.WriteFile(listConfigFilePathYAML, yamlData, 0644)
-		if err != nil {
-			return fmt.Errorf("failed to write YAML file: %v", err)
-		}
-		fmt.Printf("Config group saved to %s\n", listConfigFilePathYAML)
-	}
-
-	return nil
 }
 
 func init() {

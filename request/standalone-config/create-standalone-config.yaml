@@ -5,7 +5,7 @@ paramSet:
     key: port
   - key: address
     value: 127.0.0.1
-version: v1.0.4
+version: v1.0.0
 schema:
   name: schema
   version: v1.0.0

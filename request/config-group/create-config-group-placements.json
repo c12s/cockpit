@@ -1,0 +1,18 @@
+{
+    "config": {
+        "name": "app_config",
+        "organization": "c12s",
+        "version": "v1.0.0"
+    },
+    "namespace": "dev",
+    "strategy": {
+        "name": "default",
+        "query": [
+            {
+                "labelKey": "newLabel1",
+                "shouldBe": "=",
+                "value": "stringValue"
+            }
+        ]
+    }
+}

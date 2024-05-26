@@ -1,13 +1,11 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"io/ioutil"
 	"log"
 	"os"
 	"strings"
@@ -42,8 +40,8 @@ const (
 	descOutput   = "Output format (yaml or json)"
 
 	// Path to files
-	diffConfigFilePathJSON = "./config_group_files/config-group-diff.json"
-	diffConfigFilePathYAML = "./config_group_files/config-group-diff.yaml"
+	diffConfigFilePathJSON = "./response/config-group/config-group-diff.json"
+	diffConfigFilePathYAML = "./response/config-group/config-group-diff.yaml"
 )
 
 var (
@@ -71,7 +69,12 @@ func executeDiffConfigGroup(cmd *cobra.Command, args []string) {
 
 	render.HandleConfigGroupDiffResponse(config.Response.(*model.ConfigGroupDiffResponse), outputFormat)
 
-	err = saveDiffConfigGroupResponseToFiles(config.Response.(*model.ConfigGroupDiffResponse))
+	filePath := diffConfigFilePathYAML
+	if outputFormat == "json" {
+		filePath = diffConfigFilePathJSON
+	}
+
+	err = utils.SaveConfigResponseToFile(config.Response.(*model.ConfigGroupDiffResponse), filePath)
 	if err != nil {
 		log.Fatalf("Failed to save response to files: %v", err)
 	}
@@ -114,32 +117,6 @@ func createDiffRequestConfig() model.HTTPRequestConfig {
 		RequestBody: requestBody,
 		Response:    &diffResponse,
 	}
-}
-
-func saveDiffConfigGroupResponseToFiles(response *model.ConfigGroupDiffResponse) error {
-	if outputFormat == "json" {
-		jsonData, err := json.MarshalIndent(response, "", "  ")
-		if err != nil {
-			return fmt.Errorf("failed to convert to JSON: %v", err)
-		}
-		err = ioutil.WriteFile(diffConfigFilePathJSON, jsonData, 0644)
-		if err != nil {
-			return fmt.Errorf("failed to write JSON file: %v", err)
-		}
-		fmt.Printf("Config group diff saved to %s\n", diffConfigFilePathJSON)
-	} else {
-		yamlData, err := utils.MarshalConfigGroupDiffResponseToYAML(response)
-		if err != nil {
-			return fmt.Errorf("failed to convert to YAML: %v", err)
-		}
-		err = ioutil.WriteFile(diffConfigFilePathYAML, yamlData, 0644)
-		if err != nil {
-			return fmt.Errorf("failed to write YAML file: %v", err)
-		}
-		fmt.Printf("Config group diff saved to %s\n", diffConfigFilePathYAML)
-	}
-
-	return nil
 }
 
 func init() {

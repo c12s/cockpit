@@ -55,7 +55,7 @@ func executeListConfigGroupPlacements(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println()
-	render.HandleConfigGroupPlacementsResponse(&placementsResponse)
+	render.HandleConfigPlacementsResponse(&placementsResponse)
 }
 
 func createPlacementsRequestConfig() model.HTTPRequestConfig {

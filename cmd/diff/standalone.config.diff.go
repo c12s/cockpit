@@ -22,8 +22,8 @@ const (
 		"diff-standalone-config --org 'c12s' --names 'db_config|db_config' --versions 'v1.0.0|v1.0.1'"
 
 	// Path to files
-	diffStandaloneFilePathJSON = "./standalone_config_files/standalone-config-diff.json"
-	diffStandaloneFilePathYAML = "./standalone_config_files/standalone-config-diff.yaml"
+	diffStandaloneFilePathJSON = "./response/standalone-config/standalone-config-diff.json"
+	diffStandaloneFilePathYAML = "./response/standalone-config/standalone-config-diff.yaml"
 )
 
 var (
@@ -52,7 +52,7 @@ func executeDiffStandaloneConfig(cmd *cobra.Command, args []string) {
 		filePath = diffStandaloneFilePathJSON
 	}
 
-	err = utils.SaveResponseToFile(config.Response.(*model.SingleConfigDiffResponse), filePath)
+	err = utils.SaveConfigResponseToFile(config.Response.(*model.SingleConfigDiffResponse), filePath)
 	if err != nil {
 		log.Fatalf("Failed to save response to file: %v", err)
 	}

@@ -8,46 +8,6 @@ import (
 	"strings"
 )
 
-func HandleSingleConfigGroupResponse(response *model.SingleConfigGroupResponse, outputFormat string) {
-	if outputFormat == "json" {
-		jsonData, err := json.MarshalIndent(response, "", "  ")
-		if err != nil {
-			fmt.Printf("Error converting response to JSON: %v\n", err)
-			return
-		}
-		fmt.Println("Config Group (JSON):")
-		fmt.Println(string(jsonData))
-	} else {
-		yamlData, err := yaml.Marshal(response)
-		if err != nil {
-			fmt.Printf("Error converting response to YAML: %v\n", err)
-			return
-		}
-		fmt.Println("Config group (YAML):")
-		fmt.Println(string(yamlData))
-	}
-}
-
-func HandleConfigGroupResponse(response *model.ConfigGroupsResponse, outputFormat string) {
-	if outputFormat == "json" {
-		jsonData, err := json.MarshalIndent(response, "", "  ")
-		if err != nil {
-			fmt.Printf("Error converting response to JSON: %v\n", err)
-			return
-		}
-		fmt.Println("Config Group (JSON):")
-		fmt.Println(string(jsonData))
-	} else {
-		yamlData, err := yaml.Marshal(response)
-		if err != nil {
-			fmt.Printf("Error converting response to YAML: %v\n", err)
-			return
-		}
-		fmt.Println("Config group (YAML):")
-		fmt.Println(string(yamlData))
-	}
-}
-
 func HandleConfigPlacementsResponse(response *model.ConfigGroupPlacementsResponse) {
 	fmt.Println("Config Placements:")
 	for _, task := range response.Tasks {
@@ -60,6 +20,7 @@ func HandleConfigPlacementsResponse(response *model.ConfigGroupPlacementsRespons
 		fmt.Printf("  Resolved At: %s\n", task.ResolvedAt)
 		fmt.Println(strings.Repeat("-", 45))
 	}
+	println()
 }
 
 func HandleConfigGroupDiffResponse(response *model.ConfigGroupDiffResponse, outputFormat string) {
@@ -80,4 +41,5 @@ func HandleConfigGroupDiffResponse(response *model.ConfigGroupDiffResponse, outp
 		fmt.Println("Config Group Diff (YAML):")
 		fmt.Println(string(yamlData))
 	}
+	println()
 }

@@ -45,7 +45,7 @@ func executeDiffStandaloneConfig(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	render.HandleSingleConfigDiffResponse(config.Response.(*model.SingleConfigDiffResponse), outputFormat)
+	render.RenderResponseToYAMLOrJSON(config.Response.(*model.SingleConfigDiffResponse), outputFormat)
 
 	filePath := diffStandaloneFilePathYAML
 	if outputFormat == "json" {

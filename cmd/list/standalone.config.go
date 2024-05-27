@@ -43,7 +43,7 @@ func executeListStandaloneConfig(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	render.HandleStandaloneConfigResponse(config.Response.(*model.StandaloneConfigsResponse), outputFormat)
+	render.RenderResponseToYAMLOrJSON(config.Response.(*model.StandaloneConfigsResponse), outputFormat)
 
 	filePath := listStandaloneConfigFilePathYAML
 	if outputFormat == "json" {

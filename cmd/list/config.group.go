@@ -30,8 +30,8 @@ const (
 	outputDesc = "Output format (yaml or json)"
 
 	// Path to files
-	listConfigFilePathJSON = "./config_group_files/list-config.json"
-	listConfigFilePathYAML = "./config_group_files/list-config.yaml"
+	listConfigFilePathJSON = "./response/config-group/list-config.json"
+	listConfigFilePathYAML = "./response/config-group/list-config.yaml"
 )
 
 var (
@@ -55,7 +55,7 @@ func executeListConfigGroup(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	render.HandleConfigGroupResponse(config.Response.(*model.ConfigGroupsResponse), outputFormat)
+	render.RenderResponseToYAMLOrJSON(config.Response.(*model.ConfigGroupsResponse), outputFormat)
 
 	filePath := listConfigFilePathYAML
 	if outputFormat == "json" {

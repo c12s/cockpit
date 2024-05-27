@@ -58,7 +58,7 @@ func executeGetAppConfig(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	render.HandleSingleConfigGroupResponse(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
+	render.RenderResponseToYAMLOrJSON(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
 
 	filePath := getConfigFilePathYAML
 	if outputFormat == "json" {

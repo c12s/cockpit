@@ -16,10 +16,10 @@ func RenderNodes(nodes []model.Node) {
 		fmt.Println("No nodes were found.")
 	} else {
 		for _, node := range nodes {
-			fmt.Printf("%sNode ID: %s%s\n", Bold, Bold, node.ID)
+			fmt.Printf("Node ID: %s\n", node.ID)
 			fmt.Println(strings.Repeat("-", 45))
 			for _, label := range node.Labels {
-				fmt.Printf("  - %s%s: %s%s\n", Reset, label.Key, Reset, label.Value)
+				fmt.Printf("  - %s: %s\n", label.Key, label.Value)
 			}
 			fmt.Println(strings.Repeat("-", 45))
 		}
@@ -27,10 +27,10 @@ func RenderNodes(nodes []model.Node) {
 }
 
 func RenderNode(node model.Node) {
-	fmt.Printf("%sNode ID: %s%s\n", Bold, Bold, node.ID)
+	fmt.Printf("Node ID: %s\n", node.ID)
 	fmt.Println(strings.Repeat("-", 45))
 	for _, label := range node.Labels {
-		fmt.Printf("  - %s%s: %s%s\n", Reset, label.Key, Reset, label.Value)
+		fmt.Printf("  - %s: %s\n", label.Key, label.Value)
 	}
 	fmt.Println(strings.Repeat("-", 45))
 }

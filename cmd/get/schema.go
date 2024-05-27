@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"time"
 
@@ -54,30 +53,26 @@ var GetSchemaCmd = &cobra.Command{
 }
 
 func executeGetSchema(cmd *cobra.Command, args []string) {
-	config := createSchemaRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := prepareSchemaRequestConfig()
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
-	}
-
-	render.HandleSchemaResponse(config.Response.(*model.SchemaResponse))
-
-	err = utils.SaveSchemaResponseToYAML(config.Response.(*model.SchemaResponse), saveSchemaToFile)
-	if err != nil {
-		log.Fatalf("Failed to save response to YAML file: %v", err)
-	}
-}
-
-func createSchemaRequestConfig() model.HTTPRequestConfig {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
+		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
 	}
 
-	url := clients.BuildURL("core", "v1", "GetConfigSchema")
+	if err := sendSchemaRequest(requestBody); err != nil {
+		fmt.Printf("Error retrieving schema: %v\n", err)
+		os.Exit(1)
+	}
 
+	render.HandleSchemaResponse(&schemaResponse)
+
+	if err := utils.SaveSchemaResponseToYAML(&schemaResponse, saveSchemaToFile); err != nil {
+		fmt.Printf("Failed to save response to YAML file: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func prepareSchemaRequestConfig() (interface{}, error) {
 	requestBody := model.SchemaDetailsRequest{
 		SchemaDetails: model.SchemaDetails{
 			Organization: organization,
@@ -86,14 +81,25 @@ func createSchemaRequestConfig() model.HTTPRequestConfig {
 		},
 	}
 
-	return model.HTTPRequestConfig{
-		Method:      "GET",
+	return requestBody, nil
+}
+
+func sendSchemaRequest(requestBody interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("error reading token: %v", err)
+	}
+
+	url := clients.BuildURL("core", "v1", "GetConfigSchema")
+
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
+		Method:      "GET",
 		Token:       token,
-		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
 		Response:    &schemaResponse,
-	}
+		Timeout:     10 * time.Second,
+	})
 }
 
 func init() {

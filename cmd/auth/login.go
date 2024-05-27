@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	"os"
 	"time"
 )
@@ -17,7 +16,10 @@ const (
 		"Your token will be saved in the token.txt file, which will be sent with all of your request headers.\n\n" +
 		"Example:\n" +
 		"login --username \"username\""
-	tokenPath = "token.txt"
+)
+
+var (
+	tokenResponse model.TokenResponse
 )
 
 var LoginCmd = &cobra.Command{
@@ -46,11 +48,10 @@ func login(username, password string) error {
 		Password: password,
 	}
 
-	loginURL := clients.BuildURL("core", "v1", "LoginUser")
-	tokenResponse := model.TokenResponse{}
+	url := clients.BuildURL("core", "v1", "LoginUser")
 
 	err := utils.SendHTTPRequest(model.HTTPRequestConfig{
-		URL:         loginURL,
+		URL:         url,
 		Method:      "POST",
 		RequestBody: credentials,
 		Response:    &tokenResponse,
@@ -61,15 +62,11 @@ func login(username, password string) error {
 		return fmt.Errorf("failed to send login request: %v", err)
 	}
 
-	if err := saveTokenToFile(tokenResponse.Token); err != nil {
+	if err := utils.SaveTokenToFile(tokenResponse.Token); err != nil {
 		return fmt.Errorf("failed to save token: %v", err)
 	}
 
 	return nil
-}
-func saveTokenToFile(token string) error {
-	tokenFilePath := tokenPath
-	return ioutil.WriteFile(tokenFilePath, []byte(token), 0600)
 }
 
 func init() {

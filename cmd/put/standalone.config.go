@@ -9,7 +9,6 @@ import (
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -27,7 +26,6 @@ const (
 var (
 	standaloneConfigPutResponse model.StandaloneConfig
 )
-
 var PutStandaloneConfigCmd = &cobra.Command{
 	Use:   "config",
 	Short: putStandaloneConfigShortDesc,
@@ -36,22 +34,19 @@ var PutStandaloneConfigCmd = &cobra.Command{
 }
 
 func executePutStandaloneConfig(cmd *cobra.Command, args []string) {
-	configData, err := readStandAloneConfigFile(filePath)
+	configData, err := prepareStandaloneConfigData(filePath)
 	if err != nil {
 		log.Fatalf("Failed to read configuration file: %v", err)
 	}
 
-	config := createPutStandaloneRequestConfig(configData)
-
-	err = utils.SendHTTPRequest(config)
-	if err != nil {
+	if err := sendStandaloneConfigData(configData, &standaloneConfigPutResponse); err != nil {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
 	displayStandaloneConfigResponse(&standaloneConfigPutResponse, inputFormat)
 }
 
-func readStandAloneConfigFile(path string) (map[string]interface{}, error) {
+func prepareStandaloneConfigData(path string) (map[string]interface{}, error) {
 	var configData map[string]interface{}
 
 	fileContent, err := ioutil.ReadFile(path)
@@ -78,51 +73,30 @@ func readStandAloneConfigFile(path string) (map[string]interface{}, error) {
 	return configData, nil
 }
 
-func createPutStandaloneRequestConfig(configData map[string]interface{}) model.HTTPRequestConfig {
+func sendStandaloneConfigData(requestBody interface{}, response interface{}) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error reading token: %v", err)
 	}
 
 	url := clients.BuildURL("core", "v1", "PutStandaloneConfig")
 
-	return model.HTTPRequestConfig{
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		Method:      "POST",
 		URL:         url,
 		Token:       token,
 		Timeout:     10 * time.Second,
-		RequestBody: configData,
-		Response:    &standaloneConfigPutResponse,
-	}
+		RequestBody: requestBody,
+		Response:    response,
+	})
 }
 
 func displayStandaloneConfigResponse(response *model.StandaloneConfig, format string) {
 	if format == "json" {
-		displayStandaloneConfigResponseAsJSON(response)
+		utils.DisplayResponseAsJSON(response, "Standalone Config Response (JSON):")
 	} else {
-		displayStandaloneConfigResponseAsYAML(response)
+		utils.DisplayResponseAsYAML(response, "Standalone Config Response (YAML):")
 	}
-}
-
-func displayStandaloneConfigResponseAsJSON(response *model.StandaloneConfig) {
-	jsonData, err := json.MarshalIndent(response, "", "  ")
-	if err != nil {
-		fmt.Printf("Error converting response to JSON: %v\n", err)
-		return
-	}
-	fmt.Println("Standalone Config Response (JSON):")
-	fmt.Println(string(jsonData))
-}
-
-func displayStandaloneConfigResponseAsYAML(response *model.StandaloneConfig) {
-	yamlData, err := yaml.Marshal(response)
-	if err != nil {
-		fmt.Printf("Error converting response to YAML: %v\n", err)
-		return
-	}
-	fmt.Println("Standalone Config Response (YAML):")
-	fmt.Println(string(yamlData))
 }
 
 func init() {

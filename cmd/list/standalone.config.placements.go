@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"time"
 
@@ -33,40 +32,47 @@ var ListStandaloneConfigPlacementsCmd = &cobra.Command{
 }
 
 func executeListStandaloneConfigPlacements(cmd *cobra.Command, args []string) {
-	config := createStandalonePlacementsRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := prepareStandalonePlacementsRequestConfig()
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
+	}
+
+	if err := sendStandalonePlacementsRequest(requestBody); err != nil {
+		fmt.Printf("Error retrieving standalone configuration placements: %v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Println()
 	render.HandleConfigPlacementsResponse(&standaloneConfigPlacementsResponse)
 }
 
-func createStandalonePlacementsRequestConfig() model.HTTPRequestConfig {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
-	}
-
-	url := clients.BuildURL("core", "v1", "ListPlacementTaskByStandaloneConfig")
-
+func prepareStandalonePlacementsRequestConfig() (interface{}, error) {
 	requestBody := model.ConfigReference{
 		Name:         name,
 		Organization: organization,
 		Version:      version,
 	}
 
-	return model.HTTPRequestConfig{
-		Method:      "GET",
+	return requestBody, nil
+}
+
+func sendStandalonePlacementsRequest(requestBody interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("error reading token: %v", err)
+	}
+
+	url := clients.BuildURL("core", "v1", "ListPlacementTaskByStandaloneConfig")
+
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
+		Method:      "GET",
 		Token:       token,
-		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
 		Response:    &standaloneConfigPlacementsResponse,
-	}
+		Timeout:     10 * time.Second,
+	})
 }
 
 func init() {

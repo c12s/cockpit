@@ -47,13 +47,9 @@ var DeleteSchemaCmd = &cobra.Command{
 }
 
 func executeDeleteSchema(cmd *cobra.Command, args []string) {
-	config, err := createDeleteRequestConfig()
-	if err != nil {
-		fmt.Printf("Error creating request config: %v\n", err)
-		os.Exit(1)
-	}
+	requestBody := prepareDeleteSchemaRequest()
 
-	if err := utils.SendHTTPRequest(config); err != nil {
+	if err := createDeleteRequestConfig(requestBody); err != nil {
 		fmt.Printf("Error deleting schema: %v\n", err)
 		os.Exit(1)
 	}
@@ -61,14 +57,7 @@ func executeDeleteSchema(cmd *cobra.Command, args []string) {
 	fmt.Println("Schema deleted successfully!")
 }
 
-func createDeleteRequestConfig() (model.HTTPRequestConfig, error) {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		return model.HTTPRequestConfig{}, fmt.Errorf("error reading token: %v", err)
-	}
-
-	url := clients.BuildURL("core", "v1", "DeleteConfigSchema")
-
+func prepareDeleteSchemaRequest() interface{} {
 	schemaDetails := model.SchemaDetails{
 		Organization: organization,
 		SchemaName:   schemaName,
@@ -79,13 +68,24 @@ func createDeleteRequestConfig() (model.HTTPRequestConfig, error) {
 		SchemaDetails: schemaDetails,
 	}
 
-	return model.HTTPRequestConfig{
+	return requestBody
+}
+
+func createDeleteRequestConfig(requestBody interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("error reading token: %v", err)
+	}
+
+	url := clients.BuildURL("core", "v1", "DeleteConfigSchema")
+
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		Method:      "DELETE",
 		URL:         url,
 		Token:       token,
 		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
-	}, nil
+	})
 }
 
 func init() {

@@ -9,7 +9,6 @@ import (
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"log"
-	"os"
 	"strings"
 	"time"
 
@@ -38,22 +37,19 @@ var PutConfigGroupCmd = &cobra.Command{
 }
 
 func executePutConfigGroup(cmd *cobra.Command, args []string) {
-	configData, err := readConfigFile(filePath)
+	configData, err := prepareConfigGroupData(filePath)
 	if err != nil {
 		log.Fatalf("Failed to read configuration file: %v", err)
 	}
 
-	config := createPutRequestConfig(configData)
-
-	err = utils.SendHTTPRequest(config)
-	if err != nil {
+	if err := sendConfigGroupData(configData, &putResponse); err != nil {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	displayResponse(&putResponse, inputFormat)
+	displayConfigGroupResponse(&putResponse, inputFormat)
 }
 
-func readConfigFile(path string) (map[string]interface{}, error) {
+func prepareConfigGroupData(path string) (map[string]interface{}, error) {
 	var configData map[string]interface{}
 
 	fileContent, err := ioutil.ReadFile(path)
@@ -80,51 +76,30 @@ func readConfigFile(path string) (map[string]interface{}, error) {
 	return configData, nil
 }
 
-func createPutRequestConfig(configData map[string]interface{}) model.HTTPRequestConfig {
+func sendConfigGroupData(requestBody interface{}, response interface{}) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error reading token: %v", err)
 	}
 
 	url := clients.BuildURL("core", "v1", "PutConfigGroup")
 
-	return model.HTTPRequestConfig{
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		Method:      "POST",
 		URL:         url,
 		Token:       token,
 		Timeout:     10 * time.Second,
-		RequestBody: configData,
-		Response:    &putResponse,
-	}
+		RequestBody: requestBody,
+		Response:    response,
+	})
 }
 
-func displayResponse(response *model.ConfigGroup, format string) {
+func displayConfigGroupResponse(response *model.ConfigGroup, format string) {
 	if format == "json" {
-		displayResponseAsJSON(response)
+		utils.DisplayResponseAsJSON(response, "Config Group Response (JSON):")
 	} else {
-		displayResponseAsYAML(response)
+		utils.DisplayResponseAsYAML(response, "Config Group Response (YAML):")
 	}
-}
-
-func displayResponseAsJSON(response *model.ConfigGroup) {
-	jsonData, err := json.MarshalIndent(response, "", "  ")
-	if err != nil {
-		fmt.Printf("Error converting response to JSON: %v\n", err)
-		return
-	}
-	fmt.Println("Config Group Response (JSON):")
-	fmt.Println(string(jsonData))
-}
-
-func displayResponseAsYAML(response *model.ConfigGroup) {
-	yamlData, err := yaml.Marshal(response)
-	if err != nil {
-		fmt.Printf("Error converting response to YAML: %v\n", err)
-		return
-	}
-	fmt.Println("Config Group Response (YAML):")
-	fmt.Println(string(yamlData))
 }
 
 func init() {

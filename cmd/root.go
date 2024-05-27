@@ -91,7 +91,6 @@ func init() {
 	PlaceConfigGroupCmd.AddCommand(place.PlaceConfigGroupPlacementsCmd)
 	RootCmd.AddCommand(PlaceCmd)
 
-	// Persistent Flags
 	RootCmd.PersistentFlags().String(apiVersionFlag, "1.0.0", "specify c12s API version")
 }
 
@@ -118,7 +117,6 @@ var (
 	ListStandaloneConfigCmd       = &cobra.Command{Use: "standalone", Short: "Manipulate with config"}
 	ValidateCmd                   = &cobra.Command{Use: "validate", Short: "Get resources"}
 
-	// Root Command
 	RootCmd = &cobra.Command{
 		Use:   "cockpit",
 		Short: "Cockpit is a CLI tool for interacting with the c12s system",

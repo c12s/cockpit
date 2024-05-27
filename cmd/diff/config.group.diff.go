@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -48,8 +47,8 @@ var (
 	organization string
 	names        string
 	versions     string
-	diffResponse model.ConfigGroupDiffResponse
 	outputFormat string
+	diffResponse model.ConfigGroupDiffResponse
 )
 
 var DiffConfigGroupCmd = &cobra.Command{
@@ -60,40 +59,36 @@ var DiffConfigGroupCmd = &cobra.Command{
 }
 
 func executeDiffConfigGroup(cmd *cobra.Command, args []string) {
-	config := createDiffRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := prepareDiffRequest()
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
 	}
 
-	render.HandleConfigGroupDiffResponse(config.Response.(*model.ConfigGroupDiffResponse), outputFormat)
+	if err := sendDiffRequest(requestBody); err != nil {
+		fmt.Printf("Error comparing configuration groups: %v\n", err)
+		os.Exit(1)
+	}
+
+	render.RenderResponseToYAMLOrJSON(&diffResponse, outputFormat)
 
 	filePath := diffConfigFilePathYAML
 	if outputFormat == "json" {
 		filePath = diffConfigFilePathJSON
 	}
 
-	err = utils.SaveConfigResponseToFile(config.Response.(*model.ConfigGroupDiffResponse), filePath)
-	if err != nil {
-		log.Fatalf("Failed to save response to files: %v", err)
+	if err := utils.SaveConfigResponseToFile(&diffResponse, filePath); err != nil {
+		fmt.Printf("Failed to save response to file: %v\n", err)
+		os.Exit(1)
 	}
 }
 
-func createDiffRequestConfig() model.HTTPRequestConfig {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
-	}
-
-	url := clients.BuildURL("core", "v1", "DiffConfigGroup")
-
+func prepareDiffRequest() (interface{}, error) {
 	namesList := strings.Split(names, "|")
 	versionsList := strings.Split(versions, "|")
 
 	if len(namesList) != 2 || len(versionsList) != 2 {
-		log.Fatalf("Invalid names or versions format. Please use 'name1|name2' and 'version1|version2'")
+		return nil, fmt.Errorf("invalid names or versions format. Please use 'name1|name2' and 'version1|version2'")
 	}
 
 	requestBody := model.ConfigGroupDiffRequest{
@@ -109,7 +104,18 @@ func createDiffRequestConfig() model.HTTPRequestConfig {
 		},
 	}
 
-	return model.HTTPRequestConfig{
+	return requestBody, nil
+}
+
+func sendDiffRequest(requestBody interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("error reading token: %v", err)
+	}
+
+	url := clients.BuildURL("core", "v1", "DiffConfigGroup")
+
+	config := model.HTTPRequestConfig{
 		Method:      "GET",
 		URL:         url,
 		Token:       token,
@@ -117,6 +123,12 @@ func createDiffRequestConfig() model.HTTPRequestConfig {
 		RequestBody: requestBody,
 		Response:    &diffResponse,
 	}
+
+	if err := utils.SendHTTPRequest(config); err != nil {
+		return fmt.Errorf("failed to send HTTP request: %v", err)
+	}
+
+	return nil
 }
 
 func init() {

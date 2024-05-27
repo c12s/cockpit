@@ -3,7 +3,6 @@ package render
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/c12s/cockpit/model"
 	"gopkg.in/yaml.v3"
 )
 
@@ -29,14 +28,26 @@ func RenderResponseToYAMLOrJSON(response interface{}, outputFormat string) {
 	println()
 }
 
-func DisplayStandaloneResponseAsJSON(response *model.StandaloneConfig) {
-	jsonData, err := json.MarshalIndent(response, "", "  ")
-	if err != nil {
-		fmt.Printf("Error converting response to JSON: %v\n", err)
-		return
+func DisplayResponse(response interface{}, format, message string) {
+	switch format {
+	case "json":
+		jsonData, err := json.MarshalIndent(response, "", "  ")
+		if err != nil {
+			fmt.Printf("Error converting response to JSON: %v\n", err)
+			return
+		}
+		fmt.Println(message)
+		fmt.Println(string(jsonData))
+	case "yaml":
+		yamlData, err := yaml.Marshal(response)
+		if err != nil {
+			fmt.Printf("Error converting response to YAML: %v\n", err)
+			return
+		}
+		fmt.Println(message)
+		fmt.Println(string(yamlData))
+	default:
+		fmt.Printf("Invalid output format: %v. Supported formats are 'json' and 'yaml'\n", format)
 	}
-	fmt.Println("Deleted Standalone Config (JSON):")
-	fmt.Println(string(jsonData))
-	fmt.Println("Standalone configuration deleted successfully!")
-	println()
+	fmt.Println("Deleted successfully!")
 }

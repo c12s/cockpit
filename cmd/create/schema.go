@@ -6,16 +6,8 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"io/ioutil"
 	"os"
 	"time"
-)
-
-var (
-	organization string
-	schemaName   string
-	version      string
-	filePath     string
 )
 
 const (
@@ -24,20 +16,30 @@ const (
 		"Example:\n" +
 		"create-schema --organization 'c12s' --schema_name 'schema' --version 'v1.0.0' --path '/path/to/schema.yaml'"
 
+	// Flag Constants
 	organizationFlag = "org"
 	schemaNameFlag   = "schema_name"
 	versionFlag      = "version"
 	filePathFlag     = "path"
 
+	// Flag Shorthand Constants
 	organizationFlagShorthand = "r"
 	schemaNameFlagShorthand   = "s"
 	versionFlagShorthand      = "v"
 	filePathFlagShorthand     = "p"
 
+	// Flag Descriptions
 	organizationDescription = "Organization name (required)"
 	schemaNameDescription   = "Schema name (required)"
 	versionDescription      = "Schema version (required)"
 	filePathDescription     = "Path to the YAML file containing the schema definition (required)"
+)
+
+var (
+	organization string
+	schemaName   string
+	version      string
+	filePath     string
 )
 
 var CreateSchemaCmd = &cobra.Command{
@@ -48,14 +50,14 @@ var CreateSchemaCmd = &cobra.Command{
 }
 
 func executeCreateSchema(cmd *cobra.Command, args []string) {
-	schema, err := readSchemaFile(filePath)
+	schema, err := utils.ReadSchemaFile(filePath)
 	if err != nil {
 		fmt.Printf("Error reading schema file: %v\n", err)
 		os.Exit(1)
 	}
 
-	requestBody := createRequestBody(schema)
-	config, err := createRequestConfig(requestBody)
+	requestBody := createSchemaRequestBody(schema)
+	config, err := createSchemaRequestConfig(requestBody)
 	if err != nil {
 		fmt.Printf("Error creating request config: %v\n", err)
 		os.Exit(1)
@@ -69,7 +71,7 @@ func executeCreateSchema(cmd *cobra.Command, args []string) {
 	fmt.Println("Schema created successfully!")
 }
 
-func createRequestBody(schema string) map[string]interface{} {
+func createSchemaRequestBody(schema string) map[string]interface{} {
 	schemaDetails := model.SchemaDetails{
 		Organization: organization,
 		SchemaName:   schemaName,
@@ -82,7 +84,7 @@ func createRequestBody(schema string) map[string]interface{} {
 	}
 }
 
-func createRequestConfig(requestBody map[string]interface{}) (model.HTTPRequestConfig, error) {
+func createSchemaRequestConfig(requestBody map[string]interface{}) (model.HTTPRequestConfig, error) {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		return model.HTTPRequestConfig{}, fmt.Errorf("error reading token: %v", err)
@@ -97,14 +99,6 @@ func createRequestConfig(requestBody map[string]interface{}) (model.HTTPRequestC
 		Token:       token,
 		Timeout:     10 * time.Second,
 	}, nil
-}
-
-func readSchemaFile(filePath string) (string, error) {
-	schema, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read schema file: %v", err)
-	}
-	return string(schema), nil
 }
 
 func init() {

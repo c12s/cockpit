@@ -77,10 +77,10 @@ func register(email, name, org, password, surname, username string) error {
 		Username: username,
 	}
 
-	registerURL := clients.BuildURL("core", "v1", "RegisterUser")
+	url := clients.BuildURL("core", "v1", "RegisterUser")
 
 	return utils.SendHTTPRequest(model.HTTPRequestConfig{
-		URL:         registerURL,
+		URL:         url,
 		Method:      "POST",
 		RequestBody: registrationDetails,
 		Timeout:     10 * time.Second,

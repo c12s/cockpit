@@ -16,7 +16,7 @@ const (
 	claimNodesShortDescription = "Claim nodes for an organization based on specific criteria"
 	claimNodesLongDescription  = "Claims nodes for an organization based on a defined query that specifies criteria like labels.\n\n" +
 		"Example:\n" +
-		"claim-nodes --org 'myOrg' --query 'labelKey >||=||< value'" +
+		"claim-nodes --org 'myOrg' --query 'labelKey >||=||!=||< value'" +
 		"claim-nodes --org 'myOrg' --query 'memory-totalGB > 2'"
 
 	// Flag Constants
@@ -33,9 +33,9 @@ const (
 )
 
 var (
-	org      string
-	query    string
-	response model.ClaimNodesResponse
+	org               string
+	query             string
+	claimNodeResponse model.ClaimNodesResponse
 )
 
 var ClaimNodesCmd = &cobra.Command{
@@ -46,7 +46,7 @@ var ClaimNodesCmd = &cobra.Command{
 }
 
 func executeClaimNodes(cmd *cobra.Command, args []string) {
-	requestBody, err := prepareRequest()
+	requestBody, err := prepareClaimNodesRequest()
 	if err != nil {
 		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
@@ -57,10 +57,10 @@ func executeClaimNodes(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	render.RenderNodes(response.Nodes)
+	render.RenderNodes(claimNodeResponse.Nodes)
 }
 
-func prepareRequest() (interface{}, error) {
+func prepareClaimNodesRequest() (interface{}, error) {
 	request := model.ClaimNodesRequest{
 		Org: org,
 	}
@@ -77,7 +77,7 @@ func prepareRequest() (interface{}, error) {
 func sendClaimNodeRequest(requestBody interface{}) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		return fmt.Errorf("Error reading token: %v", err)
+		return fmt.Errorf("error reading token: %v", err)
 	}
 
 	url := clients.BuildURL("core", "v1", "ClaimOwnership")
@@ -85,10 +85,9 @@ func sendClaimNodeRequest(requestBody interface{}) error {
 	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
 		Method:      "PATCH",
-		Headers:     map[string]string{"Content-Type": "application/json"},
 		Token:       token,
 		RequestBody: requestBody,
-		Response:    &response,
+		Response:    &claimNodeResponse,
 		Timeout:     10 * time.Second,
 	})
 }
@@ -96,6 +95,7 @@ func sendClaimNodeRequest(requestBody interface{}) error {
 func init() {
 	ClaimNodesCmd.Flags().StringVarP(&org, organizationFlag, organizationFlagShortHand, "", organizationDesc)
 	ClaimNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShortHand, "", queryDesc)
+
 	ClaimNodesCmd.MarkFlagRequired(organizationFlag)
 	ClaimNodesCmd.MarkFlagRequired(queryFlag)
 }

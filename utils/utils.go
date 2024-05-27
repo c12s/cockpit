@@ -86,6 +86,11 @@ func ReadTokenFromFile() (string, error) {
 	return string(token), nil
 }
 
+func SaveTokenToFile(token string) error {
+	tokenFilePath := tokenFilePath
+	return ioutil.WriteFile(tokenFilePath, []byte(token), 0600)
+}
+
 func SaveConfigResponseToFile(response interface{}, filePath string) error {
 	if strings.HasSuffix(filePath, ".json") {
 		jsonData, err := json.MarshalIndent(response, "", "  ")
@@ -111,4 +116,52 @@ func SaveConfigResponseToFile(response interface{}, filePath string) error {
 		return fmt.Errorf("unsupported file extension")
 	}
 	return nil
+}
+
+func ReadYAML(filePath string, out interface{}) error {
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	err = yaml.Unmarshal(data, out)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ReadJSON(filePath string, out interface{}) error {
+	data, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	err = json.Unmarshal(data, out)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DisplayResponseAsJSON(response interface{}, responseType string) {
+	jsonData, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		fmt.Printf("Error converting response to JSON: %v\n", err)
+		return
+	}
+	fmt.Printf("%s Response (JSON):\n", responseType)
+	fmt.Println(string(jsonData))
+}
+
+func DisplayResponseAsYAML(response interface{}, responseType string) {
+	yamlData, err := yaml.Marshal(response)
+	if err != nil {
+		fmt.Printf("Error converting response to YAML: %v\n", err)
+		return
+	}
+	fmt.Printf("%s Response (YAML):\n", responseType)
+	fmt.Println(string(yamlData))
 }

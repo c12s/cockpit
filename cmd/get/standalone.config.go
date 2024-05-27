@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"time"
 
@@ -37,51 +36,57 @@ var GetStandaloneConfigCmd = &cobra.Command{
 }
 
 func executeGetStandaloneConfig(cmd *cobra.Command, args []string) {
-	config := createStandaloneRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := prepareStandaloneRequestConfig()
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
 	}
 
-	render.RenderResponseToYAMLOrJSON(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
+	if err := sendStandaloneRequest(requestBody); err != nil {
+		fmt.Printf("Error retrieving standalone configuration: %v\n", err)
+		os.Exit(1)
+	}
+
+	render.RenderResponseToYAMLOrJSON(&standaloneConfigResponse, outputFormat)
 
 	filePath := getStandaloneConfigFilePathYAML
 	if outputFormat == "json" {
 		filePath = getStandaloneConfigFilePathJSON
 	}
 
-	err = utils.SaveConfigResponseToFile(config.Response.(*model.SingleConfigGroupResponse), filePath)
-	if err != nil {
-		log.Fatalf("Failed to save response to files: %v", err)
+	if err := utils.SaveConfigResponseToFile(&standaloneConfigResponse, filePath); err != nil {
+		fmt.Printf("Failed to save response to file: %v\n", err)
+		os.Exit(1)
 	}
 }
 
-func createStandaloneRequestConfig() model.HTTPRequestConfig {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
-	}
-
-	url := clients.BuildURL("core", "v1", "GetStandaloneConfig")
-
+func prepareStandaloneRequestConfig() (interface{}, error) {
 	requestBody := model.ConfigReference{
 		Organization: organization,
 		Name:         name,
 		Version:      version,
 	}
 
-	return model.HTTPRequestConfig{
-		Method:      "GET",
-		URL:         url,
-		Token:       token,
-		Timeout:     10 * time.Second,
-		RequestBody: requestBody,
-		Response:    &standaloneConfigResponse,
-	}
+	return requestBody, nil
 }
 
+func sendStandaloneRequest(requestBody interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("error reading token: %v", err)
+	}
+
+	url := clients.BuildURL("core", "v1", "GetStandaloneConfig")
+
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
+		URL:         url,
+		Method:      "GET",
+		Token:       token,
+		RequestBody: requestBody,
+		Response:    &standaloneConfigResponse,
+		Timeout:     10 * time.Second,
+	})
+}
 func init() {
 	GetStandaloneConfigCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
 	GetStandaloneConfigCmd.Flags().StringVarP(&name, flagName, shortFlagName, "", descName)

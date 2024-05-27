@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"time"
 
@@ -47,40 +46,47 @@ var ListConfigGroupPlacementsCmd = &cobra.Command{
 }
 
 func executeListConfigGroupPlacements(cmd *cobra.Command, args []string) {
-	config := createPlacementsRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := preparePlacementsRequestConfig()
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
+	}
+
+	if err := sendPlacementsRequest(requestBody); err != nil {
+		fmt.Printf("Error retrieving configuration group placements: %v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Println()
 	render.HandleConfigPlacementsResponse(&placementsResponse)
 }
 
-func createPlacementsRequestConfig() model.HTTPRequestConfig {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
-	}
-
-	url := clients.BuildURL("core", "v1", "ListPlacementTaskByConfigGroup")
-
+func preparePlacementsRequestConfig() (interface{}, error) {
 	requestBody := model.ConfigReference{
 		Name:         name,
 		Organization: organization,
 		Version:      version,
 	}
 
-	return model.HTTPRequestConfig{
-		Method:      "GET",
+	return requestBody, nil
+}
+
+func sendPlacementsRequest(requestBody interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("error reading token: %v", err)
+	}
+
+	url := clients.BuildURL("core", "v1", "ListPlacementTaskByConfigGroup")
+
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
+		Method:      "GET",
 		Token:       token,
-		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
 		Response:    &placementsResponse,
-	}
+		Timeout:     10 * time.Second,
+	})
 }
 
 func init() {

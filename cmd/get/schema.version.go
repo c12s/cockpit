@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"time"
 
@@ -36,30 +35,26 @@ var GetSchemaVersionCmd = &cobra.Command{
 }
 
 func executeGetSchemaVersion(cmd *cobra.Command, args []string) {
-	config := createSchemaVersionRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := prepareSchemaVersionRequestConfig()
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
-	}
-
-	render.HandleSchemaVersionResponse(config.Response.(*model.SchemaVersionResponse))
-
-	err = utils.SaveVersionResponseToYAML(config.Response.(*model.SchemaVersionResponse), saveSchemaVersionToFile)
-	if err != nil {
-		log.Fatalf("Failed to save response to YAML file: %v", err)
-	}
-}
-
-func createSchemaVersionRequestConfig() model.HTTPRequestConfig {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
+		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
 	}
 
-	url := clients.BuildURL("core", "v1", "GetConfigSchemaVersions")
+	if err := sendSchemaVersionRequest(requestBody); err != nil {
+		fmt.Printf("Error retrieving schema versions: %v\n", err)
+		os.Exit(1)
+	}
 
+	render.HandleSchemaVersionResponse(&schemaVersionResponse)
+
+	if err := utils.SaveVersionResponseToYAML(&schemaVersionResponse, saveSchemaVersionToFile); err != nil {
+		fmt.Printf("Failed to save response to YAML file: %v\n", err)
+		os.Exit(1)
+	}
+}
+
+func prepareSchemaVersionRequestConfig() (interface{}, error) {
 	requestBody := model.SchemaDetailsRequest{
 		SchemaDetails: model.SchemaDetails{
 			Organization: organization,
@@ -67,14 +62,25 @@ func createSchemaVersionRequestConfig() model.HTTPRequestConfig {
 		},
 	}
 
-	return model.HTTPRequestConfig{
-		Method:      "GET",
+	return requestBody, nil
+}
+
+func sendSchemaVersionRequest(requestBody interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("error reading token: %v", err)
+	}
+
+	url := clients.BuildURL("core", "v1", "GetConfigSchemaVersions")
+
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
+		Method:      "GET",
 		Token:       token,
-		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
 		Response:    &schemaVersionResponse,
-	}
+		Timeout:     10 * time.Second,
+	})
 }
 
 func init() {

@@ -52,10 +52,13 @@ var ValidateSchemaVersionCmd = &cobra.Command{
 }
 
 func executeValidateSchemaVersion(cmd *cobra.Command, args []string) {
-	config := createValidateSchemaRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := prepareValidateSchemaRequestConfig()
 	if err != nil {
+		fmt.Printf("Error preparing request: %v\n", err)
+		os.Exit(1)
+	}
+
+	if err := sendValidateSchemaRequest(requestBody); err != nil {
 		fmt.Printf("Error validating schema: %v\n", err)
 		os.Exit(1)
 	}
@@ -63,11 +66,10 @@ func executeValidateSchemaVersion(cmd *cobra.Command, args []string) {
 	fmt.Println("Schema validated successfully!")
 }
 
-func createValidateSchemaRequestConfig() model.HTTPRequestConfig {
+func prepareValidateSchemaRequestConfig() (interface{}, error) {
 	configData, err := ioutil.ReadFile(configPath)
 	if err != nil {
-		fmt.Printf("Error reading config file: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("error reading config file: %v", err)
 	}
 
 	schemaDetails := model.SchemaDetails{
@@ -84,21 +86,24 @@ func createValidateSchemaRequestConfig() model.HTTPRequestConfig {
 		Configuration: string(configData),
 	}
 
+	return requestBody, nil
+}
+
+func sendValidateSchemaRequest(requestBody interface{}) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error reading token: %v", err)
 	}
 
 	url := clients.BuildURL("core", "v1", "ValidateConfiguration")
 
-	return model.HTTPRequestConfig{
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		Method:      "GET",
 		URL:         url,
 		Token:       token,
 		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
-	}
+	})
 }
 
 func init() {

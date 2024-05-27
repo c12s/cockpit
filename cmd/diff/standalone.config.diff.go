@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -38,40 +37,36 @@ var DiffStandaloneConfigCmd = &cobra.Command{
 }
 
 func executeDiffStandaloneConfig(cmd *cobra.Command, args []string) {
-	config := createStandaloneDiffRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := prepareStandaloneDiffRequest()
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
 	}
 
-	render.RenderResponseToYAMLOrJSON(config.Response.(*model.SingleConfigDiffResponse), outputFormat)
+	if err := sendStandaloneDiffRequest(requestBody); err != nil {
+		fmt.Printf("Error comparing standalone configurations: %v\n", err)
+		os.Exit(1)
+	}
+
+	render.RenderResponseToYAMLOrJSON(&singleConfigDiffResponse, outputFormat)
 
 	filePath := diffStandaloneFilePathYAML
 	if outputFormat == "json" {
 		filePath = diffStandaloneFilePathJSON
 	}
 
-	err = utils.SaveConfigResponseToFile(config.Response.(*model.SingleConfigDiffResponse), filePath)
-	if err != nil {
-		log.Fatalf("Failed to save response to file: %v", err)
+	if err := utils.SaveConfigResponseToFile(&singleConfigDiffResponse, filePath); err != nil {
+		fmt.Printf("Failed to save response to file: %v\n", err)
+		os.Exit(1)
 	}
 }
 
-func createStandaloneDiffRequestConfig() model.HTTPRequestConfig {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
-	}
-
-	url := clients.BuildURL("core", "v1", "DiffStandaloneConfig")
-
+func prepareStandaloneDiffRequest() (interface{}, error) {
 	namesList := strings.Split(names, "|")
 	versionsList := strings.Split(versions, "|")
 
 	if len(namesList) != 2 || len(versionsList) != 2 {
-		log.Fatalf("Invalid names or versions format. Please use 'name1|name2' and 'version1|version2'")
+		return nil, fmt.Errorf("invalid names or versions format. Please use 'name1|name2' and 'version1|version2'")
 	}
 
 	requestBody := model.SingleConfigDiffRequest{
@@ -87,7 +82,18 @@ func createStandaloneDiffRequestConfig() model.HTTPRequestConfig {
 		},
 	}
 
-	return model.HTTPRequestConfig{
+	return requestBody, nil
+}
+
+func sendStandaloneDiffRequest(requestBody interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("error reading token: %v", err)
+	}
+
+	url := clients.BuildURL("core", "v1", "DiffStandaloneConfig")
+
+	config := model.HTTPRequestConfig{
 		Method:      "GET",
 		URL:         url,
 		Token:       token,
@@ -95,6 +101,12 @@ func createStandaloneDiffRequestConfig() model.HTTPRequestConfig {
 		RequestBody: requestBody,
 		Response:    &singleConfigDiffResponse,
 	}
+
+	if err := utils.SendHTTPRequest(config); err != nil {
+		return fmt.Errorf("failed to send HTTP request: %v", err)
+	}
+
+	return nil
 }
 
 func init() {

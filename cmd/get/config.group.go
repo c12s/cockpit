@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"time"
 
@@ -42,7 +41,6 @@ var (
 	appConfigResponse model.SingleConfigGroupResponse
 	outputFormat      string
 )
-
 var GetSingleConfigGroupCmd = &cobra.Command{
 	Use:   "group",
 	Short: getAppConfigShortDesc,
@@ -51,49 +49,56 @@ var GetSingleConfigGroupCmd = &cobra.Command{
 }
 
 func executeGetAppConfig(cmd *cobra.Command, args []string) {
-	config := createRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := prepareRequestConfig()
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
 	}
 
-	render.RenderResponseToYAMLOrJSON(config.Response.(*model.SingleConfigGroupResponse), outputFormat)
+	if err := sendRequest(requestBody); err != nil {
+		fmt.Printf("Error retrieving configuration: %v\n", err)
+		os.Exit(1)
+	}
+
+	render.RenderResponseToYAMLOrJSON(&appConfigResponse, outputFormat)
 
 	filePath := getConfigFilePathYAML
 	if outputFormat == "json" {
 		filePath = getConfigFilePathJSON
 	}
 
-	err = utils.SaveConfigResponseToFile(config.Response.(*model.SingleConfigGroupResponse), filePath)
-	if err != nil {
-		log.Fatalf("Failed to save response to files: %v", err)
+	if err := utils.SaveConfigResponseToFile(&appConfigResponse, filePath); err != nil {
+		fmt.Printf("Failed to save response to file: %v\n", err)
+		os.Exit(1)
 	}
 }
 
-func createRequestConfig() model.HTTPRequestConfig {
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
-	}
-
-	url := clients.BuildURL("core", "v1", "GetConfigGroup")
-
+func prepareRequestConfig() (interface{}, error) {
 	requestBody := model.ConfigReference{
 		Organization: organization,
 		Name:         name,
 		Version:      version,
 	}
 
-	return model.HTTPRequestConfig{
-		Method:      "GET",
+	return requestBody, nil
+}
+
+func sendRequest(requestBody interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("error reading token: %v", err)
+	}
+
+	url := clients.BuildURL("core", "v1", "GetConfigGroup")
+
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
+		Method:      "GET",
 		Token:       token,
-		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
 		Response:    &appConfigResponse,
-	}
+		Timeout:     10 * time.Second,
+	})
 }
 
 func init() {

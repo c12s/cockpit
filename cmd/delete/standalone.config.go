@@ -33,17 +33,28 @@ var DeleteStandaloneConfigCmd = &cobra.Command{
 }
 
 func executeDeleteStandaloneConfig(cmd *cobra.Command, args []string) {
-	config := createDeleteStandaloneConfigRequestConfig()
+	requestBody := prepareDeleteStandaloneConfigRequestConfig()
+
+	config := sendDeleteStandaloneConfigRequestConfig(requestBody)
 
 	err := utils.SendHTTPRequest(config)
 	if err != nil {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	render.DisplayStandaloneResponseAsJSON(&deleteStandaloneConfigResponse)
+	render.DisplayResponse(&deleteStandaloneConfigResponse, output, "Standalone deleted successfully")
 }
 
-func createDeleteStandaloneConfigRequestConfig() model.HTTPRequestConfig {
+func prepareDeleteStandaloneConfigRequestConfig() model.SingleConfigReference {
+	requestBody := model.SingleConfigReference{
+		Organization: organization,
+		Name:         name,
+		Version:      version,
+	}
+	return requestBody
+}
+
+func sendDeleteStandaloneConfigRequestConfig(requestBody interface{}) model.HTTPRequestConfig {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		fmt.Printf("Error reading token: %v\n", err)
@@ -51,12 +62,6 @@ func createDeleteStandaloneConfigRequestConfig() model.HTTPRequestConfig {
 	}
 
 	url := clients.BuildURL("core", "v1", "DeleteStandaloneConfig")
-
-	requestBody := model.SingleConfigReference{
-		Organization: organization,
-		Name:         name,
-		Version:      version,
-	}
 
 	return model.HTTPRequestConfig{
 		Method:      "DELETE",
@@ -72,6 +77,7 @@ func init() {
 	DeleteStandaloneConfigCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
 	DeleteStandaloneConfigCmd.Flags().StringVarP(&name, flagName, shortFlagName, "", descName)
 	DeleteStandaloneConfigCmd.Flags().StringVarP(&version, flagVersion, shortFlagVersion, "", descVersion)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&output, flagOutput, shortFlagOutput, "yaml", descOutput)
 
 	DeleteStandaloneConfigCmd.MarkFlagRequired(flagOrganization)
 	DeleteStandaloneConfigCmd.MarkFlagRequired(flagName)

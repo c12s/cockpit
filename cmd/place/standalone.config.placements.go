@@ -1,15 +1,11 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -36,77 +32,55 @@ var PlaceStandaloneConfigPlacementsCmd = &cobra.Command{
 }
 
 func executePlaceStandaloneConfigPlacements(cmd *cobra.Command, args []string) {
-	config := createStandaloneConfigPlacementsRequestConfig()
-
-	err := utils.SendHTTPRequest(config)
+	requestBody, err := prepareStandaloneConfigPlacementsRequestConfig()
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
+	}
+
+	if err := sendStandaloneConfigPlacementsRequest(requestBody); err != nil {
+		fmt.Printf("Error placing standalone configuration placements: %v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Println()
-	render.HandleConfigPlacementsResponse(&placementsResponse)
+	render.HandleConfigPlacementsResponse(&standaloneConfigPlacementsResponse)
 }
 
-func createStandaloneConfigPlacementsRequestConfig() model.HTTPRequestConfig {
+func prepareStandaloneConfigPlacementsRequestConfig() (interface{}, error) {
+	var requestBody model.PlaceConfigGroupPlacementsRequest
+	var err error
+	if strings.HasSuffix(path, ".yaml") {
+		err = utils.ReadYAML(path, &requestBody)
+	} else if strings.HasSuffix(path, ".json") {
+		err = utils.ReadJSON(path, &requestBody)
+	} else {
+		return nil, fmt.Errorf("invalid file format. Please provide a YAML or JSON file")
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to read input file: %v", err)
+	}
+
+	return requestBody, nil
+}
+
+func sendStandaloneConfigPlacementsRequest(requestBody interface{}) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		fmt.Printf("Error reading token: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("error reading token: %v", err)
 	}
 
 	url := clients.BuildURL("core", "v1", "PlaceStandaloneConfig")
 
-	var requestBody model.PlaceConfigGroupPlacementsRequest
-	if strings.HasSuffix(path, ".yaml") {
-		requestBody, err = readStandaloneConfigFromYAML(path)
-	} else if strings.HasSuffix(path, ".json") {
-		requestBody, err = readStandaloneConfigFromJSON(path)
-	} else {
-		log.Fatalf("Invalid file format. Please provide a YAML or JSON file.")
-	}
-
-	if err != nil {
-		log.Fatalf("Failed to read input file: %v", err)
-	}
-
-	return model.HTTPRequestConfig{
-		Method:      "POST",
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
 		URL:         url,
+		Method:      "POST",
 		Token:       token,
-		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
 		Response:    &standaloneConfigPlacementsResponse,
-	}
-}
-
-func readStandaloneConfigFromYAML(filePath string) (model.PlaceConfigGroupPlacementsRequest, error) {
-	data, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return model.PlaceConfigGroupPlacementsRequest{}, err
-	}
-
-	var request model.PlaceConfigGroupPlacementsRequest
-	err = yaml.Unmarshal(data, &request)
-	if err != nil {
-		return model.PlaceConfigGroupPlacementsRequest{}, err
-	}
-
-	return request, nil
-}
-
-func readStandaloneConfigFromJSON(filePath string) (model.PlaceConfigGroupPlacementsRequest, error) {
-	data, err := ioutil.ReadFile(filePath)
-	if err != nil {
-		return model.PlaceConfigGroupPlacementsRequest{}, err
-	}
-
-	var request model.PlaceConfigGroupPlacementsRequest
-	err = json.Unmarshal(data, &request)
-	if err != nil {
-		return model.PlaceConfigGroupPlacementsRequest{}, err
-	}
-
-	return request, nil
+		Timeout:     10 * time.Second,
+	})
 }
 
 func init() {

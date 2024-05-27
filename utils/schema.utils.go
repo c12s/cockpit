@@ -138,3 +138,11 @@ func removeSchemasVersionsBlockScalar(yamlStr string) string {
 func removeSchemasBlockScalar(yamlString string) string {
 	return strings.ReplaceAll(yamlString, "schema: |\n", "schema: \n")
 }
+
+func ReadSchemaFile(filePath string) (string, error) {
+	schema, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to read schema file: %v", err)
+	}
+	return string(schema), nil
+}

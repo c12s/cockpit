@@ -13,9 +13,9 @@ import (
 
 const (
 	deleteSchemaShortDesc = "Delete a schema"
-	deleteSchemaLongDesc  = "This command deletes a schema from the specified organization.\n\n" +
+	deleteSchemaLongDesc  = "This command deletes a schema version from the specified organization.\n\n" +
 		"Example:\n" +
-		"delete-schema --org 'c12s' --schema_name 'schema' --version 'v1.0.1'"
+		"cockpit delete schema --org 'c12s' --schema_name 'schema' --version 'v1.0.1'"
 
 	// Flag Constants
 	flagOrganization = "org"

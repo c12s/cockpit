@@ -17,7 +17,7 @@ const (
 	getAppConfigLongDesc  = "This command retrieves the specific configuration\n" +
 		"displays it in a nicely formatted way, and saves it to both YAML and JSON files.\n\n" +
 		"Example:\n" +
-		"get-config-group --org 'org' --name 'app_config' --version 'v1.0.0'"
+		"cockpit get config group --org 'org' --name 'app_config' --version 'v1.0.0'"
 
 	// Flag Constants
 	flagName   = "name"

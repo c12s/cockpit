@@ -22,13 +22,13 @@ func RenderResponseToYAMLOrJSON(response interface{}, outputFormat string) {
 			fmt.Printf("Error converting response to YAML: %v\n", err)
 			return
 		}
-		fmt.Println("Config Diff (YAML):")
+		fmt.Println("Config (YAML):")
 		fmt.Println(string(yamlData))
 	}
 	println()
 }
 
-func DisplayResponse(response interface{}, format, message string) {
+func DisplayResponseAsJSONOrYAML(response interface{}, format, message string) {
 	switch format {
 	case "json":
 		jsonData, err := json.MarshalIndent(response, "", "  ")

@@ -16,8 +16,8 @@ const (
 	allocatedNodesLongDescription  = "You can search for nodes organization has allocated. \n" +
 		"You can add query to search nodes by labels.\n\n" +
 		"Example:\n" +
-		"nodes-allocated --org 'labelKey >||=||< value'" +
-		"nodes-allocated --query 'memory-totalGB > 2'"
+		"cockpit list nodes allocated --org 'org' --query 'labelKey >||=||!=||< value'" +
+		"cockpit list nodes allocated --org 'org' --query 'memory-totalGB > 2'"
 
 	// Flag Constants
 	orgFlag   = "org"

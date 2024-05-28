@@ -17,7 +17,7 @@ const (
 	getStandaloneConfigLongDesc  = "This command retrieves a standalone configuration specified by its name, organization, and version\n" +
 		"displays it in a nicely formatted way, and saves it to both YAML and JSON files.\n\n" +
 		"Example:\n" +
-		"get-standalone-config --org 'c12s' --name 'db_config' --version 'v1.0.0'"
+		"get-standalone-config --org 'org' --name 'db_config' --version 'v1.0.0'"
 
 	// Path to files
 	getStandaloneConfigFilePathJSON = "./response/standalone-config/standalone-config.json"
@@ -25,7 +25,7 @@ const (
 )
 
 var (
-	standaloneConfigResponse model.SingleConfigGroupResponse
+	standaloneConfigResponse model.StandaloneConfig
 )
 
 var GetStandaloneConfigCmd = &cobra.Command{

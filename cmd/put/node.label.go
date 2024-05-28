@@ -17,7 +17,7 @@ const (
 	longLabelDescription  = "This command allows you to add a new label to a specified node, enhancing node metadata. \n" +
 		"Provide a key-value pair to define the label. If the label already exists, its value will be updated to the new specified value.\n\n" +
 		"Example:\n" +
-		"put-label --key \"newLabel\" --value \"value||true||25.00\" --nodeId \"nodeId\" --org \"orgId\""
+		"cockpit put label --key 'labelKey' --value 'newValue||true/false||25.00' --nodeId 'nodeId' --org 'org'"
 
 	// Flag Constants
 	flagKey    = "key"

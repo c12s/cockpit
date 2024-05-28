@@ -13,11 +13,10 @@ import (
 
 const (
 	deleteNodeLabelsShortDesc = "Delete a label from a node"
-	deleteNodeLabelsLongDesc  = `Delete a specific label from a node using its key.
-		Provide the node ID, organization, and label key to remove the label.
-
-		Example:
-		delete-label --nodeId "nodeID" --org "organization" --key "labelKey"`
+	deleteNodeLabelsLongDesc  = "Delete a specific label from a node using its key.\n" +
+		"Provide the node ID, organization, and label key to remove the label.\n\n" +
+		"Example:\n" +
+		"cockpit delete label --nodeId 'nodeID' --org 'org' --key 'labelKey' "
 
 	// Flag Constants
 	flagNodeID = "nodeId"

@@ -14,10 +14,10 @@ import (
 
 const (
 	getSchemaShortDesc = "Retrieve and display the schema"
-	getSchemaLongDesc  = "This command retrieves the schema from a specified endpoint\n" +
+	getSchemaLongDesc  = "This command retrieves the schema from a specified organization and specific version\n" +
 		"displays it in a nicely formatted way, and saves it to a YAML file.\n\n" +
 		"Example:\n" +
-		"get-schema --org 'org' --schema_name 'schema_name' --version 'v1.0.0'"
+		"cockpit get schema --org 'org' --schema_name 'schema_name' --version 'v1.0.0'"
 
 	// Flag Constants
 	flagOrganization = "org"

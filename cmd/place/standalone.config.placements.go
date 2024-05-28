@@ -17,7 +17,7 @@ const (
 	placeStandaloneConfigPlacementsShortDesc = "Place standalone configuration placements"
 	placeStandaloneConfigPlacementsLongDesc  = "This command places standalone configuration placements based on the input file.\n\n" +
 		"Example:\n" +
-		"place-standalone-config-placements --path 'path to yaml or json file'"
+		"cockpit place standalone config placements --path 'path to yaml or json file'"
 )
 
 var (

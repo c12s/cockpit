@@ -20,7 +20,7 @@ const (
 	putConfigGroupLongDesc  = "This command sends a configuration group read from a file (JSON or YAML)\n" +
 		"to the server and displays the server's response in the same format as the input file.\n\n" +
 		"Example:\n" +
-		"put-config-group --path 'path to yaml or JSON file'"
+		"cockpit put config group --path 'path to yaml or JSON file'"
 )
 
 var (

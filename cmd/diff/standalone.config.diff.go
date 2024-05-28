@@ -18,7 +18,7 @@ const (
 	diffStandaloneConfigLongDesc  = "This command compares two standalone configurations specified by their names and versions\n" +
 		"displays the differences in a nicely formatted way, and saves them to both YAML and JSON files.\n\n" +
 		"Example:\n" +
-		"diff-standalone-config --org 'c12s' --names 'db_config|db_config' --versions 'v1.0.0|v1.0.1'"
+		"cockpit diff standalone config --org 'org' --names 'db_config|db_config' --versions 'v1.0.0|v1.0.1'"
 
 	// Path to files
 	diffStandaloneFilePathJSON = "./response/standalone-config/standalone-config-diff.json"

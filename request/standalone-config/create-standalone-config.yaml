@@ -1,7 +1,7 @@
 name: db_config
 organization: c12s
 paramSet:
-  - value: "5432"
+  - value: "1234"
     key: port
   - key: address
     value: 127.0.0.1

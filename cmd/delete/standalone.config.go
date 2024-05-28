@@ -18,7 +18,7 @@ const (
 	deleteStandaloneConfigLongDesc  = "This command deletes a specified standalone configuration version\n" +
 		"and displays the deleted configuration details in JSON format.\n\n" +
 		"Example:\n" +
-		"delete-standalone-config --org 'c12s' --name 'db_config' --version 'v1.0.1'"
+		"cockpit delete standalone config --org 'c12s' --name 'db_config' --version 'v1.0.1'"
 )
 
 var (
@@ -42,7 +42,7 @@ func executeDeleteStandaloneConfig(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	render.DisplayResponse(&deleteStandaloneConfigResponse, output, "Standalone deleted successfully")
+	render.DisplayResponseAsJSONOrYAML(&deleteStandaloneConfigResponse, output, "Standalone deleted successfully")
 }
 
 func prepareDeleteStandaloneConfigRequestConfig() model.SingleConfigReference {

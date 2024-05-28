@@ -14,10 +14,10 @@ import (
 
 const (
 	listConfigGroupPlacementsShortDesc = "Retrieve and display the configuration group placements"
-	listConfigGroupPlacementsLongDesc  = "This command retrieves the configuration group placements from a specified endpoint\n" +
+	listConfigGroupPlacementsLongDesc  = "This command retrieves the configuration group placements from a specified organization \n" +
 		"displays them in a nicely formatted way.\n\n" +
 		"Example:\n" +
-		"list-config-group-placements --org 'org' --name 'app_config' --version 'v1.0.0'"
+		"cockpit list config group placements --org 'org' --name 'app_config' --version 'v1.0.0'"
 
 	// Flag Constants
 	nameFlag    = "name"

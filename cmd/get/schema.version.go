@@ -17,7 +17,7 @@ const (
 	getSchemaVersionLongDesc  = "This command retrieves schema versions for specific schema, \n" +
 		"displays them in a nicely formatted way, and saves them to a YAML file. \n\n" +
 		"Example:\n" +
-		"get-schema-version --org 'org' --schema_name 'schema_name'"
+		"cockpit get schema version --org 'org' --schema_name 'schema_name'"
 
 	//Path to file
 	saveSchemaVersionToFile = "response/schema/schema-version.yaml"

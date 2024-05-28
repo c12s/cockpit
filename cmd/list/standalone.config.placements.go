@@ -14,10 +14,10 @@ import (
 
 const (
 	listStandaloneConfigPlacementsShortDesc = "Retrieve and display the standalone configuration placements"
-	listStandaloneConfigPlacementsLongDesc  = "This command retrieves the standalone configuration placements from a specified endpoint\n" +
+	listStandaloneConfigPlacementsLongDesc  = "This command retrieves the standalone configuration placements from a specified organization\n" +
 		"and displays them in a nicely formatted way.\n\n" +
 		"Example:\n" +
-		"list-standalone-config-placements --org 'c12s' --name 'app_config' --version 'v1.0.0'"
+		"cockpit list standalone config placements --org 'org' --name 'app_config' --version 'v1.0.0'"
 )
 
 var (

@@ -5,8 +5,4 @@ paramSets:
     paramSet:
       - key: port
         value: "4444"
-  - name: media_path_config
-    paramSet:
-      - key: path
-        value: "/media"
 version: v1.0.1

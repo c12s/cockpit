@@ -14,9 +14,9 @@ import (
 
 const (
 	createRelationsShortDescription = "Create relations between entities"
-	createRelationsLongDescription  = "This command creates relations between entities specified by their IDs and kinds.\nFor example:\n\ncreate relations --ids 'id1|id2' --kinds 'kind1|kind2'\n\n" +
+	createRelationsLongDescription  = "This command creates relations between entities specified by their IDs and kinds.\n\n" +
 		"Example:\n" +
-		"create-relations --ids 'c12s|dev' --kinds 'org|namespace'"
+		"cockpit create relations --ids 'myOrg|dev' --kinds 'org|namespace'"
 
 	// Flag Constants
 	idsFlag   = "ids"

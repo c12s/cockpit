@@ -14,7 +14,7 @@ const (
 	createSchemaShortDescription = "Create a schema for an organization"
 	createSchemaLongDescription  = "Creates a schema for an organization by providing schema details and the path to a YAML file containing the schema definition.\n\n" +
 		"Example:\n" +
-		"create-schema --organization 'c12s' --schema_name 'schema' --version 'v1.0.0' --path '/path/to/schema.yaml'"
+		"cockpit create schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path 'path to yaml or json file'"
 
 	// Flag Constants
 	organizationFlag = "org"

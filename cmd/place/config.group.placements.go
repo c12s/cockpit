@@ -17,7 +17,7 @@ const (
 	placeConfigGroupPlacementsShortDesc = "Place configuration group placements"
 	placeConfigGroupPlacementsLongDesc  = "This command places configuration group placements based on the input file.\n\n" +
 		"Example:\n" +
-		"place-config-group-placements --path 'path to yaml of json file'"
+		"cockpit place config group placements --path 'path to yaml or json file'"
 
 	// Flag Constants
 	pathFlag = "path"

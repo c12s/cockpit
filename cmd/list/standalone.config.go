@@ -18,7 +18,7 @@ const (
 	listStandaloneConfigLongDesc  = "This command retrieves a list of all standalone configurations for a given organization\n" +
 		"displays them in a nicely formatted way, and saves them to both YAML and JSON files.\n\n" +
 		"Example:\n" +
-		"list-standalone-config --org 'c12s'"
+		"cockpit list standalone config --org 'org'"
 
 	listStandaloneConfigFilePathJSON = "./response/standalone-config/list-standalone-config.json"
 	listStandaloneConfigFilePathYAML = "./response/standalone-config/list-standalone-config.yaml"

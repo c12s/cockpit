@@ -18,7 +18,7 @@ const (
 	diffConfigGroupLongDesc  = "This command compares two configuration groups specified by their names and versions\n" +
 		"displays the differences in a nicely formatted way, and saves them to both YAML and JSON files.\n\n" +
 		"Example:\n" +
-		"diff-config-group --org 'org' --names 'name1|name2' --versions 'version1|version2'"
+		"diff config group --org 'org' --names 'name1|name2' --versions 'version1|version2'"
 
 	// Flag Constants
 	flagOrg      = "org"

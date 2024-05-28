@@ -6,6 +6,6 @@ namespace: dev
 strategy:
   name: default
   query:
-    - labelKey: newLabel1
-      shouldBe: "="
-      value: "stringValue"
+    - labelKey: memory-totalGB
+      shouldBe: ">"
+      value: "2"

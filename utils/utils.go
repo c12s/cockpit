@@ -152,7 +152,7 @@ func DisplayResponseAsJSON(response interface{}, responseType string) {
 		fmt.Printf("Error converting response to JSON: %v\n", err)
 		return
 	}
-	fmt.Printf("%s Response (JSON):\n", responseType)
+	fmt.Println(responseType)
 	fmt.Println(string(jsonData))
 }
 
@@ -162,6 +162,6 @@ func DisplayResponseAsYAML(response interface{}, responseType string) {
 		fmt.Printf("Error converting response to YAML: %v\n", err)
 		return
 	}
-	fmt.Printf("%s Response (YAML):\n", responseType)
+	fmt.Println(responseType)
 	fmt.Println(string(yamlData))
 }

@@ -20,7 +20,7 @@ const (
 	putStandaloneConfigLongDesc  = "This command sends a standalone configuration read from a file (JSON or YAML)\n" +
 		"to the server and displays the server's response in the same format as the input file.\n\n" +
 		"Example:\n" +
-		"put-standalone-config --path 'path to yaml or JSON file'"
+		"cockpit put standalone config --path 'path to yaml or JSON file'"
 )
 
 var (

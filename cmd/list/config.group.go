@@ -15,10 +15,10 @@ import (
 
 const (
 	listConfigGroupShortDesc = "Retrieve and display the configuration groups"
-	listConfigGroupLongDesc  = "This command retrieves the configuration groups from a specified endpoint\n" +
+	listConfigGroupLongDesc  = "This command retrieves the configuration groups from a specified organization \n" +
 		"displays them in a nicely formatted way, and saves them to both YAML and JSON files.\n\n" +
 		"Example:\n" +
-		"list-config-group --organization 'org'"
+		"cockpit list config group --organization 'org'"
 
 	// Flag Constants
 	outputFlag = "output"

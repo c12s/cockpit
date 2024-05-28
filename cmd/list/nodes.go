@@ -16,8 +16,8 @@ const (
 	nodesLongDescription  = "Retrieve a comprehensive list of all available nodes in the system.\n" +
 		"These nodes can be allocated to your organization based on your requirements.\n\n" +
 		"Example:\n" +
-		"nodes --query 'labelKey >||=||< value' \n" +
-		"nodes --query 'memory-totalGB > 2'"
+		"cockpit list nodes --query 'labelKey >||=||!=||< value' \n" +
+		"cockpit list nodes --query 'memory-totalGB > 2'"
 )
 
 var (

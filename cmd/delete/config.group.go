@@ -18,7 +18,7 @@ const (
 	deleteConfigGroupLongDesc  = "This command deletes a specified configuration group version\n" +
 		"and displays the deleted configuration group details in JSON or YAML format.\n\n" +
 		"Example:\n" +
-		"delete-config-group --org 'org' --name 'app_config' --version 'v1.0.0'"
+		"cockpit delete config group --org 'org' --name 'app_config' --version 'v1.0.0'"
 
 	// Flag Constants
 	flagName   = "name"
@@ -56,7 +56,7 @@ func executeDeleteConfigGroup(cmd *cobra.Command, args []string) {
 		log.Fatalf("Failed to send HTTP request: %v", err)
 	}
 
-	render.DisplayResponse(&deleteResponse, output, "Config group deleted successfully")
+	render.DisplayResponseAsJSONOrYAML(&deleteResponse, output, "Config group deleted successfully")
 }
 
 func prepareDeleteConfigGroupRequest() interface{} {

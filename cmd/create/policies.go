@@ -14,9 +14,9 @@ import (
 
 const (
 	createPoliciesShortDesc = "Create policies from YAML or JSON file"
-	createPoliciesLongDesc  = "This command creates policies based on the input file.\n\n" +
+	createPoliciesLongDesc  = "This command  is for creating security policies based on the input file.\n\n" +
 		"Example:\n" +
-		"create-policies --path 'path to yaml or json file'"
+		"cockpit create policies --path 'path to yaml or json file'"
 )
 
 var CreatePoliciesCmd = &cobra.Command{

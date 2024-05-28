@@ -16,8 +16,8 @@ const (
 	claimNodesShortDescription = "Claim nodes for an organization based on specific criteria"
 	claimNodesLongDescription  = "Claims nodes for an organization based on a defined query that specifies criteria like labels.\n\n" +
 		"Example:\n" +
-		"claim-nodes --org 'myOrg' --query 'labelKey >||=||!=||< value'" +
-		"claim-nodes --org 'myOrg' --query 'memory-totalGB > 2'"
+		"cockpit claim nodes --org 'org' --query 'labelKey >||=||!=||< value'\n" +
+		"cockpit claim nodes --org 'org' --query 'memory-totalGB > 2'"
 
 	// Flag Constants
 	organizationFlag = "org"

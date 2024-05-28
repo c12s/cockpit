@@ -16,7 +16,7 @@ const (
 	validateSchemaVersionShortDesc = "Validate a schema version"
 	validateSchemaVersionLongDesc  = "This command validates a schema version with the given configuration.\n\n" +
 		"Example:\n" +
-		"validate-schema --org 'c12s' --schema_name 'schema' --version 'v1.0.0' --path '/path/to/config.yaml'"
+		"cockpit validate schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path '/path/to/config.yaml'"
 
 	// Flag Constants
 	flagOrganization = "org"

@@ -49,7 +49,7 @@ var DeleteSchemaCmd = &cobra.Command{
 func executeDeleteSchema(cmd *cobra.Command, args []string) {
 	requestBody := prepareDeleteSchemaRequest()
 
-	if err := createDeleteRequestConfig(requestBody); err != nil {
+	if err := sendDeleteRequestConfig(requestBody); err != nil {
 		fmt.Printf("Error deleting schema: %v\n", err)
 		os.Exit(1)
 	}
@@ -71,7 +71,7 @@ func prepareDeleteSchemaRequest() interface{} {
 	return requestBody
 }
 
-func createDeleteRequestConfig(requestBody interface{}) error {
+func sendDeleteRequestConfig(requestBody interface{}) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		return fmt.Errorf("error reading token: %v", err)

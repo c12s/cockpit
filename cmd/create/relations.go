@@ -61,7 +61,7 @@ func executeCreateRelations(cmd *cobra.Command, args []string) {
 }
 
 func sendCreateRelationsRequest(relation model.Relation) error {
-	config, err := createRelationsRequestConfig(relation)
+	config, err := prepareRelationsRequestConfig(relation)
 	if err != nil {
 		fmt.Printf("Error creating request config: %v\n", err)
 		os.Exit(1)
@@ -75,7 +75,7 @@ func sendCreateRelationsRequest(relation model.Relation) error {
 	return nil
 }
 
-func createRelationsRequestConfig(relation model.Relation) (model.HTTPRequestConfig, error) {
+func prepareRelationsRequestConfig(relation model.Relation) (model.HTTPRequestConfig, error) {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		return model.HTTPRequestConfig{}, fmt.Errorf("error reading token: %v", err)

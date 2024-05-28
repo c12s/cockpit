@@ -75,6 +75,7 @@ func init() {
 	// Create Commands
 	CreateCmd.AddCommand(create.CreateSchemaCmd)
 	CreateCmd.AddCommand(create.CreateRelationsCmd)
+	CreateCmd.AddCommand(create.CreatePoliciesCmd)
 	RootCmd.AddCommand(CreateCmd)
 
 	// Diff Commands

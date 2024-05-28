@@ -56,8 +56,8 @@ func executeCreateSchema(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	requestBody := createSchemaRequestBody(schema)
-	config, err := createSchemaRequestConfig(requestBody)
+	requestBody := createSchemaRequest(schema)
+	config, err := prepareSchemaRequest(requestBody)
 	if err != nil {
 		fmt.Printf("Error creating request config: %v\n", err)
 		os.Exit(1)
@@ -71,7 +71,7 @@ func executeCreateSchema(cmd *cobra.Command, args []string) {
 	fmt.Println("Schema created successfully!")
 }
 
-func createSchemaRequestBody(schema string) map[string]interface{} {
+func createSchemaRequest(schema string) map[string]interface{} {
 	schemaDetails := model.SchemaDetails{
 		Organization: organization,
 		SchemaName:   schemaName,
@@ -84,7 +84,7 @@ func createSchemaRequestBody(schema string) map[string]interface{} {
 	}
 }
 
-func createSchemaRequestConfig(requestBody map[string]interface{}) (model.HTTPRequestConfig, error) {
+func prepareSchemaRequest(requestBody map[string]interface{}) (model.HTTPRequestConfig, error) {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		return model.HTTPRequestConfig{}, fmt.Errorf("error reading token: %v", err)

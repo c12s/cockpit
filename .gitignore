@@ -20,8 +20,8 @@ cockpit
 # txt files
 token.txt
 
-# yaml files
-response
+#.idea files
+.idea
 
 # tests scripts
 *.sh

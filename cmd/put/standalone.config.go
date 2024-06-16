@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
-	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -17,33 +18,38 @@ import (
 
 const (
 	putStandaloneConfigShortDesc = "Send a standalone configuration to the server"
-	putStandaloneConfigLongDesc  = "This command sends a standalone configuration read from a file (JSON or YAML)\n" +
-		"to the server and displays the server's response in the same format as the input file.\n\n" +
-		"Example:\n" +
-		"cockpit put standalone config --path 'path to yaml or JSON file'"
+	putStandaloneConfigLongDesc  = `This command sends a standalone configuration read from a file (JSON or YAML) to the server.
+It processes the file and uploads the standalone configuration, displaying the server's response in the same format as the input file.
+
+Example:
+cockpit put standalone config --path 'path to yaml or JSON file'`
 )
 
 var (
 	standaloneConfigPutResponse model.StandaloneConfig
 )
 var PutStandaloneConfigCmd = &cobra.Command{
-	Use:   "config",
-	Short: putStandaloneConfigShortDesc,
-	Long:  putStandaloneConfigLongDesc,
-	Run:   executePutStandaloneConfig,
+	Use:     "config",
+	Aliases: []string{"conf", "cnfg", "cfg"},
+	Short:   putStandaloneConfigShortDesc,
+	Long:    putStandaloneConfigLongDesc,
+	Run:     executePutStandaloneConfig,
 }
 
 func executePutStandaloneConfig(cmd *cobra.Command, args []string) {
 	configData, err := prepareStandaloneConfigData(filePath)
 	if err != nil {
-		log.Fatalf("Failed to read configuration file: %v", err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
 	}
 
-	if err := sendStandaloneConfigData(configData, &standaloneConfigPutResponse); err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+	if err := sendStandaloneConfigData(configData); err != nil {
+		fmt.Println("Error sending standalone config request:", err)
+		os.Exit(1)
 	}
 
-	displayStandaloneConfigResponse(&standaloneConfigPutResponse, inputFormat)
+	render.RenderResponseAsTabWriter(standaloneConfigPutResponse)
+	println()
 }
 
 func prepareStandaloneConfigData(path string) (map[string]interface{}, error) {
@@ -73,7 +79,7 @@ func prepareStandaloneConfigData(path string) (map[string]interface{}, error) {
 	return configData, nil
 }
 
-func sendStandaloneConfigData(requestBody interface{}, response interface{}) error {
+func sendStandaloneConfigData(requestBody interface{}) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		return fmt.Errorf("error reading token: %v", err)
@@ -87,7 +93,7 @@ func sendStandaloneConfigData(requestBody interface{}, response interface{}) err
 		Token:       token,
 		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
-		Response:    response,
+		Response:    &standaloneConfigPutResponse,
 	})
 }
 

@@ -3,20 +3,95 @@ package render
 import (
 	"fmt"
 	"github.com/c12s/cockpit/model"
-	"strings"
+	"os"
+	"text/tabwriter"
 )
 
-func HandleConfigPlacementsResponse(response *model.ConfigGroupPlacementsResponse) {
-	fmt.Println("Config Placements:")
-	for _, task := range response.Tasks {
-		fmt.Printf("%sTask ID: %s%s\n", Bold, task.ID, Reset)
-		fmt.Println(strings.Repeat("-", 45))
-		fmt.Printf("  Node: %s\n", task.Node)
-		fmt.Printf("  Namespace: %s\n", task.Namespace)
-		fmt.Printf("  Status: %s\n", task.Status)
-		fmt.Printf("  Accepted At: %s\n", task.AcceptedAt)
-		fmt.Printf("  Resolved At: %s\n", task.ResolvedAt)
-		fmt.Println(strings.Repeat("-", 45))
+func RenderTasksTabWriter(tasks []model.Task) {
+	if len(tasks) == 0 {
+		fmt.Println("No tasks were found.")
+		return
 	}
-	println()
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "ID\tNode\tNamespace\tStatus\tAccepted At\tResolved At\t")
+
+	for _, task := range tasks {
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t\n",
+			task.ID,
+			task.Node,
+			task.Namespace,
+			task.Status,
+			task.AcceptedAt,
+			task.ResolvedAt)
+	}
+}
+
+func RenderConfigGroupsTabWriter(groups []model.ConfigGroup) {
+	if len(groups) == 0 {
+		fmt.Println("No configuration groups were found.")
+		return
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "Organization\tName\tVersion\tCreated At\tParam Set Name\tParams\t")
+
+	for _, group := range groups {
+		for _, paramSet := range group.ParamSets {
+			for _, param := range paramSet.ParamSet {
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s=%s\t\n", group.Organization, group.Name, group.Version, group.CreatedAt, paramSet.Name, param.Key, param.Value)
+			}
+		}
+	}
+}
+
+func RenderConfigGroupTabWriter(group model.ConfigGroup) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "Organization\tName\tVersion\tCreated At\tParam Set Name\tParams\t")
+
+	for _, paramSet := range group.ParamSets {
+		for _, param := range paramSet.ParamSet {
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s=%s\t\n", group.Organization, group.Name, group.Version, group.CreatedAt, paramSet.Name, param.Key, param.Value)
+		}
+	}
+}
+
+func RenderConfigGroupDiffsTabWriter(diffResponse model.ConfigGroupDiffResponse) {
+	if len(diffResponse.Diffs) == 0 {
+		fmt.Println("No diffs were found.")
+		return
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "Category\tKey\tValue\tChange\t")
+
+	for category, diffSet := range diffResponse.Diffs {
+		for _, diff := range diffSet.Diffs {
+			switch diff.Type {
+			case "deletion":
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t\n",
+					category,
+					diff.Diff.Key,
+					diff.Diff.Value,
+					"-",
+				)
+			case "replacement":
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s -> %s\t\n",
+					category,
+					diff.Diff.Key,
+					diff.Diff.OldValue,
+					diff.Diff.NewValue,
+					"+",
+				)
+			}
+		}
+	}
 }

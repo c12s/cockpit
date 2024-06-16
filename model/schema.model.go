@@ -26,9 +26,6 @@ type SchemaVersionResponse struct {
 }
 
 type SchemaResponse struct {
-	Message    string `json:"message"`
-	SchemaData struct {
-		Schema       string `json:"schema"`
-		CreationTime string `json:"creationTime"`
-	} `json:"schemaData"`
+	Message    string     `json:"message"`
+	SchemaData SchemaData `json:"schemaData"`
 }

@@ -13,24 +13,26 @@ import (
 
 const (
 	deleteSchemaShortDesc = "Delete a schema"
-	deleteSchemaLongDesc  = "This command deletes a schema version from the specified organization.\n\n" +
-		"Example:\n" +
-		"cockpit delete schema --org 'c12s' --schema_name 'schema' --version 'v1.0.1'"
+	deleteSchemaLongDesc  = `This command deletes a schema version from the specified organization.
+The user must provide the organization name, schema name, and version to delete the schema. This ensures that the specified schema version is removed from the system.
+
+Example:
+cockpit delete schema --org 'c12s' --schema_name 'schema' --version 'v1.0.1'`
 
 	// Flag Constants
-	flagOrganization = "org"
-	flagSchemaName   = "schema_name"
-	flagVersion      = "version"
+	organizationFlag = "org"
+	schemaNameFlag   = "schema_name"
+	versionFlag      = "version"
 
 	// Flag Shorthand Constants
-	shortFlagOrganization = "r"
-	shortFlagSchemaName   = "s"
-	shortFlagVersion      = "v"
+	organizationShorthandFlag = "r"
+	schemaNameShorthandFlag   = "s"
+	versionShorthandFlag      = "v"
 
 	// Flag Descriptions
-	descOrganization = "Organization name (required)"
-	descSchemaName   = "Schema name (required)"
-	descVersion      = "Schema version (required)"
+	organizationDescription = "Organization name (required)"
+	schemaNameDescription   = "Schema name (required)"
+	versionDescription      = "Schema version (required)"
 )
 
 var (
@@ -40,21 +42,23 @@ var (
 )
 
 var DeleteSchemaCmd = &cobra.Command{
-	Use:   "schema",
-	Short: deleteSchemaShortDesc,
-	Long:  deleteSchemaLongDesc,
-	Run:   executeDeleteSchema,
+	Use:     "schema",
+	Aliases: []string{"schem", "schemaa", "sch", "sche"},
+	Short:   deleteSchemaShortDesc,
+	Long:    deleteSchemaLongDesc,
+	Run:     executeDeleteSchema,
 }
 
 func executeDeleteSchema(cmd *cobra.Command, args []string) {
 	requestBody := prepareDeleteSchemaRequest()
 
 	if err := sendDeleteRequestConfig(requestBody); err != nil {
-		fmt.Printf("Error deleting schema: %v\n", err)
+		fmt.Println("Error sending delete schema request:", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("Schema deleted successfully!")
+	println()
 }
 
 func prepareDeleteSchemaRequest() interface{} {
@@ -89,11 +93,11 @@ func sendDeleteRequestConfig(requestBody interface{}) error {
 }
 
 func init() {
-	DeleteSchemaCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
-	DeleteSchemaCmd.Flags().StringVarP(&schemaName, flagSchemaName, shortFlagSchemaName, "", descSchemaName)
-	DeleteSchemaCmd.Flags().StringVarP(&version, flagVersion, shortFlagVersion, "", descVersion)
+	DeleteSchemaCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	DeleteSchemaCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameShorthandFlag, "", schemaNameDescription)
+	DeleteSchemaCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
 
-	DeleteSchemaCmd.MarkFlagRequired(flagOrganization)
-	DeleteSchemaCmd.MarkFlagRequired(flagSchemaName)
-	DeleteSchemaCmd.MarkFlagRequired(flagVersion)
+	DeleteSchemaCmd.MarkFlagRequired(organizationFlag)
+	DeleteSchemaCmd.MarkFlagRequired(schemaNameFlag)
+	DeleteSchemaCmd.MarkFlagRequired(versionFlag)
 }

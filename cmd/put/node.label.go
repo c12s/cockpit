@@ -14,28 +14,33 @@ import (
 
 const (
 	shortLabelDescription = "Add a label to a node."
-	longLabelDescription  = "This command allows you to add a new label to a specified node, enhancing node metadata. \n" +
-		"Provide a key-value pair to define the label. If the label already exists, its value will be updated to the new specified value.\n\n" +
-		"Example:\n" +
-		"cockpit put label --key 'labelKey' --value 'newValue||true/false||25.00' --nodeId 'nodeId' --org 'org'"
+	longLabelDescription  = `This command allows you to add a new label to a specified node, enhancing node metadata.
+Provide a key-value pair to define the label. If the label already exists, its value will be updated to the new specified value.
+The command supports different types of values: strings, boolean, and floating-point numbers.
+The input format determines the appropriate type and URL for the request.
+
+Examples:
+- cockpit put label --key 'env' --value 'production' --nodeId 'nodeId' --org 'org'
+- cockpit put label --key 'active' --value 'true' --nodeId 'nodeId' --org 'org'
+- cockpit put label --key 'cpu' --value '2.5' --nodeId 'nodeId' --org 'org'`
 
 	// Flag Constants
-	flagKey    = "key"
-	flagValue  = "value"
-	flagNodeID = "nodeId"
-	flagOrg    = "org"
+	keyFlag          = "key"
+	valueFlag        = "value"
+	nodeIdFlag       = "nodeId"
+	organizationFlag = "org"
 
 	// Flag Shorthand Constants
-	flagShorthandKey    = "k"
-	flagShorthandValue  = "v"
-	flagShorthandNodeID = "n"
-	flagShorthandOrg    = "r"
+	keyShorthandFlag          = "k"
+	valueShorthandFlag        = "v"
+	nodeIdShorthandFlag       = "n"
+	organizationShorthandFlag = "r"
 
 	// Flag Descriptions
-	descKey    = "Label key (required)"
-	descValue  = "Label value (required)"
-	descNodeID = "Node ID (required)"
-	descOrg    = "Organization (required)"
+	keyDescription          = "Label key (required)"
+	valueDescription        = "Label value (required)"
+	nodeIdDescription       = "Node ID (required)"
+	organizationDescription = "Organization (required)"
 )
 
 var (
@@ -47,23 +52,24 @@ var (
 )
 
 var LabelsCmd = &cobra.Command{
-	Use:   "label",
-	Short: shortLabelDescription,
-	Long:  longLabelDescription,
-	Run:   executeLabelCommand,
+	Use:     "label",
+	Aliases: []string{"lbl", "lab"},
+	Short:   shortLabelDescription,
+	Long:    longLabelDescription,
+	Run:     executeLabelCommand,
 }
 
 func executeLabelCommand(cmd *cobra.Command, args []string) {
 	value, url, err := determineValueTypeAndURL(value)
 	if err != nil {
-		fmt.Printf("Error determining value type: %v\n", err)
+		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
 	}
 
 	labelInput := createLabelInput(key, value, nodeId, org)
 	err = sendLabelRequest(labelInput, url)
 	if err != nil {
-		fmt.Printf("Error processing label: %v\n", err)
+		fmt.Println("Error sending add node label request:", err)
 		os.Exit(1)
 	}
 
@@ -111,13 +117,13 @@ func createLabelInput(key string, value interface{}, nodeId string, org string) 
 }
 
 func init() {
-	LabelsCmd.Flags().StringVarP(&key, flagKey, flagShorthandKey, "", descKey)
-	LabelsCmd.Flags().StringVarP(&value, flagValue, flagShorthandValue, "", descValue)
-	LabelsCmd.Flags().StringVarP(&nodeId, flagNodeID, flagShorthandNodeID, "", descNodeID)
-	LabelsCmd.Flags().StringVarP(&org, flagOrg, flagShorthandOrg, "", descOrg)
+	LabelsCmd.Flags().StringVarP(&key, keyFlag, keyShorthandFlag, "", keyDescription)
+	LabelsCmd.Flags().StringVarP(&value, valueFlag, valueShorthandFlag, "", valueDescription)
+	LabelsCmd.Flags().StringVarP(&nodeId, nodeIdFlag, nodeIdShorthandFlag, "", nodeIdDescription)
+	LabelsCmd.Flags().StringVarP(&org, organizationFlag, organizationShorthandFlag, "", organizationDescription)
 
-	LabelsCmd.MarkFlagRequired(flagKey)
-	LabelsCmd.MarkFlagRequired(flagValue)
-	LabelsCmd.MarkFlagRequired(flagNodeID)
-	LabelsCmd.MarkFlagRequired(flagOrg)
+	LabelsCmd.MarkFlagRequired(keyFlag)
+	LabelsCmd.MarkFlagRequired(valueFlag)
+	LabelsCmd.MarkFlagRequired(nodeIdFlag)
+	LabelsCmd.MarkFlagRequired(organizationFlag)
 }

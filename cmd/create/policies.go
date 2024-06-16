@@ -5,7 +5,7 @@ import (
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
-	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -14,28 +14,35 @@ import (
 
 const (
 	createPoliciesShortDesc = "Create policies from YAML or JSON file"
-	createPoliciesLongDesc  = "This command  is for creating security policies based on the input file.\n\n" +
-		"Example:\n" +
-		"cockpit create policies --path 'path to yaml or json file'"
+	createPoliciesLongDesc  = `This command is for creating security policies based on the input file.
+Policies are used to define and enforce security rules within the organization. The input file can be in YAML or JSON format, specifying the policy details.
+
+Example:
+cockpit create policies --path 'path to yaml or json file'`
 )
 
 var CreatePoliciesCmd = &cobra.Command{
-	Use:   "policies",
-	Short: createPoliciesShortDesc,
-	Long:  createPoliciesLongDesc,
-	Run:   executeCreatePolicies,
+	Use:     "policies",
+	Aliases: []string{"policie", "policiess", "pol"},
+	Short:   createPoliciesShortDesc,
+	Long:    createPoliciesLongDesc,
+	Run:     executeCreatePolicies,
 }
 
 func executeCreatePolicies(cmd *cobra.Command, args []string) {
 	requestBody, err := preparePoliciesRequestBody()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
 	}
 
 	if err := sendCreatePoliciesRequest(requestBody); err != nil {
-		log.Fatal(err)
+		fmt.Println("Error sending policies request:", err)
+		os.Exit(1)
 	}
+
 	fmt.Println("Policies created successfully")
+	fmt.Println()
 }
 
 func preparePoliciesRequestBody() (model.PoliciesRequest, error) {

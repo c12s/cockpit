@@ -14,61 +14,60 @@ import (
 
 const (
 	listConfigGroupPlacementsShortDesc = "Retrieve and display the configuration group placements"
-	listConfigGroupPlacementsLongDesc  = "This command retrieves the configuration group placements from a specified organization \n" +
-		"displays them in a nicely formatted way.\n\n" +
-		"Example:\n" +
-		"cockpit list config group placements --org 'org' --name 'app_config' --version 'v1.0.0'"
+	listConfigGroupPlacementsLongDesc  = `This command retrieves all configuration group placements from a specified organization,
+displays them in a nicely formatted way, and allows you to see the placements in detail.
+
+Examples:
+- cockpit list config group placements --org 'org' --name 'app_config' --version 'v1.0.0'
+- cockpit list config group placements --org 'org' --name 'db_config' --version 'v2.0.0'`
 
 	// Flag Constants
 	nameFlag    = "name"
 	versionFlag = "version"
 
 	// Flag Shorthand Constants
-	nameFlagShortHand    = "n"
-	versionFlagShortHand = "v"
+	nameShorthandFlag    = "n"
+	versionShorthandFlag = "v"
 
 	// Flag Descriptions
-	nameDesc    = "Configuration group name (required)"
-	versionDesc = "Configuration group version (required)"
+	nameDescription    = "Configuration group name (required)"
+	versionDescription = "Configuration group version (required)"
 )
 
 var (
-	name               string
-	version            string
-	placementsResponse model.ConfigGroupPlacementsResponse
+	name                          string
+	version                       string
+	groupConfigPlacementsResponse model.ConfigGroupPlacementsResponse
 )
 
 var ListConfigGroupPlacementsCmd = &cobra.Command{
-	Use:   "placements",
-	Short: listConfigGroupPlacementsShortDesc,
-	Long:  listConfigGroupPlacementsLongDesc,
-	Run:   executeListConfigGroupPlacements,
+	Use:     "placements",
+	Aliases: []string{"placement", "placementss"},
+	Short:   listConfigGroupPlacementsShortDesc,
+	Long:    listConfigGroupPlacementsLongDesc,
+	Run:     executeListConfigGroupPlacements,
 }
 
 func executeListConfigGroupPlacements(cmd *cobra.Command, args []string) {
-	requestBody, err := preparePlacementsRequestConfig()
-	if err != nil {
-		fmt.Println("Error preparing request:", err)
-		os.Exit(1)
-	}
+	requestBody := preparePlacementsRequestConfig()
 
 	if err := sendPlacementsRequest(requestBody); err != nil {
-		fmt.Printf("Error retrieving configuration group placements: %v\n", err)
+		fmt.Println("Error sending config group placements request:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println()
-	render.HandleConfigPlacementsResponse(&placementsResponse)
+	render.RenderResponseAsTabWriter(groupConfigPlacementsResponse.Tasks)
+	println()
 }
 
-func preparePlacementsRequestConfig() (interface{}, error) {
+func preparePlacementsRequestConfig() interface{} {
 	requestBody := model.ConfigReference{
 		Name:         name,
 		Organization: organization,
 		Version:      version,
 	}
 
-	return requestBody, nil
+	return requestBody
 }
 
 func sendPlacementsRequest(requestBody interface{}) error {
@@ -84,17 +83,17 @@ func sendPlacementsRequest(requestBody interface{}) error {
 		Method:      "GET",
 		Token:       token,
 		RequestBody: requestBody,
-		Response:    &placementsResponse,
+		Response:    &groupConfigPlacementsResponse,
 		Timeout:     10 * time.Second,
 	})
 }
 
 func init() {
-	ListConfigGroupPlacementsCmd.Flags().StringVarP(&organization, orgFlag, orgFlagShortHand, "", orgDesc)
-	ListConfigGroupPlacementsCmd.Flags().StringVarP(&name, nameFlag, nameFlagShortHand, "", nameDesc)
-	ListConfigGroupPlacementsCmd.Flags().StringVarP(&version, versionFlag, versionFlagShortHand, "", versionDesc)
+	ListConfigGroupPlacementsCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	ListConfigGroupPlacementsCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
+	ListConfigGroupPlacementsCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
 
-	ListConfigGroupPlacementsCmd.MarkFlagRequired(orgFlag)
+	ListConfigGroupPlacementsCmd.MarkFlagRequired(organizationFlag)
 	ListConfigGroupPlacementsCmd.MarkFlagRequired(nameFlag)
 	ListConfigGroupPlacementsCmd.MarkFlagRequired(versionFlag)
 }

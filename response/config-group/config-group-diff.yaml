@@ -1,0 +1,9 @@
+diffs:
+    db_config:
+        diffs: []
+    media_path_config:
+        diffs:
+            - type: deletion
+              diff:
+                key: path
+                value: /media

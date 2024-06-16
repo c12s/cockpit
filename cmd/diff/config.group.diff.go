@@ -15,28 +15,29 @@ import (
 
 const (
 	diffConfigGroupShortDesc = "Compare two configuration groups"
-	diffConfigGroupLongDesc  = "This command compares two configuration groups specified by their names and versions\n" +
-		"displays the differences in a nicely formatted way, and saves them to both YAML and JSON files.\n\n" +
-		"Example:\n" +
-		"diff config group --org 'org' --names 'name1|name2' --versions 'version1|version2'"
+	diffConfigGroupLongDesc  = `This command compares two configuration groups specified by their names and versions, displays the differences in a nicely formatted way, and saves them to both YAML and JSON files.
+The user can specify the organization, names, and versions of the two configuration groups to be compared. The differences between the groups will be highlighted and saved in the specified format.
+
+Example:
+diff config group --org 'org' --names 'name1|name2' --versions 'version1|version2'`
 
 	// Flag Constants
-	flagOrg      = "org"
-	flagNames    = "names"
-	flagVersions = "versions"
-	flagOutput   = "output"
+	organizationFlag = "org"
+	namesFlag        = "names"
+	versionsFlag     = "versions"
+	outputFlag       = "output"
 
 	// Flag Shorthand Constants
-	shortFlagOrg      = "r"
-	shortFlagNames    = "n"
-	shortFlagVersions = "v"
-	shortFlagOutput   = "o"
+	orgShorthandFlag     = "r"
+	namesShorthandFlag   = "n"
+	versionShorthandFlag = "v"
+	outputShorthandFlag  = "o"
 
 	// Flag Descriptions
-	descOrg      = "Organization (required)"
-	descNames    = "Configuration group names separated by '|' (required)"
-	descVersions = "Configuration group versions separated by '|' (required)"
-	descOutput   = "Output format (yaml or json)"
+	orgDescription      = "Organization (required)"
+	namesDescription    = "Configuration group names separated by '|' (required)"
+	versionsDescription = "Configuration group versions separated by '|' (required)"
+	outputDescription   = "Output format (yaml or json)"
 
 	// Path to files
 	diffConfigFilePathJSON = "./response/config-group/config-group-diff.json"
@@ -52,10 +53,11 @@ var (
 )
 
 var DiffConfigGroupCmd = &cobra.Command{
-	Use:   "group",
-	Short: diffConfigGroupShortDesc,
-	Long:  diffConfigGroupLongDesc,
-	Run:   executeDiffConfigGroup,
+	Use:     "group",
+	Aliases: []string{"conf", "cnfg", "cfg"},
+	Short:   diffConfigGroupShortDesc,
+	Long:    diffConfigGroupLongDesc,
+	Run:     executeDiffConfigGroup,
 }
 
 func executeDiffConfigGroup(cmd *cobra.Command, args []string) {
@@ -66,21 +68,30 @@ func executeDiffConfigGroup(cmd *cobra.Command, args []string) {
 	}
 
 	if err := sendDiffRequest(requestBody); err != nil {
-		fmt.Printf("Error comparing configuration groups: %v\n", err)
+		fmt.Println("Error sending config group diff request:", err)
 		os.Exit(1)
 	}
 
-	render.RenderResponseToYAMLOrJSON(&diffResponse, outputFormat)
+	if outputFormat == "" {
+		render.RenderResponseAsTabWriter(diffResponse)
+	} else if outputFormat == "yaml" || outputFormat == "json" {
+		render.DisplayResponseAsJSONOrYAML(diffResponse, outputFormat, "")
 
-	filePath := diffConfigFilePathYAML
-	if outputFormat == "json" {
-		filePath = diffConfigFilePathJSON
+		filePath := diffConfigFilePathYAML
+		if outputFormat == "json" {
+			filePath = diffConfigFilePathJSON
+		}
+
+		if err := utils.SaveYAMLOrJSONResponseToFile(&diffResponse, filePath); err != nil {
+			fmt.Println("Failed to save response to file:", err)
+			println()
+			os.Exit(1)
+		}
+	} else {
+		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
 
-	if err := utils.SaveConfigResponseToFile(&diffResponse, filePath); err != nil {
-		fmt.Printf("Failed to save response to file: %v\n", err)
-		os.Exit(1)
-	}
+	println()
 }
 
 func prepareDiffRequest() (interface{}, error) {
@@ -132,12 +143,12 @@ func sendDiffRequest(requestBody interface{}) error {
 }
 
 func init() {
-	DiffConfigGroupCmd.Flags().StringVarP(&organization, flagOrg, shortFlagOrg, "", descOrg)
-	DiffConfigGroupCmd.Flags().StringVarP(&names, flagNames, shortFlagNames, "", descNames)
-	DiffConfigGroupCmd.Flags().StringVarP(&versions, flagVersions, shortFlagVersions, "", descVersions)
-	DiffConfigGroupCmd.Flags().StringVarP(&outputFormat, flagOutput, shortFlagOutput, "yaml", descOutput)
+	DiffConfigGroupCmd.Flags().StringVarP(&organization, organizationFlag, orgShorthandFlag, "", orgDescription)
+	DiffConfigGroupCmd.Flags().StringVarP(&names, namesFlag, namesShorthandFlag, "", namesDescription)
+	DiffConfigGroupCmd.Flags().StringVarP(&versions, versionsFlag, versionShorthandFlag, "", versionsDescription)
+	DiffConfigGroupCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
 
-	DiffConfigGroupCmd.MarkFlagRequired(flagOrg)
-	DiffConfigGroupCmd.MarkFlagRequired(flagNames)
-	DiffConfigGroupCmd.MarkFlagRequired(flagVersions)
+	DiffConfigGroupCmd.MarkFlagRequired(organizationFlag)
+	DiffConfigGroupCmd.MarkFlagRequired(namesFlag)
+	DiffConfigGroupCmd.MarkFlagRequired(versionsFlag)
 }

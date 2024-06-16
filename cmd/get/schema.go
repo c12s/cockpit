@@ -14,28 +14,29 @@ import (
 
 const (
 	getSchemaShortDesc = "Retrieve and display the schema"
-	getSchemaLongDesc  = "This command retrieves the schema from a specified organization and specific version\n" +
-		"displays it in a nicely formatted way, and saves it to a YAML file.\n\n" +
-		"Example:\n" +
-		"cockpit get schema --org 'org' --schema_name 'schema_name' --version 'v1.0.0'"
+	getSchemaLongDesc  = `This command retrieves the schema from a specified organization and specific version, displays it in a nicely formatted way, and saves it to a YAML file.
+The user can specify the organization, schema name, and version to retrieve the schema details. The response will be displayed in a tabular format and saved as a YAML file.
+
+Example:
+cockpit get schema --org 'org' --schema_name 'schema_name' --version 'v1.0.0'`
 
 	// Flag Constants
-	flagOrganization = "org"
-	flagSchemaName   = "schema_name"
-	flagVersion      = "version"
+	organizationFlag = "org"
+	schemaNameFlag   = "schema_name"
+	versionFlag      = "version"
 
 	// Flag Shorthand Constants
-	shortFlagOrganization = "r"
-	shortFlagSchemaName   = "s"
-	shortFlagVersion      = "v"
+	organizationShorthandFlag = "r"
+	schemaNameShorthandFlag   = "s"
+	versionShorthandFlag      = "v"
 
 	// Flag Descriptions
-	descOrganization = "Organization name (required)"
-	descSchemaName   = "Schema name (required)"
-	descVersion      = "Schema version (required)"
+	organizationDescription = "Organization name (required)"
+	schemaNameDescription   = "Schema name (required)"
+	versionDescription      = "Schema version (required)"
 
 	//Path to file
-	saveSchemaToFile = "response/schema/schema.yaml"
+	getSchemaFilePath = "response/schema/schema.yaml"
 )
 
 var (
@@ -46,33 +47,31 @@ var (
 )
 
 var GetSchemaCmd = &cobra.Command{
-	Use:   "schema",
-	Short: getSchemaShortDesc,
-	Long:  getSchemaLongDesc,
-	Run:   executeGetSchema,
+	Use:     "schema",
+	Aliases: []string{"schem", "schemaa", "sch", "sche"},
+	Short:   getSchemaShortDesc,
+	Long:    getSchemaLongDesc,
+	Run:     executeGetSchema,
 }
 
 func executeGetSchema(cmd *cobra.Command, args []string) {
-	requestBody, err := prepareSchemaRequestConfig()
-	if err != nil {
-		fmt.Println("Error preparing request:", err)
-		os.Exit(1)
-	}
+	requestBody := prepareSchemaRequestConfig()
 
 	if err := sendSchemaRequest(requestBody); err != nil {
-		fmt.Printf("Error retrieving schema: %v\n", err)
+		fmt.Println("Error sending get schema request", err)
 		os.Exit(1)
 	}
 
-	render.HandleSchemaResponse(&schemaResponse)
-
-	if err := utils.SaveSchemaResponseToYAML(&schemaResponse, saveSchemaToFile); err != nil {
+	render.RenderResponseAsTabWriter(schemaResponse.SchemaData)
+	println()
+	if err := utils.SaveSchemaResponseToYAML(&schemaResponse, getSchemaFilePath); err != nil {
 		fmt.Printf("Failed to save response to YAML file: %v\n", err)
 		os.Exit(1)
 	}
+	println()
 }
 
-func prepareSchemaRequestConfig() (interface{}, error) {
+func prepareSchemaRequestConfig() interface{} {
 	requestBody := model.SchemaDetailsRequest{
 		SchemaDetails: model.SchemaDetails{
 			Organization: organization,
@@ -81,7 +80,7 @@ func prepareSchemaRequestConfig() (interface{}, error) {
 		},
 	}
 
-	return requestBody, nil
+	return requestBody
 }
 
 func sendSchemaRequest(requestBody interface{}) error {
@@ -103,11 +102,11 @@ func sendSchemaRequest(requestBody interface{}) error {
 }
 
 func init() {
-	GetSchemaCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
-	GetSchemaCmd.Flags().StringVarP(&schemaName, flagSchemaName, shortFlagSchemaName, "", descSchemaName)
-	GetSchemaCmd.Flags().StringVarP(&version, flagVersion, shortFlagVersion, "", descVersion)
+	GetSchemaCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	GetSchemaCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameShorthandFlag, "", schemaNameDescription)
+	GetSchemaCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
 
-	GetSchemaCmd.MarkFlagRequired(flagOrganization)
-	GetSchemaCmd.MarkFlagRequired(flagSchemaName)
-	GetSchemaCmd.MarkFlagRequired(flagVersion)
+	GetSchemaCmd.MarkFlagRequired(organizationFlag)
+	GetSchemaCmd.MarkFlagRequired(schemaNameFlag)
+	GetSchemaCmd.MarkFlagRequired(versionFlag)
 }

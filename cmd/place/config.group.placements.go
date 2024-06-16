@@ -15,27 +15,34 @@ import (
 
 const (
 	placeConfigGroupPlacementsShortDesc = "Place configuration group placements"
-	placeConfigGroupPlacementsLongDesc  = "This command places configuration group placements based on the input file.\n\n" +
-		"Example:\n" +
-		"cockpit place config group placements --path 'path to yaml or json file'"
+	placeConfigGroupPlacementsLongDesc  = `This command places configuration group placements based on the input file.
+The input file should be in either YAML or JSON format, containing the details of the configuration group placements.
+It reads the file, processes the placements, and applies them accordingly.
+
+Example:
+cockpit place config group placements --path 'path to yaml or json file'`
 
 	// Flag Constants
 	pathFlag = "path"
 
+	// Flag Shorthand Constants
+	pathShorthandFlag = "p"
+
 	// Flag Descriptions
-	pathDesc = "Path to the input YAML or JSON file (required)"
+	pathDescription = "Path to the input YAML or JSON file (required)"
 )
 
 var (
-	path               string
-	placementsResponse model.ConfigGroupPlacementsResponse
+	path                          string
+	groupConfigPlacementsResponse model.ConfigGroupPlacementsResponse
 )
 
 var PlaceConfigGroupPlacementsCmd = &cobra.Command{
-	Use:   "group",
-	Short: placeConfigGroupPlacementsShortDesc,
-	Long:  placeConfigGroupPlacementsLongDesc,
-	Run:   executePlaceConfigGroupPlacements,
+	Use:     "group",
+	Aliases: []string{"grp", "gr"},
+	Short:   placeConfigGroupPlacementsShortDesc,
+	Long:    placeConfigGroupPlacementsLongDesc,
+	Run:     executePlaceConfigGroupPlacements,
 }
 
 func executePlaceConfigGroupPlacements(cmd *cobra.Command, args []string) {
@@ -46,12 +53,12 @@ func executePlaceConfigGroupPlacements(cmd *cobra.Command, args []string) {
 	}
 
 	if err := sendPlacementsRequest(requestBody); err != nil {
-		fmt.Printf("Error placing configuration group placements: %v\n", err)
+		fmt.Println("Error sending config group placements request:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println()
-	render.HandleConfigPlacementsResponse(&placementsResponse)
+	render.RenderResponseAsTabWriter(groupConfigPlacementsResponse.Tasks)
+	println()
 }
 
 func preparePlacementsRequestConfig() (interface{}, error) {
@@ -85,12 +92,12 @@ func sendPlacementsRequest(requestBody interface{}) error {
 		Method:      "POST",
 		Token:       token,
 		RequestBody: requestBody,
-		Response:    &placementsResponse,
+		Response:    &groupConfigPlacementsResponse,
 		Timeout:     10 * time.Second,
 	})
 }
 
 func init() {
-	PlaceConfigGroupPlacementsCmd.Flags().StringVarP(&path, pathFlag, "p", "", pathDesc)
+	PlaceConfigGroupPlacementsCmd.Flags().StringVarP(&path, pathFlag, pathShorthandFlag, "", pathDescription)
 	PlaceConfigGroupPlacementsCmd.MarkFlagRequired(pathFlag)
 }

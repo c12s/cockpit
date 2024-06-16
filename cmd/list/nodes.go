@@ -13,11 +13,13 @@ import (
 
 const (
 	nodesShortDescription = "Retrieve a list of all available nodes"
-	nodesLongDescription  = "Retrieve a comprehensive list of all available nodes in the system.\n" +
-		"These nodes can be allocated to your organization based on your requirements.\n\n" +
-		"Example:\n" +
-		"cockpit list nodes --query 'labelKey >||=||!=||< value' \n" +
-		"cockpit list nodes --query 'memory-totalGB > 2'"
+	nodesLongDescription  = `Retrieve a comprehensive list of all available nodes in the system.
+These nodes can be allocated to your organization based on your requirements.
+You can use a query to filter the nodes using operators like >, =, !=, and < with the label values.
+
+Examples:
+- cockpit list nodes --query 'labelKey >||=||!=||< value'
+- cockpit list nodes --query 'memory-totalGB > 2'`
 )
 
 var (
@@ -27,25 +29,27 @@ var (
 )
 
 var NodesCmd = &cobra.Command{
-	Use:   "nodes",
-	Short: nodesShortDescription,
-	Long:  nodesLongDescription,
-	Run:   executeRetrieveNodes,
+	Use:     "nodes",
+	Aliases: []string{"node", "nod", "nodess"},
+	Short:   nodesShortDescription,
+	Long:    nodesLongDescription,
+	Run:     executeRetrieveNodes,
 }
 
 func executeRetrieveNodes(cmd *cobra.Command, args []string) {
 	requestBody, url, err := prepareRequest(query)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
 	}
 
 	if err := sendNodeRequest(requestBody, url); err != nil {
-		fmt.Printf("Error making request: %v\n", err)
+		fmt.Println("Error sending list nodes request:", err)
 		os.Exit(1)
 	}
 
 	render.RenderNodes(nodesResponse.Nodes)
+	println()
 }
 
 func prepareRequest(query string) (interface{}, string, error) {
@@ -74,5 +78,5 @@ func sendNodeRequest(requestBody interface{}, url string) error {
 }
 
 func init() {
-	NodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShortHand, "", queryFlag)
+	NodesCmd.Flags().StringVarP(&query, queryFlag, queryShorthandFlag, "", queryFlag)
 }

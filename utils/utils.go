@@ -91,7 +91,7 @@ func SaveTokenToFile(token string) error {
 	return ioutil.WriteFile(tokenFilePath, []byte(token), 0600)
 }
 
-func SaveConfigResponseToFile(response interface{}, filePath string) error {
+func SaveYAMLOrJSONResponseToFile(response interface{}, filePath string) error {
 	if strings.HasSuffix(filePath, ".json") {
 		jsonData, err := json.MarshalIndent(response, "", "  ")
 		if err != nil {

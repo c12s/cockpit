@@ -6,11 +6,6 @@ import (
 	"strings"
 )
 
-const (
-	Bold  = "\033[1m"
-	Reset = "\033[0m"
-)
-
 func RenderNodes(nodes []model.Node) {
 	if len(nodes) == 0 {
 		fmt.Println("No nodes were found.")

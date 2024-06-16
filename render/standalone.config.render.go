@@ -1,53 +1,67 @@
 package render
 
 import (
-	"encoding/json"
 	"fmt"
-	"gopkg.in/yaml.v3"
+	"github.com/c12s/cockpit/model"
+	"os"
+	"text/tabwriter"
 )
 
-func RenderResponseToYAMLOrJSON(response interface{}, outputFormat string) {
-	println()
-	if outputFormat == "json" {
-		jsonData, err := json.MarshalIndent(response, "", "  ")
-		if err != nil {
-			fmt.Printf("Error converting response to JSON: %v\n", err)
-			return
-		}
-		fmt.Println("Config Diff (JSON):")
-		fmt.Println(string(jsonData))
-	} else {
-		yamlData, err := yaml.Marshal(response)
-		if err != nil {
-			fmt.Printf("Error converting response to YAML: %v\n", err)
-			return
-		}
-		fmt.Println("Config (YAML):")
-		fmt.Println(string(yamlData))
+func RenderStandaloneConfigsTabWriter(configs []model.StandaloneConfig) {
+	if len(configs) == 0 {
+		fmt.Println("No standalone configurations were found.")
+		return
 	}
-	println()
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "Organization\tName\tVersion\tCreated At\tParams\t")
+
+	for _, config := range configs {
+		for _, param := range config.ParamSet {
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s=%s\t\n", config.Organization, config.Name, config.Version, config.CreatedAt, param.Key, param.Value)
+		}
+	}
 }
 
-func DisplayResponseAsJSONOrYAML(response interface{}, format, message string) {
-	switch format {
-	case "json":
-		jsonData, err := json.MarshalIndent(response, "", "  ")
-		if err != nil {
-			fmt.Printf("Error converting response to JSON: %v\n", err)
-			return
-		}
-		fmt.Println(message)
-		fmt.Println(string(jsonData))
-	case "yaml":
-		yamlData, err := yaml.Marshal(response)
-		if err != nil {
-			fmt.Printf("Error converting response to YAML: %v\n", err)
-			return
-		}
-		fmt.Println(message)
-		fmt.Println(string(yamlData))
-	default:
-		fmt.Printf("Invalid output format: %v. Supported formats are 'json' and 'yaml'\n", format)
+func RenderStandaloneConfigTabWriter(config model.StandaloneConfig) {
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "Organization\tName\tVersion\tCreated At\tParams\t")
+
+	for _, param := range config.ParamSet {
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s=%s\t\n", config.Organization, config.Name, config.Version, config.CreatedAt, param.Key, param.Value)
 	}
-	fmt.Println("Deleted successfully!")
+}
+
+func RenderStandaloneConfigDiffsTabWriter(diffResponse model.StandaloneConfigDiffResponse) {
+	if len(diffResponse.Diffs) == 0 {
+		fmt.Println("No diffs were found.")
+		return
+	}
+
+	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
+	defer w.Flush()
+
+	fmt.Fprintln(w, "Key\tValue\tChange\t")
+
+	for _, diff := range diffResponse.Diffs {
+		switch diff.Type {
+		case "deletion":
+			fmt.Fprintf(w, "%s\t%s\t%s\t\n",
+				diff.Diff["key"],
+				diff.Diff["value"],
+				"-",
+			)
+		case "replacement":
+			fmt.Fprintf(w, "%s\t%s -> %s\t%s\t\n",
+				diff.Diff["key"],
+				diff.Diff["old_value"],
+				diff.Diff["new_value"],
+				"+",
+			)
+		}
+	}
 }

@@ -12,10 +12,11 @@ import (
 
 const (
 	shortLoginDescription = "Login into application"
-	longLoginDescription  = "Input your username after that you will be prompted to input your password.\n" +
-		"Your token will be saved in the token.txt file, which will be sent with all of your request headers.\n\n" +
-		"Example:\n" +
-		"login --username \"username\""
+	longLoginDescription  = `Input your username after that you will be prompted to input your password.
+Your token will be saved in the token.txt file, which will be sent with all of your request headers.
+
+Example:
+cockpit login --username "username"`
 )
 
 var (
@@ -23,9 +24,10 @@ var (
 )
 
 var LoginCmd = &cobra.Command{
-	Use:   "login",
-	Short: shortLoginDescription,
-	Long:  longLoginDescription,
+	Use:     "login",
+	Aliases: []string{"log", "signin", "auth", "authenticate"},
+	Short:   shortLoginDescription,
+	Long:    longLoginDescription,
 	Run: func(cmd *cobra.Command, args []string) {
 		password, err := utils.PromptForPassword()
 		if err != nil {
@@ -37,8 +39,7 @@ var LoginCmd = &cobra.Command{
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
-		fmt.Println("Login successful!")
-		fmt.Println()
+		fmt.Println("Login successful!\n")
 	},
 }
 
@@ -70,6 +71,6 @@ func login(username, password string) error {
 }
 
 func init() {
-	LoginCmd.Flags().StringVarP(&username, flagUsername, shortUsername, "", "Username for login")
-	LoginCmd.MarkFlagRequired(flagUsername)
+	LoginCmd.Flags().StringVarP(&username, usernameFlag, usernameShorthandFlag, "", "Username for login")
+	LoginCmd.MarkFlagRequired(usernameFlag)
 }

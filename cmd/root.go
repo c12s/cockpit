@@ -96,27 +96,27 @@ func init() {
 }
 
 var (
-	ClaimCmd                      = &cobra.Command{Use: "claim", Short: "Claim resources"}
-	DeleteCmd                     = &cobra.Command{Use: "delete", Short: "Delete resources"}
-	DeleteStandaloneConfigCmd     = &cobra.Command{Use: "standalone", Short: "Delete resources"}
+	ClaimCmd                      = &cobra.Command{Use: "claim", Short: "Claim resources", Aliases: []string{"clm"}}
+	DeleteCmd                     = &cobra.Command{Use: "delete", Short: "Delete resources", Aliases: []string{"del"}}
+	DeleteStandaloneConfigCmd     = &cobra.Command{Use: "standalone", Short: "Delete resources", Aliases: []string{"stand"}}
 	PutCmd                        = &cobra.Command{Use: "put", Short: "Put resources"}
-	PutStandaloneConfigCmd        = &cobra.Command{Use: "standalone", Short: "Put resources"}
-	ListCmd                       = &cobra.Command{Use: "list", Short: "List resources"}
-	CreateCmd                     = &cobra.Command{Use: "create", Short: "Create resources"}
-	GetCmd                        = &cobra.Command{Use: "get", Short: "Get resources"}
-	PlaceCmd                      = &cobra.Command{Use: "place", Short: "Place resources"}
-	PutConfigGroupCmd             = &cobra.Command{Use: "config", Short: "Put resources"}
-	PlaceConfigGroupCmd           = &cobra.Command{Use: "config", Short: "Place resources"}
-	PlaceStandaloneConfigGroupCmd = &cobra.Command{Use: "standalone", Short: "Place resources"}
-	DiffCmd                       = &cobra.Command{Use: "diff", Short: "Diff resources"}
-	ListConfigCmd                 = &cobra.Command{Use: "config", Short: "Manipulate with config"}
-	GetConfigCmd                  = &cobra.Command{Use: "config", Short: "Manipulate with config"}
-	DiffConfigCmd                 = &cobra.Command{Use: "config", Short: "Manipulate with config"}
-	DiffStandaloneConfigCmd       = &cobra.Command{Use: "standalone", Short: "Manipulate with config"}
-	DeleteConfigCmd               = &cobra.Command{Use: "config", Short: "Manipulate with config"}
-	GetStandaloneConfigCmd        = &cobra.Command{Use: "standalone", Short: "Manipulate with config"}
-	ListStandaloneConfigCmd       = &cobra.Command{Use: "standalone", Short: "Manipulate with config"}
-	ValidateCmd                   = &cobra.Command{Use: "validate", Short: "Get resources"}
+	PutStandaloneConfigCmd        = &cobra.Command{Use: "standalone", Short: "Put resources", Aliases: []string{"stand"}}
+	ListCmd                       = &cobra.Command{Use: "list", Short: "List resources", Aliases: []string{"ls"}}
+	CreateCmd                     = &cobra.Command{Use: "create", Short: "Create resources", Aliases: []string{"crt"}}
+	GetCmd                        = &cobra.Command{Use: "get", Short: "Get resources", Aliases: []string{"fetch"}}
+	PlaceCmd                      = &cobra.Command{Use: "place", Short: "Place resources", Aliases: []string{"plc"}}
+	PutConfigGroupCmd             = &cobra.Command{Use: "config", Short: "Put resources", Aliases: []string{"cfg"}}
+	PlaceConfigGroupCmd           = &cobra.Command{Use: "config", Short: "Place resources", Aliases: []string{"cfg"}}
+	PlaceStandaloneConfigGroupCmd = &cobra.Command{Use: "standalone", Short: "Place resources", Aliases: []string{"stand"}}
+	DiffCmd                       = &cobra.Command{Use: "diff", Short: "Diff resources", Aliases: []string{"compare"}}
+	ListConfigCmd                 = &cobra.Command{Use: "config", Short: "Manipulate with config", Aliases: []string{"cfg"}}
+	GetConfigCmd                  = &cobra.Command{Use: "config", Short: "Manipulate with config", Aliases: []string{"cfg"}}
+	DiffConfigCmd                 = &cobra.Command{Use: "config", Short: "Manipulate with config", Aliases: []string{"cfg"}}
+	DiffStandaloneConfigCmd       = &cobra.Command{Use: "standalone", Short: "Manipulate with config", Aliases: []string{"stand"}}
+	DeleteConfigCmd               = &cobra.Command{Use: "config", Short: "Manipulate with config", Aliases: []string{"cfg"}}
+	GetStandaloneConfigCmd        = &cobra.Command{Use: "standalone", Short: "Manipulate with config", Aliases: []string{"stand"}}
+	ListStandaloneConfigCmd       = &cobra.Command{Use: "standalone", Short: "Manipulate with config", Aliases: []string{"stand"}}
+	ValidateCmd                   = &cobra.Command{Use: "validate", Short: "Validate resources", Aliases: []string{"val"}}
 
 	RootCmd = &cobra.Command{
 		Use:   "cockpit",

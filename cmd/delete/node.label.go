@@ -13,22 +13,23 @@ import (
 
 const (
 	deleteNodeLabelsShortDesc = "Delete a label from a node"
-	deleteNodeLabelsLongDesc  = "Delete a specific label from a node using its key.\n" +
-		"Provide the node ID, organization, and label key to remove the label.\n\n" +
-		"Example:\n" +
-		"cockpit delete label --nodeId 'nodeID' --org 'org' --key 'labelKey' "
+	deleteNodeLabelsLongDesc  = `Delete a specific label from a node using its key.
+This command allows the user to remove a label from a node by specifying the node ID, organization, and the label key. The response includes the updated node details.
+
+Example:
+cockpit delete label --nodeId 'nodeID' --org 'org' --key 'labelKey'`
 
 	// Flag Constants
-	flagNodeID = "nodeId"
-	flagKey    = "key"
+	nodeIdFlag = "nodeId"
+	keyFlag    = "key"
 
 	// Flag Shorthand Constants
-	shortFlagNodeID = "n"
-	shortFlagKey    = "k"
+	flagShorthandFlag = "n"
+	keyShorthandFlag  = "k"
 
 	// Flag Descriptions
-	descNodeID = "Node ID (required)"
-	descKey    = "Label key (required)"
+	nodeIdDescription = "Node ID (required)"
+	keyDescription    = "Label key (required)"
 )
 
 var (
@@ -39,22 +40,23 @@ var (
 )
 
 var DeleteNodeLabelsCmd = &cobra.Command{
-	Use:   "label",
-	Short: deleteNodeLabelsShortDesc,
-	Long:  deleteNodeLabelsLongDesc,
-	Run:   executeDeleteLabel,
+	Use:     "label",
+	Aliases: []string{"l", "lab", "lbl"},
+	Short:   deleteNodeLabelsShortDesc,
+	Long:    deleteNodeLabelsLongDesc,
+	Run:     executeDeleteLabel,
 }
 
 func executeDeleteLabel(cmd *cobra.Command, args []string) {
 	err := sendDeleteLabelRequest()
 
 	if err != nil {
-		fmt.Printf("Error deleting label: %v\n", err)
+		fmt.Println("Error sending delete node label request:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println()
 	render.RenderNode(nodeResponse.Node)
+	println()
 	fmt.Println("Label deleted successfully.")
 	println()
 }
@@ -89,11 +91,11 @@ func sendDeleteLabelRequest() error {
 }
 
 func init() {
-	DeleteNodeLabelsCmd.Flags().StringVarP(&nodeId, flagNodeID, shortFlagNodeID, "", descNodeID)
-	DeleteNodeLabelsCmd.Flags().StringVarP(&org, flagOrganization, shortFlagOrganization, "", descOrganization)
-	DeleteNodeLabelsCmd.Flags().StringVarP(&key, flagKey, shortFlagKey, "", descKey)
+	DeleteNodeLabelsCmd.Flags().StringVarP(&nodeId, nodeIdFlag, flagShorthandFlag, "", nodeIdDescription)
+	DeleteNodeLabelsCmd.Flags().StringVarP(&org, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	DeleteNodeLabelsCmd.Flags().StringVarP(&key, keyFlag, keyShorthandFlag, "", keyDescription)
 
-	DeleteNodeLabelsCmd.MarkFlagRequired(flagNodeID)
-	DeleteNodeLabelsCmd.MarkFlagRequired(flagOrganization)
-	DeleteNodeLabelsCmd.MarkFlagRequired(flagKey)
+	DeleteNodeLabelsCmd.MarkFlagRequired(nodeIdFlag)
+	DeleteNodeLabelsCmd.MarkFlagRequired(organizationFlag)
+	DeleteNodeLabelsCmd.MarkFlagRequired(keyFlag)
 }

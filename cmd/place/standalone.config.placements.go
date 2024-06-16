@@ -15,9 +15,12 @@ import (
 
 const (
 	placeStandaloneConfigPlacementsShortDesc = "Place standalone configuration placements"
-	placeStandaloneConfigPlacementsLongDesc  = "This command places standalone configuration placements based on the input file.\n\n" +
-		"Example:\n" +
-		"cockpit place standalone config placements --path 'path to yaml or json file'"
+	placeStandaloneConfigPlacementsLongDesc  = `This command places standalone configuration placements based on the input file.
+The input file should be in either YAML or JSON format, containing the details of the standalone configuration placements.
+It reads the file, processes the placements, and applies them accordingly.
+
+Example:
+cockpit place standalone config placements --path 'path to yaml or json file'`
 )
 
 var (
@@ -25,10 +28,11 @@ var (
 )
 
 var PlaceStandaloneConfigPlacementsCmd = &cobra.Command{
-	Use:   "config",
-	Short: placeStandaloneConfigPlacementsShortDesc,
-	Long:  placeStandaloneConfigPlacementsLongDesc,
-	Run:   executePlaceStandaloneConfigPlacements,
+	Use:     "config",
+	Aliases: []string{"conf", "cnfg", "cfg"},
+	Short:   placeStandaloneConfigPlacementsShortDesc,
+	Long:    placeStandaloneConfigPlacementsLongDesc,
+	Run:     executePlaceStandaloneConfigPlacements,
 }
 
 func executePlaceStandaloneConfigPlacements(cmd *cobra.Command, args []string) {
@@ -39,12 +43,12 @@ func executePlaceStandaloneConfigPlacements(cmd *cobra.Command, args []string) {
 	}
 
 	if err := sendStandaloneConfigPlacementsRequest(requestBody); err != nil {
-		fmt.Printf("Error placing standalone configuration placements: %v\n", err)
+		fmt.Println("Error sending standalone configuration request:", err)
 		os.Exit(1)
 	}
 
-	fmt.Println()
-	render.HandleConfigPlacementsResponse(&standaloneConfigPlacementsResponse)
+	render.RenderResponseAsTabWriter(standaloneConfigPlacementsResponse.Tasks)
+	println()
 }
 
 func prepareStandaloneConfigPlacementsRequestConfig() (interface{}, error) {
@@ -84,6 +88,6 @@ func sendStandaloneConfigPlacementsRequest(requestBody interface{}) error {
 }
 
 func init() {
-	PlaceStandaloneConfigPlacementsCmd.Flags().StringVarP(&path, pathFlag, "p", "", pathDesc)
+	PlaceStandaloneConfigPlacementsCmd.Flags().StringVarP(&path, pathFlag, pathShorthandFlag, "", pathDescription)
 	PlaceStandaloneConfigPlacementsCmd.MarkFlagRequired(pathFlag)
 }

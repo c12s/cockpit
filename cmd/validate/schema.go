@@ -14,27 +14,30 @@ import (
 
 const (
 	validateSchemaVersionShortDesc = "Validate a schema version"
-	validateSchemaVersionLongDesc  = "This command validates a schema version with the given configuration.\n\n" +
-		"Example:\n" +
-		"cockpit validate schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path '/path/to/config.yaml'"
+	validateSchemaVersionLongDesc  = `This command validates a schema version with the given configuration.
+The user specifies the organization, schema name, version, and path to the YAML configuration file.
+It reads the configuration file and validates the schema version against it.
+
+Example:
+cockpit validate schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path '/path/to/config.yaml'`
 
 	// Flag Constants
-	flagOrganization = "org"
-	flagSchemaName   = "schema_name"
-	flagVersion      = "version"
-	flagConfigPath   = "path"
+	organizationFlag = "org"
+	schemaNameFlag   = "schema_name"
+	versionFlag      = "version"
+	configPathFlag   = "path"
 
 	// Flag Shorthand Constants
-	shortFlagOrganization = "r"
-	shortFlagSchemaName   = "s"
-	shortFlagVersion      = "v"
-	shortFlagConfigPath   = "p"
+	organizationShorthandFlag = "r"
+	schemaNameShorthandFlag   = "s"
+	versionShorthandFlag      = "v"
+	configPathShorthandFlag   = "p"
 
 	// Flag Descriptions
-	descOrganization = "Organization name (required)"
-	descSchemaName   = "Schema name (required)"
-	descVersion      = "Schema version (required)"
-	descConfigPath   = "Path to the YAML configuration file (required)"
+	organizationDescription = "Organization name (required)"
+	schemaNameDescription   = "Schema name (required)"
+	versionDescription      = "Schema version (required)"
+	configPathDescription   = "Path to the YAML configuration file (required)"
 )
 
 var (
@@ -45,25 +48,27 @@ var (
 )
 
 var ValidateSchemaVersionCmd = &cobra.Command{
-	Use:   "schema",
-	Short: validateSchemaVersionShortDesc,
-	Long:  validateSchemaVersionLongDesc,
-	Run:   executeValidateSchemaVersion,
+	Use:     "schema",
+	Aliases: []string{"schem", "schemaa", "sch", "sche"},
+	Short:   validateSchemaVersionShortDesc,
+	Long:    validateSchemaVersionLongDesc,
+	Run:     executeValidateSchemaVersion,
 }
 
 func executeValidateSchemaVersion(cmd *cobra.Command, args []string) {
 	requestBody, err := prepareValidateSchemaRequestConfig()
 	if err != nil {
-		fmt.Printf("Error preparing request: %v\n", err)
+		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
 	}
 
 	if err := sendValidateSchemaRequest(requestBody); err != nil {
-		fmt.Printf("Error validating schema: %v\n", err)
+		fmt.Println("Error sending validate schema request:", err)
 		os.Exit(1)
 	}
 
 	fmt.Println("Schema validated successfully!")
+	println()
 }
 
 func prepareValidateSchemaRequestConfig() (interface{}, error) {
@@ -107,13 +112,13 @@ func sendValidateSchemaRequest(requestBody interface{}) error {
 }
 
 func init() {
-	ValidateSchemaVersionCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
-	ValidateSchemaVersionCmd.Flags().StringVarP(&schemaName, flagSchemaName, shortFlagSchemaName, "", descSchemaName)
-	ValidateSchemaVersionCmd.Flags().StringVarP(&version, flagVersion, shortFlagVersion, "", descVersion)
-	ValidateSchemaVersionCmd.Flags().StringVarP(&configPath, flagConfigPath, shortFlagConfigPath, "", descConfigPath)
+	ValidateSchemaVersionCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	ValidateSchemaVersionCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameShorthandFlag, "", schemaNameDescription)
+	ValidateSchemaVersionCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	ValidateSchemaVersionCmd.Flags().StringVarP(&configPath, configPathFlag, configPathShorthandFlag, "", configPathDescription)
 
-	ValidateSchemaVersionCmd.MarkFlagRequired(flagOrganization)
-	ValidateSchemaVersionCmd.MarkFlagRequired(flagSchemaName)
-	ValidateSchemaVersionCmd.MarkFlagRequired(flagVersion)
-	ValidateSchemaVersionCmd.MarkFlagRequired(flagConfigPath)
+	ValidateSchemaVersionCmd.MarkFlagRequired(organizationFlag)
+	ValidateSchemaVersionCmd.MarkFlagRequired(schemaNameFlag)
+	ValidateSchemaVersionCmd.MarkFlagRequired(versionFlag)
+	ValidateSchemaVersionCmd.MarkFlagRequired(configPathFlag)
 }

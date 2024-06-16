@@ -14,10 +14,12 @@ import (
 
 const (
 	listStandaloneConfigPlacementsShortDesc = "Retrieve and display the standalone configuration placements"
-	listStandaloneConfigPlacementsLongDesc  = "This command retrieves the standalone configuration placements from a specified organization\n" +
-		"and displays them in a nicely formatted way.\n\n" +
-		"Example:\n" +
-		"cockpit list standalone config placements --org 'org' --name 'app_config' --version 'v1.0.0'"
+	listStandaloneConfigPlacementsLongDesc  = `This command retrieves all standalone configuration placements from a specified organization,
+displays them in a nicely formatted way, and allows you to see the placements in detail.
+
+Examples:
+- cockpit list standalone config placements --org 'org' --name 'app_config' --version 'v1.0.0'
+- cockpit list standalone config placements --org 'org' --name 'db_config' --version 'v2.0.0'`
 )
 
 var (
@@ -25,39 +27,36 @@ var (
 )
 
 var ListStandaloneConfigPlacementsCmd = &cobra.Command{
-	Use:   "placements",
-	Short: listStandaloneConfigPlacementsShortDesc,
-	Long:  listStandaloneConfigPlacementsLongDesc,
-	Run:   executeListStandaloneConfigPlacements,
+	Use:     "placements",
+	Aliases: []string{"placement", "placementss"},
+	Short:   listStandaloneConfigPlacementsShortDesc,
+	Long:    listStandaloneConfigPlacementsLongDesc,
+	Run:     executeListStandaloneConfigPlacements,
 }
 
 func executeListStandaloneConfigPlacements(cmd *cobra.Command, args []string) {
-	requestBody, err := prepareStandalonePlacementsRequestConfig()
-	if err != nil {
-		fmt.Println("Error preparing request:", err)
+	requestBody := prepareStandalonePlacementsRequestConfig()
+
+	if err := sendStandaloneConfigPlacementsRequest(requestBody); err != nil {
+		fmt.Println("Error sending standalone config request:", err)
 		os.Exit(1)
 	}
 
-	if err := sendStandalonePlacementsRequest(requestBody); err != nil {
-		fmt.Printf("Error retrieving standalone configuration placements: %v\n", err)
-		os.Exit(1)
-	}
-
-	fmt.Println()
-	render.HandleConfigPlacementsResponse(&standaloneConfigPlacementsResponse)
+	render.RenderResponseAsTabWriter(standaloneConfigPlacementsResponse.Tasks)
+	println()
 }
 
-func prepareStandalonePlacementsRequestConfig() (interface{}, error) {
+func prepareStandalonePlacementsRequestConfig() interface{} {
 	requestBody := model.ConfigReference{
 		Name:         name,
 		Organization: organization,
 		Version:      version,
 	}
 
-	return requestBody, nil
+	return requestBody
 }
 
-func sendStandalonePlacementsRequest(requestBody interface{}) error {
+func sendStandaloneConfigPlacementsRequest(requestBody interface{}) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		return fmt.Errorf("error reading token: %v", err)
@@ -76,11 +75,11 @@ func sendStandalonePlacementsRequest(requestBody interface{}) error {
 }
 
 func init() {
-	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&organization, orgFlag, orgFlagShortHand, "", orgDesc)
-	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&name, nameFlag, nameFlagShortHand, "", nameDesc)
-	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&version, versionFlag, versionFlagShortHand, "", versionDesc)
+	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
+	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
 
-	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(orgFlag)
+	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(organizationFlag)
 	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(nameFlag)
 	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(versionFlag)
 }

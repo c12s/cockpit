@@ -1,0 +1,18 @@
+message: Schema retrieved successfully!
+schemaData:
+  schema: 
+    properties:
+      db_config:
+        properties:
+          address:
+            type: string
+          port:
+            type: string
+        required:
+        - address
+        - port
+        type: object
+    required:
+    - db_config
+    type: object
+  creationTime: "2024-06-16T11:54:30.612458397Z"

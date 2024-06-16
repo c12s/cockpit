@@ -13,45 +13,49 @@ import (
 
 const (
 	allocatedNodesShortDescription = "List organization nodes"
-	allocatedNodesLongDescription  = "You can search for nodes organization has allocated. \n" +
-		"You can add query to search nodes by labels.\n\n" +
-		"Example:\n" +
-		"cockpit list nodes allocated --org 'org' --query 'labelKey >||=||!=||< value'" +
-		"cockpit list nodes allocated --org 'org' --query 'memory-totalGB > 2'"
+	allocatedNodesLongDescription  = `This command allows you to list all nodes allocated to a specified organization.
+You can also use a query to search for nodes based on their labels.
+The query format allows you to filter nodes using operators like >, =, !=, and < with the label values.
+
+Examples:
+- cockpit list nodes allocated --org 'org' --query 'labelKey >||=||!=||< value'
+- cockpit list nodes allocated --org 'org' --query 'memory-totalGB > 2'`
 
 	// Flag Constants
-	orgFlag   = "org"
-	queryFlag = "query"
+	organizationFlag = "org"
+	queryFlag        = "query"
 
 	// Flag Shorthand Constants
-	orgFlagShortHand   = "r"
-	queryFlagShortHand = "q"
+	organizationShorthandFlag = "r"
+	queryShorthandFlag        = "q"
 
 	// Flag Descriptions
-	orgDesc   = "Organization name (required)"
-	queryDesc = "Query label for finding specific nodes"
+	organizationDescription = "Organization name (required)"
+	queryDescription        = "Query label for finding specific nodes"
 )
 
 var AllocatedNodesCmd = &cobra.Command{
-	Use:   "allocated",
-	Short: allocatedNodesShortDescription,
-	Long:  allocatedNodesLongDescription,
-	Run:   executeAllocatedNodes,
+	Use:     "allocated",
+	Aliases: []string{"alloc"},
+	Short:   allocatedNodesShortDescription,
+	Long:    allocatedNodesLongDescription,
+	Run:     executeAllocatedNodes,
 }
 
 func executeAllocatedNodes(cmd *cobra.Command, args []string) {
 	requestBody, url, err := prepareAllocatedRequest(query)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
 	}
 
 	if err := sendAllocatedNodeRequest(requestBody, url); err != nil {
-		fmt.Printf("Error making request: %v\n", err)
+		fmt.Println("Error sending list allocated nodes request:", err)
 		os.Exit(1)
 	}
 
 	render.RenderNodes(nodesResponse.Nodes)
+	println()
 }
 
 func prepareAllocatedRequest(query string) (interface{}, string, error) {
@@ -92,7 +96,7 @@ func sendAllocatedNodeRequest(requestBody interface{}, url string) error {
 }
 
 func init() {
-	AllocatedNodesCmd.Flags().StringVarP(&org, orgFlag, orgFlagShortHand, "", orgDesc)
-	AllocatedNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShortHand, "", queryDesc)
-	AllocatedNodesCmd.MarkFlagRequired(orgFlag)
+	AllocatedNodesCmd.Flags().StringVarP(&org, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	AllocatedNodesCmd.Flags().StringVarP(&query, queryFlag, queryShorthandFlag, "", queryDescription)
+	AllocatedNodesCmd.MarkFlagRequired(organizationFlag)
 }

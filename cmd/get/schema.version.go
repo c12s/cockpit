@@ -14,10 +14,11 @@ import (
 
 const (
 	getSchemaVersionShortDesc = "Retrieve and display schema versions"
-	getSchemaVersionLongDesc  = "This command retrieves schema versions for specific schema, \n" +
-		"displays them in a nicely formatted way, and saves them to a YAML file. \n\n" +
-		"Example:\n" +
-		"cockpit get schema version --org 'org' --schema_name 'schema_name'"
+	getSchemaVersionLongDesc  = `This command retrieves schema versions for a specific schema, displays them in a nicely formatted way, and saves them to a YAML file.
+The user can specify the organization and schema name to retrieve the list of schema versions. The response will be displayed in a tabular format and saved as a YAML file.
+
+Example:
+cockpit get schema version --org 'org' --schema_name 'schema_name'`
 
 	//Path to file
 	saveSchemaVersionToFile = "response/schema/schema-version.yaml"
@@ -28,10 +29,11 @@ var (
 )
 
 var GetSchemaVersionCmd = &cobra.Command{
-	Use:   "version",
-	Short: getSchemaVersionShortDesc,
-	Long:  getSchemaVersionLongDesc,
-	Run:   executeGetSchemaVersion,
+	Use:     "version",
+	Aliases: []string{"ver", "versionn"},
+	Short:   getSchemaVersionShortDesc,
+	Long:    getSchemaVersionLongDesc,
+	Run:     executeGetSchemaVersion,
 }
 
 func executeGetSchemaVersion(cmd *cobra.Command, args []string) {
@@ -46,7 +48,8 @@ func executeGetSchemaVersion(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	render.HandleSchemaVersionResponse(&schemaVersionResponse)
+	render.RenderSchemaVersionsTabWriter(schemaVersionResponse.SchemaVersions)
+	println()
 
 	if err := utils.SaveVersionResponseToYAML(&schemaVersionResponse, saveSchemaVersionToFile); err != nil {
 		fmt.Printf("Failed to save response to YAML file: %v\n", err)
@@ -84,9 +87,9 @@ func sendSchemaVersionRequest(requestBody interface{}) error {
 }
 
 func init() {
-	GetSchemaVersionCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
-	GetSchemaVersionCmd.Flags().StringVarP(&schemaName, flagSchemaName, shortFlagSchemaName, "", descSchemaName)
+	GetSchemaVersionCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	GetSchemaVersionCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameShorthandFlag, "", schemaNameDescription)
 
-	GetSchemaVersionCmd.MarkFlagRequired(flagOrganization)
-	GetSchemaVersionCmd.MarkFlagRequired(flagSchemaName)
+	GetSchemaVersionCmd.MarkFlagRequired(organizationFlag)
+	GetSchemaVersionCmd.MarkFlagRequired(schemaNameFlag)
 }

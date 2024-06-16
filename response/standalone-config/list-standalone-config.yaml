@@ -1,0 +1,19 @@
+configurations:
+    - organization: c12s
+      name: db_config
+      version: v1.0.0
+      createdAt: 2024-06-16 11:39:33 +0000 UTC
+      paramSet:
+        - key: address
+          value: 127.0.0.1
+        - key: port
+          value: "1234"
+    - organization: c12s
+      name: db_config
+      version: v1.0.1
+      createdAt: 2024-06-16 11:43:00 +0000 UTC
+      paramSet:
+        - key: address
+          value: 127.0.0.1
+        - key: port
+          value: "5432"

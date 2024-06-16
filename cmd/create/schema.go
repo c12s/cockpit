@@ -12,9 +12,11 @@ import (
 
 const (
 	createSchemaShortDescription = "Create a schema for an organization"
-	createSchemaLongDescription  = "Creates a schema for an organization by providing schema details and the path to a YAML file containing the schema definition.\n\n" +
-		"Example:\n" +
-		"cockpit create schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path 'path to yaml or json file'"
+	createSchemaLongDescription  = `Creates a schema for an organization by providing schema details and the path to a YAML file containing the schema definition.
+Schemas define the structure of configuration data that can be used across various services and applications within the organization. This command uploads and saves the schema to the server.
+
+Example:
+cockpit create schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path 'path to yaml or json file'`
 
 	// Flag Constants
 	organizationFlag = "org"
@@ -23,10 +25,10 @@ const (
 	filePathFlag     = "path"
 
 	// Flag Shorthand Constants
-	organizationFlagShorthand = "r"
-	schemaNameFlagShorthand   = "s"
-	versionFlagShorthand      = "v"
-	filePathFlagShorthand     = "p"
+	organizationShorthandFlag = "r"
+	schemaNameShorthandFlag   = "s"
+	versionShorthandFlag      = "v"
+	filePathShorthandFlag     = "p"
 
 	// Flag Descriptions
 	organizationDescription = "Organization name (required)"
@@ -43,32 +45,35 @@ var (
 )
 
 var CreateSchemaCmd = &cobra.Command{
-	Use:   "schema",
-	Short: createSchemaShortDescription,
-	Long:  createSchemaLongDescription,
-	Run:   executeCreateSchema,
+	Use:     "schema",
+	Aliases: []string{"schem", "schemaa", "sche"},
+	Short:   createSchemaShortDescription,
+	Long:    createSchemaLongDescription,
+	Run:     executeCreateSchema,
 }
 
 func executeCreateSchema(cmd *cobra.Command, args []string) {
 	schema, err := utils.ReadSchemaFile(filePath)
 	if err != nil {
-		fmt.Printf("Error reading schema file: %v\n", err)
+		fmt.Println("Error reading schema file:", err)
 		os.Exit(1)
 	}
 
 	requestBody := createSchemaRequest(schema)
 	config, err := prepareSchemaRequest(requestBody)
 	if err != nil {
-		fmt.Printf("Error creating request config: %v\n", err)
+		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
 	}
 
 	if err := utils.SendHTTPRequest(config); err != nil {
-		fmt.Printf("Error creating schema: %v\n", err)
+		fmt.Println("Error sending create schema request:", err)
+		fmt.Println()
 		os.Exit(1)
 	}
 
 	fmt.Println("Schema created successfully!")
+	fmt.Println()
 }
 
 func createSchemaRequest(schema string) map[string]interface{} {
@@ -102,10 +107,10 @@ func prepareSchemaRequest(requestBody map[string]interface{}) (model.HTTPRequest
 }
 
 func init() {
-	CreateSchemaCmd.Flags().StringVarP(&organization, organizationFlag, organizationFlagShorthand, "", organizationDescription)
-	CreateSchemaCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameFlagShorthand, "", schemaNameDescription)
-	CreateSchemaCmd.Flags().StringVarP(&version, versionFlag, versionFlagShorthand, "", versionDescription)
-	CreateSchemaCmd.Flags().StringVarP(&filePath, filePathFlag, filePathFlagShorthand, "", filePathDescription)
+	CreateSchemaCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	CreateSchemaCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameShorthandFlag, "", schemaNameDescription)
+	CreateSchemaCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	CreateSchemaCmd.Flags().StringVarP(&filePath, filePathFlag, filePathShorthandFlag, "", filePathDescription)
 
 	CreateSchemaCmd.MarkFlagRequired(organizationFlag)
 	CreateSchemaCmd.MarkFlagRequired(schemaNameFlag)

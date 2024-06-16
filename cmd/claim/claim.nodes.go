@@ -14,18 +14,21 @@ import (
 
 const (
 	claimNodesShortDescription = "Claim nodes for an organization based on specific criteria"
-	claimNodesLongDescription  = "Claims nodes for an organization based on a defined query that specifies criteria like labels.\n\n" +
-		"Example:\n" +
-		"cockpit claim nodes --org 'org' --query 'labelKey >||=||!=||< value'\n" +
-		"cockpit claim nodes --org 'org' --query 'memory-totalGB > 2'"
+	claimNodesLongDescription  = `Claims nodes for an organization based on a defined query that specifies criteria like labels.
+The command allows the organization to take ownership of nodes that match the provided query criteria.
+The query can include conditions based on node labels such as memory, CPU, and other attributes. 
+
+Example:
+cockpit claim nodes --org 'org' --query 'labelKey >||=||!=||< value'
+cockpit claim nodes --org 'org' --query 'memory-totalGB > 2'`
 
 	// Flag Constants
 	organizationFlag = "org"
 	queryFlag        = "query"
 
 	// Flag Shorthand Constants
-	organizationFlagShortHand = "r"
-	queryFlagShortHand        = "q"
+	organizationShorthandFlag = "r"
+	queryFlagShorthandFlag    = "q"
 
 	// Flag Descriptions
 	organizationDesc = "Organization name (required)"
@@ -39,10 +42,11 @@ var (
 )
 
 var ClaimNodesCmd = &cobra.Command{
-	Use:   "nodes",
-	Short: claimNodesShortDescription,
-	Long:  claimNodesLongDescription,
-	Run:   executeClaimNodes,
+	Use:     "nodes",
+	Aliases: []string{"node", "nod", "nodess"},
+	Short:   claimNodesShortDescription,
+	Long:    claimNodesLongDescription,
+	Run:     executeClaimNodes,
 }
 
 func executeClaimNodes(cmd *cobra.Command, args []string) {
@@ -53,11 +57,12 @@ func executeClaimNodes(cmd *cobra.Command, args []string) {
 	}
 
 	if err := sendClaimNodeRequest(requestBody); err != nil {
-		fmt.Printf("Error claiming nodes: %v\n", err)
+		fmt.Println("Error claiming nodes:", err)
 		os.Exit(1)
 	}
 
 	render.RenderNodes(claimNodeResponse.Nodes)
+	fmt.Println()
 }
 
 func prepareClaimNodesRequest() (interface{}, error) {
@@ -93,8 +98,8 @@ func sendClaimNodeRequest(requestBody interface{}) error {
 }
 
 func init() {
-	ClaimNodesCmd.Flags().StringVarP(&org, organizationFlag, organizationFlagShortHand, "", organizationDesc)
-	ClaimNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShortHand, "", queryDesc)
+	ClaimNodesCmd.Flags().StringVarP(&org, organizationFlag, organizationShorthandFlag, "", organizationDesc)
+	ClaimNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShorthandFlag, "", queryDesc)
 
 	ClaimNodesCmd.MarkFlagRequired(organizationFlag)
 	ClaimNodesCmd.MarkFlagRequired(queryFlag)

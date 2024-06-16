@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"time"
 
@@ -15,35 +14,37 @@ import (
 
 const (
 	deleteConfigGroupShortDesc = "Delete a configuration group version"
-	deleteConfigGroupLongDesc  = "This command deletes a specified configuration group version\n" +
-		"and displays the deleted configuration group details in JSON or YAML format.\n\n" +
-		"Example:\n" +
-		"cockpit delete config group --org 'org' --name 'app_config' --version 'v1.0.0'"
+	deleteConfigGroupLongDesc  = `This command deletes a specified configuration group version and displays the deleted configuration group details in JSON or YAML format.
+The user can specify the organization, the configuration group name, and the version to be deleted. The output can be formatted as either JSON or YAML based on user preference.
+
+Example:
+cockpit delete config group --org 'org' --name 'app_config' --version 'v1.0.0'`
 
 	// Flag Constants
 	flagName   = "name"
 	flagOutput = "output"
 
 	// Flag Shorthand Constants
-	shortFlagName   = "n"
-	shortFlagOutput = "o"
+	nameShorthandFlag   = "n"
+	outputShorthandFlag = "o"
 
 	// Flag Descriptions
-	descName   = "Configuration group name (required)"
-	descOutput = "Output format (json or yaml)"
+	nameDescription   = "Configuration group name (required)"
+	outputDescription = "Output format (json or yaml)"
 )
 
 var (
-	name           string
-	output         string
-	deleteResponse model.ConfigGroup
+	name                      string
+	outputFormat              string
+	deleteConfigGroupResponse model.ConfigGroup
 )
 
 var DeleteConfigGroupCmd = &cobra.Command{
-	Use:   "group",
-	Short: deleteConfigGroupShortDesc,
-	Long:  deleteConfigGroupLongDesc,
-	Run:   executeDeleteConfigGroup,
+	Use:     "group",
+	Aliases: []string{"groupp", "grou", "grp", "gr"},
+	Short:   deleteConfigGroupShortDesc,
+	Long:    deleteConfigGroupLongDesc,
+	Run:     executeDeleteConfigGroup,
 }
 
 func executeDeleteConfigGroup(cmd *cobra.Command, args []string) {
@@ -53,10 +54,18 @@ func executeDeleteConfigGroup(cmd *cobra.Command, args []string) {
 
 	err := utils.SendHTTPRequest(config)
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error sending delete config group request:", err)
+		os.Exit(1)
 	}
 
-	render.DisplayResponseAsJSONOrYAML(&deleteResponse, output, "Config group deleted successfully")
+	if outputFormat == "" {
+		render.RenderResponseAsTabWriter(deleteConfigGroupResponse)
+	} else if outputFormat == "yaml" || outputFormat == "json" {
+		render.DisplayResponseAsJSONOrYAML(&deleteConfigGroupResponse, outputFormat, "Config group deleted successfully")
+	} else {
+		println("Invalid output format. Expected 'yaml' or 'json'.")
+	}
+	fmt.Println()
 }
 
 func prepareDeleteConfigGroupRequest() interface{} {
@@ -83,17 +92,17 @@ func sendDeleteConfigGroupRequest(requestBody interface{}) model.HTTPRequestConf
 		Token:       token,
 		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
-		Response:    &deleteResponse,
+		Response:    &deleteConfigGroupResponse,
 	}
 }
 
 func init() {
-	DeleteConfigGroupCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
-	DeleteConfigGroupCmd.Flags().StringVarP(&name, flagName, shortFlagName, "", descName)
-	DeleteConfigGroupCmd.Flags().StringVarP(&version, flagVersion, shortFlagVersion, "", descVersion)
-	DeleteConfigGroupCmd.Flags().StringVarP(&output, flagOutput, shortFlagOutput, "yaml", descOutput)
+	DeleteConfigGroupCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&name, flagName, nameShorthandFlag, "", nameDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&outputFormat, flagOutput, outputShorthandFlag, "", outputDescription)
 
-	DeleteConfigGroupCmd.MarkFlagRequired(flagOrganization)
+	DeleteConfigGroupCmd.MarkFlagRequired(organizationFlag)
 	DeleteConfigGroupCmd.MarkFlagRequired(flagName)
-	DeleteConfigGroupCmd.MarkFlagRequired(flagVersion)
+	DeleteConfigGroupCmd.MarkFlagRequired(versionFlag)
 }

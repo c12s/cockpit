@@ -12,12 +12,9 @@ type NodeQuery struct {
 }
 
 type Node struct {
-	ID     string `json:"id"`
-	Org    string `json:"org"`
-	Labels []struct {
-		Key   string `json:"key"`
-		Value string `json:"value"`
-	} `json:"labels"`
+	ID     string  `json:"id"`
+	Org    string  `json:"org"`
+	Labels []Label `json:"labels"`
 }
 
 type NodeResponse struct {

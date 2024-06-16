@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"time"
 
@@ -15,10 +14,11 @@ import (
 
 const (
 	deleteStandaloneConfigShortDesc = "Delete a standalone configuration version"
-	deleteStandaloneConfigLongDesc  = "This command deletes a specified standalone configuration version\n" +
-		"and displays the deleted configuration details in JSON format.\n\n" +
-		"Example:\n" +
-		"cockpit delete standalone config --org 'c12s' --name 'db_config' --version 'v1.0.1'"
+	deleteStandaloneConfigLongDesc  = `This command deletes a specified standalone configuration version and displays the deleted configuration details in JSON format.
+The user can specify the organization, standalone configuration name, and version to delete the configuration. The output can be formatted as either JSON or YAML based on user preference.
+
+Example:
+cockpit delete standalone config --org 'c12s' --name 'db_config' --version 'v1.0.1'`
 )
 
 var (
@@ -26,10 +26,11 @@ var (
 )
 
 var DeleteStandaloneConfigCmd = &cobra.Command{
-	Use:   "config",
-	Short: deleteStandaloneConfigShortDesc,
-	Long:  deleteStandaloneConfigLongDesc,
-	Run:   executeDeleteStandaloneConfig,
+	Use:     "config",
+	Aliases: []string{"conf", "cnfg", "cfg", "con"},
+	Short:   deleteStandaloneConfigShortDesc,
+	Long:    deleteStandaloneConfigLongDesc,
+	Run:     executeDeleteStandaloneConfig,
 }
 
 func executeDeleteStandaloneConfig(cmd *cobra.Command, args []string) {
@@ -39,10 +40,18 @@ func executeDeleteStandaloneConfig(cmd *cobra.Command, args []string) {
 
 	err := utils.SendHTTPRequest(config)
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error sending delete standalone config request:", err)
+		os.Exit(1)
 	}
 
-	render.DisplayResponseAsJSONOrYAML(&deleteStandaloneConfigResponse, output, "Standalone deleted successfully")
+	if outputFormat == "" {
+		render.RenderResponseAsTabWriter(deleteStandaloneConfigResponse)
+	} else if outputFormat == "yaml" || outputFormat == "json" {
+		render.DisplayResponseAsJSONOrYAML(&deleteStandaloneConfigResponse, outputFormat, "Config group deleted successfully")
+	} else {
+		println("Invalid output format. Expected 'yaml' or 'json'.")
+	}
+	fmt.Println()
 }
 
 func prepareDeleteStandaloneConfigRequestConfig() model.SingleConfigReference {
@@ -74,12 +83,12 @@ func sendDeleteStandaloneConfigRequestConfig(requestBody interface{}) model.HTTP
 }
 
 func init() {
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&name, flagName, shortFlagName, "", descName)
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&version, flagVersion, shortFlagVersion, "", descVersion)
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&output, flagOutput, shortFlagOutput, "yaml", descOutput)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&name, flagName, nameShorthandFlag, "", nameDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&outputFormat, flagOutput, outputShorthandFlag, "", outputDescription)
 
-	DeleteStandaloneConfigCmd.MarkFlagRequired(flagOrganization)
+	DeleteStandaloneConfigCmd.MarkFlagRequired(organizationFlag)
 	DeleteStandaloneConfigCmd.MarkFlagRequired(flagName)
-	DeleteStandaloneConfigCmd.MarkFlagRequired(flagVersion)
+	DeleteStandaloneConfigCmd.MarkFlagRequired(versionFlag)
 }

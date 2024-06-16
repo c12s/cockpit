@@ -14,10 +14,11 @@ import (
 
 const (
 	getStandaloneConfigShortDesc = "Retrieve and display a standalone configuration"
-	getStandaloneConfigLongDesc  = "This command retrieves a standalone configuration specified by its name, organization, and version\n" +
-		"displays it in a nicely formatted way, and saves it to both YAML and JSON files.\n\n" +
-		"Example:\n" +
-		"get-standalone-config --org 'org' --name 'db_config' --version 'v1.0.0'"
+	getStandaloneConfigLongDesc  = `This command retrieves a standalone configuration specified by its name, organization, and version, displays it in a nicely formatted way, and saves it to both YAML and JSON files.
+The user can specify the organization, standalone configuration name, and version to retrieve the configuration details. The response can be formatted as either YAML or JSON based on user preference.
+
+Example:
+cockpit get standalone config --org 'org' --name 'db_config' --version 'v1.0.0'`
 
 	// Path to files
 	getStandaloneConfigFilePathJSON = "./response/standalone-config/standalone-config.json"
@@ -29,45 +30,50 @@ var (
 )
 
 var GetStandaloneConfigCmd = &cobra.Command{
-	Use:   "config",
-	Short: getStandaloneConfigShortDesc,
-	Long:  getStandaloneConfigLongDesc,
-	Run:   executeGetStandaloneConfig,
+	Use:     "config",
+	Aliases: []string{"conf", "cnfg", "cfg"},
+	Short:   getStandaloneConfigShortDesc,
+	Long:    getStandaloneConfigLongDesc,
+	Run:     executeGetStandaloneConfig,
 }
 
 func executeGetStandaloneConfig(cmd *cobra.Command, args []string) {
-	requestBody, err := prepareStandaloneRequestConfig()
-	if err != nil {
-		fmt.Println("Error preparing request:", err)
-		os.Exit(1)
-	}
+	requestBody := prepareStandaloneRequestConfig()
 
 	if err := sendStandaloneRequest(requestBody); err != nil {
-		fmt.Printf("Error retrieving standalone configuration: %v\n", err)
+		fmt.Println("Error sending standalone config request:", err)
 		os.Exit(1)
 	}
 
-	render.RenderResponseToYAMLOrJSON(&standaloneConfigResponse, outputFormat)
+	if outputFormat == "" {
+		render.RenderResponseAsTabWriter(standaloneConfigResponse)
+	} else if outputFormat == "yaml" || outputFormat == "json" {
+		render.DisplayResponseAsJSONOrYAML(&standaloneConfigResponse, outputFormat, "")
 
-	filePath := getStandaloneConfigFilePathYAML
-	if outputFormat == "json" {
-		filePath = getStandaloneConfigFilePathJSON
-	}
+		filePath := getStandaloneConfigFilePathYAML
+		if outputFormat == "json" {
+			filePath = getStandaloneConfigFilePathJSON
+		}
 
-	if err := utils.SaveConfigResponseToFile(&standaloneConfigResponse, filePath); err != nil {
-		fmt.Printf("Failed to save response to file: %v\n", err)
-		os.Exit(1)
+		if err := utils.SaveYAMLOrJSONResponseToFile(&standaloneConfigResponse, filePath); err != nil {
+			fmt.Println("Failed to save response to file:", err)
+			println()
+			os.Exit(1)
+		}
+	} else {
+		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
+	fmt.Println()
 }
 
-func prepareStandaloneRequestConfig() (interface{}, error) {
+func prepareStandaloneRequestConfig() interface{} {
 	requestBody := model.ConfigReference{
 		Organization: organization,
 		Name:         name,
 		Version:      version,
 	}
 
-	return requestBody, nil
+	return requestBody
 }
 
 func sendStandaloneRequest(requestBody interface{}) error {
@@ -88,12 +94,12 @@ func sendStandaloneRequest(requestBody interface{}) error {
 	})
 }
 func init() {
-	GetStandaloneConfigCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
-	GetStandaloneConfigCmd.Flags().StringVarP(&name, flagName, shortFlagName, "", descName)
-	GetStandaloneConfigCmd.Flags().StringVarP(&version, flagVersion, shortFlagVersion, "", descVersion)
-	GetStandaloneConfigCmd.Flags().StringVarP(&outputFormat, flagOutput, shortFlagOutput, "yaml", descOutput)
+	GetStandaloneConfigCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	GetStandaloneConfigCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
+	GetStandaloneConfigCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	GetStandaloneConfigCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
 
-	GetStandaloneConfigCmd.MarkFlagRequired(flagOrganization)
-	GetStandaloneConfigCmd.MarkFlagRequired(flagName)
-	GetStandaloneConfigCmd.MarkFlagRequired(flagVersion)
+	GetStandaloneConfigCmd.MarkFlagRequired(organizationFlag)
+	GetStandaloneConfigCmd.MarkFlagRequired(nameFlag)
+	GetStandaloneConfigCmd.MarkFlagRequired(versionFlag)
 }

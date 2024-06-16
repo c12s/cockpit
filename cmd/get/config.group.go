@@ -14,22 +14,23 @@ import (
 
 const (
 	getAppConfigShortDesc = "Retrieve and display the configuration"
-	getAppConfigLongDesc  = "This command retrieves the specific configuration\n" +
-		"displays it in a nicely formatted way, and saves it to both YAML and JSON files.\n\n" +
-		"Example:\n" +
-		"cockpit get config group --org 'org' --name 'app_config' --version 'v1.0.0'"
+	getAppConfigLongDesc  = `This command retrieves a specific configuration by its organization, name, and version, displays it in a nicely formatted way, and saves it to both YAML and JSON files.
+The user can specify the organization, configuration name, and version to retrieve the configuration details. The response can be formatted as either YAML or JSON based on user preference.
+
+Example:
+cockpit get config group --org 'org' --name 'app_config' --version 'v1.0.0'`
 
 	// Flag Constants
-	flagName   = "name"
-	flagOutput = "output"
+	nameFlag   = "name"
+	outputFlag = "output"
 
 	// Flag Shorthand Constants
-	shortFlagName   = "n"
-	shortFlagOutput = "o"
+	nameShorthandFlag   = "n"
+	outputShorthandFlag = "o"
 
 	// Flag Descriptions
-	descName   = "Configuration name (required)"
-	descOutput = "Output format (yaml or json)"
+	nameDescription   = "Configuration name (required)"
+	outputDescription = "Output format (yaml or json)"
 
 	// Path to files
 	getConfigFilePathJSON = "./response/config-group/single-config.json"
@@ -37,53 +38,58 @@ const (
 )
 
 var (
-	name              string
-	appConfigResponse model.SingleConfigGroupResponse
-	outputFormat      string
+	name                string
+	configGroupResponse model.ConfigGroup
+	outputFormat        string
 )
 var GetSingleConfigGroupCmd = &cobra.Command{
-	Use:   "group",
-	Short: getAppConfigShortDesc,
-	Long:  getAppConfigLongDesc,
-	Run:   executeGetAppConfig,
+	Use:     "group",
+	Aliases: []string{"grp", "gr"},
+	Short:   getAppConfigShortDesc,
+	Long:    getAppConfigLongDesc,
+	Run:     executeGetAppConfig,
 }
 
 func executeGetAppConfig(cmd *cobra.Command, args []string) {
-	requestBody, err := prepareRequestConfig()
-	if err != nil {
-		fmt.Println("Error preparing request:", err)
+	requestBody := prepareRequestConfig()
+
+	if err := sendConfigGroupRequest(requestBody); err != nil {
+		fmt.Println("Error sending config group request:", err)
 		os.Exit(1)
 	}
 
-	if err := sendRequest(requestBody); err != nil {
-		fmt.Printf("Error retrieving configuration: %v\n", err)
-		os.Exit(1)
-	}
+	if outputFormat == "" {
+		render.RenderResponseAsTabWriter(configGroupResponse)
+	} else if outputFormat == "yaml" || outputFormat == "json" {
+		render.DisplayResponseAsJSONOrYAML(&configGroupResponse, outputFormat, "")
 
-	render.RenderResponseToYAMLOrJSON(&appConfigResponse, outputFormat)
+		filePath := getConfigFilePathYAML
+		if outputFormat == "json" {
+			filePath = getConfigFilePathJSON
+		}
 
-	filePath := getConfigFilePathYAML
-	if outputFormat == "json" {
-		filePath = getConfigFilePathJSON
+		if err := utils.SaveYAMLOrJSONResponseToFile(&configGroupResponse, filePath); err != nil {
+			fmt.Println("Failed to save response to file:", err)
+			println()
+			os.Exit(1)
+		}
+	} else {
+		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
-
-	if err := utils.SaveConfigResponseToFile(&appConfigResponse, filePath); err != nil {
-		fmt.Printf("Failed to save response to file: %v\n", err)
-		os.Exit(1)
-	}
+	fmt.Println()
 }
 
-func prepareRequestConfig() (interface{}, error) {
+func prepareRequestConfig() interface{} {
 	requestBody := model.ConfigReference{
 		Organization: organization,
 		Name:         name,
 		Version:      version,
 	}
 
-	return requestBody, nil
+	return requestBody
 }
 
-func sendRequest(requestBody interface{}) error {
+func sendConfigGroupRequest(requestBody interface{}) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		return fmt.Errorf("error reading token: %v", err)
@@ -96,18 +102,18 @@ func sendRequest(requestBody interface{}) error {
 		Method:      "GET",
 		Token:       token,
 		RequestBody: requestBody,
-		Response:    &appConfigResponse,
+		Response:    &configGroupResponse,
 		Timeout:     10 * time.Second,
 	})
 }
 
 func init() {
-	GetSingleConfigGroupCmd.Flags().StringVarP(&organization, flagOrganization, shortFlagOrganization, "", descOrganization)
-	GetSingleConfigGroupCmd.Flags().StringVarP(&name, flagName, shortFlagName, "", descName)
-	GetSingleConfigGroupCmd.Flags().StringVarP(&version, flagVersion, shortFlagVersion, "", descVersion)
-	GetSingleConfigGroupCmd.Flags().StringVarP(&outputFormat, flagOutput, shortFlagOutput, "yaml", descOutput)
+	GetSingleConfigGroupCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	GetSingleConfigGroupCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
+	GetSingleConfigGroupCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	GetSingleConfigGroupCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
 
-	GetSingleConfigGroupCmd.MarkFlagRequired(flagOrganization)
-	GetSingleConfigGroupCmd.MarkFlagRequired(flagName)
-	GetSingleConfigGroupCmd.MarkFlagRequired(flagVersion)
+	GetSingleConfigGroupCmd.MarkFlagRequired(organizationFlag)
+	GetSingleConfigGroupCmd.MarkFlagRequired(nameFlag)
+	GetSingleConfigGroupCmd.MarkFlagRequired(versionFlag)
 }

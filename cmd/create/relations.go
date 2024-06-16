@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"github.com/c12s/cockpit/clients"
-	"log"
 	"os"
 	"time"
 
@@ -14,21 +13,23 @@ import (
 
 const (
 	createRelationsShortDescription = "Create relations between entities"
-	createRelationsLongDescription  = "This command creates relations between entities specified by their IDs and kinds.\n\n" +
-		"Example:\n" +
-		"cockpit create relations --ids 'myOrg|dev' --kinds 'org|namespace'"
+	createRelationsLongDescription  = `This command creates relations between entities specified by their IDs and kinds.
+Relations help to establish a hierarchical or dependency structure between different entities within the organization. This can include relationships between organizations, namespaces, and other resources.
+
+Example:
+cockpit create relations --ids 'myOrg|dev' --kinds 'org|namespace'`
 
 	// Flag Constants
 	idsFlag   = "ids"
 	kindsFlag = "kinds"
 
 	// Flag Shorthand Constants
-	idsFlagShorthand   = "i"
-	kindsFlagShorthand = "k"
+	idsShorthandFlag   = "i"
+	kindsShorthandFlag = "k"
 
 	// Flag Descriptions
-	idsDesc   = "IDs of the entities separated by '|' (required)"
-	kindsDesc = "Kinds of the entities separated by '|' (required)"
+	idsDescription   = "IDs of the entities separated by '|' (required)"
+	kindsDescription = "Kinds of the entities separated by '|' (required)"
 )
 
 var (
@@ -37,16 +38,18 @@ var (
 )
 
 var CreateRelationsCmd = &cobra.Command{
-	Use:   "relations",
-	Short: createRelationsShortDescription,
-	Long:  createRelationsLongDescription,
-	Run:   executeCreateRelations,
+	Use:     "relations",
+	Aliases: []string{"relationss", "relation", "rel", "relate"},
+	Short:   createRelationsShortDescription,
+	Long:    createRelationsLongDescription,
+	Run:     executeCreateRelations,
 }
 
 func executeCreateRelations(cmd *cobra.Command, args []string) {
 	idsList, kindsList, err := utils.ParseIDsAndKinds(ids, kinds)
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
 	}
 
 	relation := model.Relation{
@@ -55,9 +58,11 @@ func executeCreateRelations(cmd *cobra.Command, args []string) {
 	}
 
 	if err := sendCreateRelationsRequest(relation); err != nil {
-		log.Fatal(err)
+		fmt.Println("Error sending relations  request:", err)
+		os.Exit(1)
 	}
 	fmt.Println("Relations created successfully")
+	fmt.Println()
 }
 
 func sendCreateRelationsRequest(relation model.Relation) error {
@@ -93,8 +98,8 @@ func prepareRelationsRequestConfig(relation model.Relation) (model.HTTPRequestCo
 }
 
 func init() {
-	CreateRelationsCmd.Flags().StringVarP(&ids, idsFlag, idsFlagShorthand, "", idsDesc)
-	CreateRelationsCmd.Flags().StringVarP(&kinds, kindsFlag, kindsFlagShorthand, "", kindsDesc)
+	CreateRelationsCmd.Flags().StringVarP(&ids, idsFlag, idsShorthandFlag, "", idsDescription)
+	CreateRelationsCmd.Flags().StringVarP(&kinds, kindsFlag, kindsShorthandFlag, "", kindsDescription)
 
 	CreateRelationsCmd.MarkFlagRequired(idsFlag)
 	CreateRelationsCmd.MarkFlagRequired(kindsFlag)

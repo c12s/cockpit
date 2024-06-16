@@ -1,0 +1,18 @@
+{
+  "diffs": {
+    "db_config": {
+      "diffs": null
+    },
+    "media_path_config": {
+      "diffs": [
+        {
+          "type": "deletion",
+          "diff": {
+            "key": "path",
+            "value": "/media"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -6,7 +6,6 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"log"
 	"os"
 	"time"
 
@@ -15,24 +14,28 @@ import (
 
 const (
 	listStandaloneConfigShortDesc = "List all standalone configurations"
-	listStandaloneConfigLongDesc  = "This command retrieves a list of all standalone configurations for a given organization\n" +
-		"displays them in a nicely formatted way, and saves them to both YAML and JSON files.\n\n" +
-		"Example:\n" +
-		"cockpit list standalone config --org 'org'"
+	listStandaloneConfigLongDesc  = `This command retrieves a list of all standalone configurations for a given organization,
+displays them in a nicely formatted way, and saves them to both YAML and JSON files.
+You can choose the output format by specifying either 'yaml' or 'json'.
+
+Examples:
+- cockpit list standalone config --org 'org' --output 'json'
+- cockpit list standalone config --org 'org' --output 'yaml'`
 
 	listStandaloneConfigFilePathJSON = "./response/standalone-config/list-standalone-config.json"
 	listStandaloneConfigFilePathYAML = "./response/standalone-config/list-standalone-config.yaml"
 )
 
 var (
-	listResponse model.StandaloneConfigsResponse
+	listStandaloneConfigResponse model.StandaloneConfigsResponse
 )
 
 var ListStandaloneConfigCmd = &cobra.Command{
-	Use:   "config",
-	Short: listStandaloneConfigShortDesc,
-	Long:  listStandaloneConfigLongDesc,
-	Run:   executeListStandaloneConfig,
+	Use:     "config",
+	Aliases: []string{"conf", "cnfg", "cfg"},
+	Short:   listStandaloneConfigShortDesc,
+	Long:    listStandaloneConfigLongDesc,
+	Run:     executeListStandaloneConfig,
 }
 
 func executeListStandaloneConfig(cmd *cobra.Command, args []string) {
@@ -40,20 +43,29 @@ func executeListStandaloneConfig(cmd *cobra.Command, args []string) {
 
 	err := utils.SendHTTPRequest(config)
 	if err != nil {
-		log.Fatalf("Failed to send HTTP request: %v", err)
+		fmt.Println("Error sending standalone config request:", err)
+		os.Exit(1)
 	}
 
-	render.RenderResponseToYAMLOrJSON(config.Response.(*model.StandaloneConfigsResponse), outputFormat)
+	if outputFormat == "" {
+		render.RenderResponseAsTabWriter(listStandaloneConfigResponse.Configurations)
+	} else if outputFormat == "yaml" || outputFormat == "json" {
+		render.DisplayResponseAsJSONOrYAML(&listStandaloneConfigResponse, outputFormat, "")
 
-	filePath := listStandaloneConfigFilePathYAML
-	if outputFormat == "json" {
-		filePath = listStandaloneConfigFilePathJSON
-	}
+		filePath := listStandaloneConfigFilePathYAML
+		if outputFormat == "json" {
+			filePath = listStandaloneConfigFilePathJSON
+		}
 
-	err = utils.SaveConfigResponseToFile(config.Response.(*model.StandaloneConfigsResponse), filePath)
-	if err != nil {
-		log.Fatalf("Failed to save response to file: %v", err)
+		if err := utils.SaveYAMLOrJSONResponseToFile(&listStandaloneConfigResponse, filePath); err != nil {
+			fmt.Println("Failed to save response to file:", err)
+			println()
+			os.Exit(1)
+		}
+	} else {
+		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
+	fmt.Println()
 }
 
 func createListStandaloneRequestConfig() model.HTTPRequestConfig {
@@ -75,13 +87,13 @@ func createListStandaloneRequestConfig() model.HTTPRequestConfig {
 		Token:       token,
 		Timeout:     10 * time.Second,
 		RequestBody: requestBody,
-		Response:    &listResponse,
+		Response:    &listStandaloneConfigResponse,
 	}
 }
 
 func init() {
-	ListStandaloneConfigCmd.Flags().StringVarP(&organization, orgFlag, orgFlagShortHand, "", orgDesc)
-	ListStandaloneConfigCmd.Flags().StringVarP(&outputFormat, outputFlag, outputFlagShortHand, "yaml", outputDesc)
+	ListStandaloneConfigCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	ListStandaloneConfigCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
 
 	ListStandaloneConfigCmd.MarkFlagRequired("org")
 }

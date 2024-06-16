@@ -22,6 +22,3 @@ token.txt
 
 #.idea files
 .idea
-
-# tests scripts
-*.sh

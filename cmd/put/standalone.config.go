@@ -1,16 +1,12 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -37,7 +33,7 @@ var PutStandaloneConfigCmd = &cobra.Command{
 }
 
 func executePutStandaloneConfig(cmd *cobra.Command, args []string) {
-	configData, err := prepareStandaloneConfigData(filePath)
+	configData, err := utils.PrepareRequestBodyFromYAMLOrJSON(filePath)
 	if err != nil {
 		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
@@ -50,33 +46,6 @@ func executePutStandaloneConfig(cmd *cobra.Command, args []string) {
 
 	render.RenderResponseAsTabWriter(standaloneConfigPutResponse)
 	println()
-}
-
-func prepareStandaloneConfigData(path string) (map[string]interface{}, error) {
-	var configData map[string]interface{}
-
-	fileContent, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %v", err)
-	}
-
-	if strings.HasSuffix(path, ".yaml") {
-		inputFormat = "yaml"
-		err = yaml.Unmarshal(fileContent, &configData)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal YAML: %v", err)
-		}
-	} else if strings.HasSuffix(path, ".json") {
-		inputFormat = "json"
-		err = json.Unmarshal(fileContent, &configData)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
-		}
-	} else {
-		return nil, fmt.Errorf("unsupported file format")
-	}
-
-	return configData, nil
 }
 
 func sendStandaloneConfigData(requestBody interface{}) error {
@@ -95,14 +64,6 @@ func sendStandaloneConfigData(requestBody interface{}) error {
 		RequestBody: requestBody,
 		Response:    &standaloneConfigPutResponse,
 	})
-}
-
-func displayStandaloneConfigResponse(response *model.StandaloneConfig, format string) {
-	if format == "json" {
-		utils.DisplayResponseAsJSON(response, "Standalone Config Response (JSON):")
-	} else {
-		utils.DisplayResponseAsYAML(response, "Standalone Config Response (YAML):")
-	}
 }
 
 func init() {

@@ -1,16 +1,12 @@
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -28,7 +24,6 @@ cockpit put config group --path 'path to yaml or JSON file'`
 var (
 	filePath               string
 	configGroupPutResponse model.ConfigGroup
-	inputFormat            string
 )
 
 var PutConfigGroupCmd = &cobra.Command{
@@ -40,7 +35,7 @@ var PutConfigGroupCmd = &cobra.Command{
 }
 
 func executePutConfigGroup(cmd *cobra.Command, args []string) {
-	configData, err := prepareConfigGroupData(filePath)
+	configData, err := utils.PrepareRequestBodyFromYAMLOrJSON(filePath)
 	if err != nil {
 		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
@@ -53,33 +48,6 @@ func executePutConfigGroup(cmd *cobra.Command, args []string) {
 
 	render.RenderResponseAsTabWriter(configGroupPutResponse)
 	println()
-}
-
-func prepareConfigGroupData(path string) (map[string]interface{}, error) {
-	var configData map[string]interface{}
-
-	fileContent, err := ioutil.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %v", err)
-	}
-
-	if strings.HasSuffix(path, ".yaml") {
-		inputFormat = "yaml"
-		err = yaml.Unmarshal(fileContent, &configData)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal YAML: %v", err)
-		}
-	} else if strings.HasSuffix(path, ".json") {
-		inputFormat = "json"
-		err = json.Unmarshal(fileContent, &configData)
-		if err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
-		}
-	} else {
-		return nil, fmt.Errorf("unsupported file format")
-	}
-
-	return configData, nil
 }
 
 func sendConfigGroupData(requestBody interface{}) error {
@@ -98,14 +66,6 @@ func sendConfigGroupData(requestBody interface{}) error {
 		RequestBody: requestBody,
 		Response:    &configGroupPutResponse,
 	})
-}
-
-func displayConfigGroupResponse(response *model.ConfigGroup, format string) {
-	if format == "json" {
-		utils.DisplayResponseAsJSON(response, "Config Group Response (JSON):")
-	} else {
-		utils.DisplayResponseAsYAML(response, "Config Group Response (YAML):")
-	}
 }
 
 func init() {

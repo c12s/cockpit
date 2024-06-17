@@ -165,3 +165,28 @@ func DisplayResponseAsYAML(response interface{}, responseType string) {
 	fmt.Println(responseType)
 	fmt.Println(string(yamlData))
 }
+
+func PrepareRequestBodyFromYAMLOrJSON(path string) (map[string]interface{}, error) {
+	var configData map[string]interface{}
+
+	fileContent, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read file: %v", err)
+	}
+
+	if strings.HasSuffix(path, ".yaml") {
+		err = yaml.Unmarshal(fileContent, &configData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal YAML: %v", err)
+		}
+	} else if strings.HasSuffix(path, ".json") {
+		err = json.Unmarshal(fileContent, &configData)
+		if err != nil {
+			return nil, fmt.Errorf("failed to unmarshal JSON: %v", err)
+		}
+	} else {
+		return nil, fmt.Errorf("unsupported file format")
+	}
+
+	return configData, nil
+}

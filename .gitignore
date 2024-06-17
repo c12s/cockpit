@@ -22,3 +22,7 @@ token.txt
 
 #.idea files
 .idea
+
+#files
+response/config-group/
+response/standalone-config/

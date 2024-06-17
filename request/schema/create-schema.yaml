@@ -1,3 +1,5 @@
+name: app_config
+organization: c12s
 type: object
 properties:
   db_config:

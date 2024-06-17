@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -10,6 +11,7 @@ import (
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"strings"
 	"syscall"
 )
@@ -189,4 +191,35 @@ func PrepareRequestBodyFromYAMLOrJSON(path string) (map[string]interface{}, erro
 	}
 
 	return configData, nil
+}
+
+func LoadEnvFile(filePath string) error {
+	file, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.TrimSpace(line) == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid line in .env file: %s", line)
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		err = os.Setenv(key, value)
+		if err != nil {
+			return err
+		}
+	}
+
+	return scanner.Err()
 }

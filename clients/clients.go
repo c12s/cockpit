@@ -3,6 +3,7 @@ package clients
 import (
 	"fmt"
 	"github.com/c12s/cockpit/config"
+	"github.com/c12s/cockpit/utils"
 	"log"
 	"os"
 )
@@ -10,8 +11,19 @@ import (
 var cfg *config.Config
 
 func Init() {
-	var err error
-	cfg, err = config.LoadConfig("../lunar-gateway/config/config.yml")
+	err := utils.LoadEnvFile(".env")
+	if err != nil {
+		fmt.Println("Error loading .env file:", err)
+		os.Exit(1)
+	}
+
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		fmt.Println("CONFIG_PATH is not set in the .env file")
+		os.Exit(1)
+	}
+
+	cfg, err = config.LoadConfig(configPath)
 	if err != nil {
 		fmt.Println("Failed to load configuration:", err)
 		os.Exit(1)

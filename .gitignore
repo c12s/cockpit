@@ -24,5 +24,4 @@ token.txt
 .idea
 
 #files
-response/config-group/
-response/standalone-config/
+response/

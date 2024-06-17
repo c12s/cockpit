@@ -286,7 +286,9 @@ Compare differences between configuration groups.
     - `--output`: Output format (json, yaml).
 - **Example**:
     ```sh
-    cockpit diff config group --org 'c12s' --names 'app_config|app_config' --versions 'v1.0.0|v1.0.1' -o 'json'
+    cockpit diff config group --org 'c12s' --names 'app_config|app_config' --versions 'v1.0.0|v1.0.1'
+    cockpit diff config group --org 'c12s' --names 'app_config' --versions 'v1.0.0|v1.0.1'
+    cockpit diff config group --org 'c12s' --names 'app_config|app_config' --versions 'v1.0.0'
     ```
 
 #### Place Config Group
@@ -371,6 +373,8 @@ Compare differences between standalone configurations.
 - **Example**:
     ```sh
     cockpit diff standalone config --org 'c12s' --names 'db_config|db_config' --versions 'v1.0.1|v1.0.0'
+    cockpit diff standalone config --org 'c12s' --names 'db_config' --versions 'v1.0.1|v1.0.0'
+    cockpit diff standalone config --org 'c12s' --names 'db_config|db_config' --versions 'v1.0.1'
     ```
 
 #### Place Standalone Config

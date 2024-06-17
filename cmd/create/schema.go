@@ -12,7 +12,7 @@ import (
 
 const (
 	createSchemaShortDescription = "Create a schema for an organization"
-	createSchemaLongDescription  = `Creates a schema for an organization by providing schema details and the path to a YAML file containing the schema definition.
+	createSchemaLongDescription  = `Creates a schema for an organization by providing schema details and the path to a YAML or JSON file containing the schema definition.
 Schemas define the structure of configuration data that can be used across various services and applications within the organization. This command uploads and saves the schema to the server.
 
 Example:

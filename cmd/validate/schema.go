@@ -15,7 +15,7 @@ import (
 const (
 	validateSchemaVersionShortDesc = "Validate a schema version"
 	validateSchemaVersionLongDesc  = `This command validates a schema version with the given configuration.
-The user specifies the organization, schema name, version, and path to the YAML configuration file.
+The user specifies the organization, schema name, version, and path to the YAML or JSON configuration file.
 It reads the configuration file and validates the schema version against it.
 
 Example:

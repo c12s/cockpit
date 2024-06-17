@@ -7,7 +7,6 @@ import (
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -39,7 +38,7 @@ var DiffStandaloneConfigCmd = &cobra.Command{
 }
 
 func executeDiffStandaloneConfig(cmd *cobra.Command, args []string) {
-	requestBody, err := prepareStandaloneDiffRequest()
+	requestBody, err := utils.PrepareConfigDiffRequest(names, versions, organization)
 	if err != nil {
 		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
@@ -69,30 +68,6 @@ func executeDiffStandaloneConfig(cmd *cobra.Command, args []string) {
 		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
 	fmt.Println()
-}
-
-func prepareStandaloneDiffRequest() (interface{}, error) {
-	namesList := strings.Split(names, "|")
-	versionsList := strings.Split(versions, "|")
-
-	if len(namesList) != 2 || len(versionsList) != 2 {
-		return nil, fmt.Errorf("invalid names or versions format. Please use 'name1|name2' and 'version1|version2'")
-	}
-
-	requestBody := model.SingleConfigDiffRequest{
-		Reference: model.SingleConfigReference{
-			Name:         namesList[0],
-			Organization: organization,
-			Version:      versionsList[0],
-		},
-		Diff: model.SingleConfigReference{
-			Name:         namesList[1],
-			Organization: organization,
-			Version:      versionsList[1],
-		},
-	}
-
-	return requestBody, nil
 }
 
 func sendStandaloneDiffRequest(requestBody interface{}) error {

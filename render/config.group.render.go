@@ -63,7 +63,16 @@ func RenderConfigGroupTabWriter(group model.ConfigGroup) {
 }
 
 func RenderConfigGroupDiffsTabWriter(diffResponse model.ConfigGroupDiffResponse) {
-	if len(diffResponse.Diffs) == 0 {
+	noDiffsFound := true
+
+	for _, diffSet := range diffResponse.Diffs {
+		if len(diffSet.Diffs) > 0 {
+			noDiffsFound = false
+			break
+		}
+	}
+
+	if noDiffsFound {
 		fmt.Println("No diffs were found.")
 		return
 	}
@@ -83,11 +92,11 @@ func RenderConfigGroupDiffsTabWriter(diffResponse model.ConfigGroupDiffResponse)
 					diff.Diff.Value,
 					"-",
 				)
-			case "replacement":
+			case "addition":
 				fmt.Fprintf(w, "%s\t%s\t%s\t%s -> %s\t\n",
 					category,
 					diff.Diff.Key,
-					diff.Diff.OldValue,
+					diff.Diff.Value,
 					diff.Diff.NewValue,
 					"+",
 				)

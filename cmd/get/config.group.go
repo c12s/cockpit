@@ -18,7 +18,7 @@ const (
 The user can specify the organization, configuration name, and version to retrieve the configuration details. The response can be formatted as either YAML or JSON based on user preference.
 
 Example:
-cockpit get config group --org 'org' --name 'app_config' --version 'v1.0.0'`
+- cockpit get config group --org 'org' --name 'app_config' --version 'v1.0.0'`
 
 	// Flag Constants
 	nameFlag   = "name"

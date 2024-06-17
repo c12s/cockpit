@@ -18,7 +18,9 @@ const (
 The user can specify the organization, names, and versions of the two standalone configurations to be compared. The differences between the configurations will be highlighted and saved in the specified format.
 
 Example:
-cockpit diff standalone config --org 'org' --names 'db_config|db_config' --versions 'v1.0.0|v1.0.1'`
+- cockpit diff standalone config --org 'org' --names 'db_config|db_config' --versions 'v1.0.0|v1.0.1'
+- cockpit diff standalone config --org 'org' --names 'db_config' --versions 'v1.0.0|v1.0.1'
+- cockpit diff standalone config --org 'org' --names 'db_config|db_config' --versions 'v1.0.0`
 
 	// Path to files
 	diffStandaloneFilePathJSON = "./response/standalone-config/standalone-config-diff.json"

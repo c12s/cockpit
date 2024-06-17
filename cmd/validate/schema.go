@@ -19,7 +19,7 @@ The user specifies the organization, schema name, version, and path to the YAML 
 It reads the configuration file and validates the schema version against it.
 
 Example:
-cockpit validate schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path '/path/to/config.yaml'`
+- cockpit validate schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path '/path/to/config.yaml'`
 
 	// Flag Constants
 	organizationFlag = "org"

@@ -19,9 +19,9 @@ const (
 The user can specify the organization, names, and versions of the two configuration groups to be compared. The differences between the groups will be highlighted and saved in the specified format.
 
 Example:
-cockpit diff config group --org 'org' --names 'name1|name2' --versions 'version1|version2'
-cockpit diff config group --org 'org' --names 'name' --versions 'version1|version2'
-cockpit diff config group --org 'org' --names 'name1|name2' --versions 'version'`
+- cockpit diff config group --org 'org' --names 'name1|name2' --versions 'version1|version2'
+- cockpit diff config group --org 'org' --names 'name' --versions 'version1|version2'
+- cockpit diff config group --org 'org' --names 'name1|name2' --versions 'version'`
 
 	// Flag Constants
 	organizationFlag = "org"

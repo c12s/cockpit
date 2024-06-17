@@ -18,7 +18,7 @@ const (
 The user can specify the organization, schema name, and version to retrieve the schema details. The response will be displayed in a tabular format and saved as a YAML file.
 
 Example:
-cockpit get schema --org 'org' --schema_name 'schema_name' --version 'v1.0.0'`
+- cockpit get schema --org 'org' --schema_name 'schema_name' --version 'v1.0.0'`
 
 	// Flag Constants
 	organizationFlag = "org"

@@ -18,7 +18,7 @@ const (
 It processes the file and uploads the configuration group, displaying the server's response in the same format as the input file.
 
 Example:
-cockpit put config group --path 'path to yaml or JSON file'`
+- cockpit put config group --path 'path to yaml or JSON file'`
 )
 
 var (

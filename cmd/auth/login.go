@@ -16,7 +16,7 @@ const (
 Your token will be saved in the token.txt file, which will be sent with all of your request headers.
 
 Example:
-cockpit login --username "username"`
+- cockpit login --username "username"`
 )
 
 var (

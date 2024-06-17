@@ -16,7 +16,7 @@ const (
 Once these details are entered, you will be prompted to input your password.
 
 Example:
-cockpit register --email "example@gmail.com" --name "name" --org "org" --surname "surname" --username "username"`
+- cockpit register --email "example@gmail.com" --name "name" --org "org" --surname "surname" --username "username"`
 
 	// Flag Constants
 	emailFlag    = "email"

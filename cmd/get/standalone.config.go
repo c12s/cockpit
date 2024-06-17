@@ -18,7 +18,7 @@ const (
 The user can specify the organization, standalone configuration name, and version to retrieve the configuration details. The response can be formatted as either YAML or JSON based on user preference.
 
 Example:
-cockpit get standalone config --org 'org' --name 'db_config' --version 'v1.0.0'`
+- cockpit get standalone config --org 'org' --name 'db_config' --version 'v1.0.0'`
 
 	// Path to files
 	getStandaloneConfigFilePathJSON = "./response/standalone-config/standalone-config.json"

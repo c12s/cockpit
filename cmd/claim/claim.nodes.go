@@ -19,8 +19,8 @@ The command allows the organization to take ownership of nodes that match the pr
 The query can include conditions based on node labels such as memory, CPU, and other attributes. 
 
 Example:
-cockpit claim nodes --org 'org' --query 'labelKey >||=||!=||< value'
-cockpit claim nodes --org 'org' --query 'memory-totalGB > 2'`
+- cockpit claim nodes --org 'org' --query 'labelKey >||=||!=||< value'
+- cockpit claim nodes --org 'org' --query 'memory-totalGB > 2'`
 
 	// Flag Constants
 	organizationFlag = "org"

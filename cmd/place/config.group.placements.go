@@ -20,7 +20,7 @@ The input file should be in either YAML or JSON format, containing the details o
 It reads the file, processes the placements, and applies them accordingly.
 
 Example:
-cockpit place config group placements --path 'path to yaml or json file'`
+- cockpit place config group placements --path 'path to yaml or json file'`
 
 	// Flag Constants
 	pathFlag = "path"

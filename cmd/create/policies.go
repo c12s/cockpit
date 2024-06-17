@@ -18,7 +18,7 @@ const (
 Policies are used to define and enforce security rules within the organization. The input file can be in YAML or JSON format, specifying the policy details.
 
 Example:
-cockpit create policies --path 'path to yaml or json file'`
+- cockpit create policies --path 'path to yaml or json file'`
 )
 
 var CreatePoliciesCmd = &cobra.Command{

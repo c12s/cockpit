@@ -18,7 +18,7 @@ const (
 The user can specify the organization, standalone configuration name, and version to delete the configuration. The output can be formatted as either JSON or YAML based on user preference.
 
 Example:
-cockpit delete standalone config --org 'c12s' --name 'db_config' --version 'v1.0.1'`
+- cockpit delete standalone config --org 'c12s' --name 'db_config' --version 'v1.0.1'`
 )
 
 var (

@@ -17,7 +17,7 @@ const (
 This command allows the user to remove a label from a node by specifying the node ID, organization, and the label key. The response includes the updated node details.
 
 Example:
-cockpit delete label --nodeId 'nodeID' --org 'org' --key 'labelKey'`
+- cockpit delete label --nodeId 'nodeID' --org 'org' --key 'labelKey'`
 
 	// Flag Constants
 	nodeIdFlag = "nodeId"

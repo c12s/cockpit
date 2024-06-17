@@ -18,7 +18,7 @@ const (
 The user can specify the organization and schema name to retrieve the list of schema versions. The response will be displayed in a tabular format and saved as a YAML file.
 
 Example:
-cockpit get schema version --org 'org' --schema_name 'schema_name'`
+- cockpit get schema version --org 'org' --schema_name 'schema_name'`
 
 	//Path to file
 	saveSchemaVersionToFile = "response/schema/schema-version.yaml"

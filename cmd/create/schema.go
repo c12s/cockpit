@@ -16,7 +16,7 @@ const (
 Schemas define the structure of configuration data that can be used across various services and applications within the organization. This command uploads and saves the schema to the server.
 
 Example:
-cockpit create schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path 'path to yaml or json file'`
+- cockpit create schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path 'path to yaml or json file'`
 
 	// Flag Constants
 	organizationFlag = "org"

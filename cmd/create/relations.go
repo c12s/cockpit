@@ -17,7 +17,7 @@ const (
 Relations help to establish a hierarchical or dependency structure between different entities within the organization. This can include relationships between organizations, namespaces, and other resources.
 
 Example:
-cockpit create relations --ids 'myOrg|dev' --kinds 'org|namespace'`
+- cockpit create relations --ids 'myOrg|dev' --kinds 'org|namespace'`
 
 	// Flag Constants
 	idsFlag   = "ids"

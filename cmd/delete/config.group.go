@@ -18,7 +18,7 @@ const (
 The user can specify the organization, the configuration group name, and the version to be deleted. The output can be formatted as either JSON or YAML based on user preference.
 
 Example:
-cockpit delete config group --org 'org' --name 'app_config' --version 'v1.0.0'`
+- cockpit delete config group --org 'org' --name 'app_config' --version 'v1.0.0'`
 
 	// Flag Constants
 	flagName   = "name"

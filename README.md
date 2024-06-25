@@ -157,12 +157,12 @@ Add a label to a node.
 - **Command**: `cockpit put label`
 - **Options**:
     - `--org`: Organization of the node.
-    - `--nodeId`: ID of the node.
+    - `--node_id`: ID of the node.
     - `--key`: Key of the label.
     - `--value`: Value of the label.
 - **Example**:
     ```sh
-    cockpit put label --org 'c12s' --nodeId 'nodeId' --key 'newLabel' --value '25.00'
+    cockpit put label --org 'c12s' --node_id 'nodeId' --key 'newlabel' --value '25.00'
     ```
 
 #### Delete Label
@@ -174,7 +174,7 @@ Delete a label from a node.
     - `--key`: Key of the label.
 - **Example**:
     ```sh
-    cockpit delete label --org 'c12s' --nodeId 'nodeId' --key 'newLabel3'
+    cockpit delete label --org 'c12s' --node_id 'nodeId' --key 'newlabel'
     ```
 
 ### Schema Management

@@ -63,10 +63,13 @@ func init() {
 	GetCmd.AddCommand(get.GetSchemaCmd)
 	GetCmd.AddCommand(GetConfigCmd)
 	GetCmd.AddCommand(GetStandaloneConfigCmd)
+	GetCmd.AddCommand(NodesMetricsCmd)
+	NodesMetricsCmd.AddCommand(get.LatestMetricsCmd)
 	GetStandaloneConfigCmd.AddCommand(get.GetStandaloneConfigCmd)
 	GetConfigCmd.AddCommand(get.GetSingleConfigGroupCmd)
 	get.GetSchemaCmd.AddCommand(get.GetSchemaVersionCmd)
 	RootCmd.AddCommand(GetCmd)
+	RootCmd.AddCommand(GetNodesMetricsCmd)
 
 	// Validate Commands
 	ValidateCmd.AddCommand(validate.ValidateSchemaVersionCmd)
@@ -117,6 +120,8 @@ var (
 	GetStandaloneConfigCmd        = &cobra.Command{Use: "standalone", Short: "Manipulate with config", Aliases: []string{"stand"}}
 	ListStandaloneConfigCmd       = &cobra.Command{Use: "standalone", Short: "Manipulate with config", Aliases: []string{"stand"}}
 	ValidateCmd                   = &cobra.Command{Use: "validate", Short: "Validate resources", Aliases: []string{"val"}}
+	GetNodesMetricsCmd            = &cobra.Command{Use: "get", Short: "Get resources", Aliases: []string{"fetch"}}
+	NodesMetricsCmd               = &cobra.Command{Use: "nodes", Short: "Nodes resources", Aliases: []string{"node", "nod"}}
 
 	RootCmd = &cobra.Command{
 		Use:   "cockpit",

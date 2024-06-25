@@ -67,19 +67,19 @@ node_id_1=${node_ids[0]}
 node_id_2=${node_ids[1]}
 
 # Put labels using the captured node IDs
-run_command "put" "label" "--org 'c12s' --key 'newlabel' --value '25.00' --nodeId $node_id_1" \
+run_command "put" "label" "--org 'c12s' --key 'newlabel' --value '25.00' --node_id $node_id_1" \
             "Put label (newLabel1) command failed" \
             "Put label (newLabel1) command completed successfully"
 
-run_command "put" "label" "--org 'c12s' --key 'newLabel2' --value 'stringValue' --nodeId $node_id_1" \
+run_command "put" "label" "--org 'c12s' --key 'newLabel2' --value 'stringValue' --node_id $node_id_1" \
             "Put label (newLabel2) command failed" \
             "Put label (newLabel2) command completed successfully"
 
-run_command "put" "label" "--org 'c12s' --key 'newLabel3' --value 'true' --nodeId $node_id_2" \
+run_command "put" "label" "--org 'c12s' --key 'newLabel3' --value 'true' --node_id $node_id_2" \
             "Put label (newLabel3) command failed" \
             "Put label (newLabel3) command completed successfully"
 
-run_command "delete" "label" "--org 'c12s' --key 'newLabel2' --nodeId $node_id_1" \
+run_command "delete" "label" "--org 'c12s' --key 'newLabel2' --node_id $node_id_1" \
             "Delete label (newLabel2) command failed" \
             "Delete label (newLabel2) command completed successfully"
 

@@ -20,7 +20,7 @@ Example:
 - cockpit delete label --nodeId 'nodeID' --org 'org' --key 'labelKey'`
 
 	// Flag Constants
-	nodeIdFlag = "nodeId"
+	nodeIdFlag = "node_id"
 	keyFlag    = "key"
 
 	// Flag Shorthand Constants

@@ -27,7 +27,7 @@ Examples:
 	// Flag Constants
 	keyFlag          = "key"
 	valueFlag        = "value"
-	nodeIdFlag       = "nodeId"
+	nodeIdFlag       = "node_id"
 	organizationFlag = "org"
 
 	// Flag Shorthand Constants

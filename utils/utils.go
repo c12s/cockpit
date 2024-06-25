@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"syscall"
 )
@@ -57,7 +58,7 @@ func SendHTTPRequest(config model.HTTPRequestConfig) error {
 		return fmt.Errorf("failed to read response body: %v", err)
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return fmt.Errorf("request failed with status %s: %s", resp.Status, string(bodyBytes))
 	}
 
@@ -148,26 +149,6 @@ func ReadJSON(filePath string, out interface{}) error {
 	return nil
 }
 
-func DisplayResponseAsJSON(response interface{}, responseType string) {
-	jsonData, err := json.MarshalIndent(response, "", "  ")
-	if err != nil {
-		fmt.Printf("Error converting response to JSON: %v\n", err)
-		return
-	}
-	fmt.Println(responseType)
-	fmt.Println(string(jsonData))
-}
-
-func DisplayResponseAsYAML(response interface{}, responseType string) {
-	yamlData, err := yaml.Marshal(response)
-	if err != nil {
-		fmt.Printf("Error converting response to YAML: %v\n", err)
-		return
-	}
-	fmt.Println(responseType)
-	fmt.Println(string(yamlData))
-}
-
 func PrepareRequestBodyFromYAMLOrJSON(path string) (map[string]interface{}, error) {
 	var configData map[string]interface{}
 
@@ -222,4 +203,9 @@ func LoadEnvFile(filePath string) error {
 	}
 
 	return scanner.Err()
+}
+
+func StringToFloat(s string) float64 {
+	value, _ := strconv.ParseFloat(s, 64)
+	return value
 }

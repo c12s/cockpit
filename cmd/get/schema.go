@@ -62,7 +62,7 @@ func executeGetSchema(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	render.RenderResponseAsTabWriter(schemaResponse.SchemaData)
+	render.DisplayResponseAsJSONOrYAML(schemaResponse.SchemaData, "yaml", "")
 	println()
 	if err := utils.SaveSchemaResponseToYAML(&schemaResponse, getSchemaFilePath); err != nil {
 		fmt.Printf("Failed to save response to YAML file: %v\n", err)

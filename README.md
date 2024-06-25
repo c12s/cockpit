@@ -424,6 +424,21 @@ Create policies.
     cockpit create policies --path 'request/policy/create-policy.yaml'
     ```
 
+### Node Metrics Management
+
+#### Get Node Metrics
+Retrieve metrics for a specific node.
+- **Command**: `cockpit get node metrics`
+- **Options**:
+  - `--node-id`: Node ID (required).
+  - `--all`: Display all metrics (optional).
+  - `--sort`: Sort metrics by 'cpu' or 'memory' (optional).
+- **Example**:
+    ```sh
+    cockpit get node metrics --node-id 'nodeID'
+    cockpit get node metrics --node-id 'nodeID' --all --sort 'memory'
+    ```
+
 ## Contributing
 
 Contributions are welcome! Please follow these steps to contribute:

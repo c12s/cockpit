@@ -94,7 +94,7 @@ run_command "create" "relations" "--ids 'c12s|dev' --kinds 'org|namespace'" \
             "Create relations command completed successfully"
 
 # Schema operations
-run_command "create " "schema" "--org 'c12s' --schema_name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'" \
+run_command "create" "schema" "--org 'c12s' --schema_name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'" \
             "Create schema command failed" \
             "Create schema command completed successfully"
 
@@ -156,7 +156,6 @@ run_command "delete" "config group" "--org 'c12s' --name 'app_config' --version 
             "Delete config group command failed" \
             "Delete config group command completed successfully"
 
-
 # STANDALONE CONFIG
 
 run_command "put" "standalone config" "--path 'request/standalone-config/create-standalone-config.json'" \
@@ -190,5 +189,10 @@ run_command "list" "standalone config placements" "--org 'c12s' --name 'db_confi
 run_command "delete" "standalone config" "--org 'c12s' --name 'db_config' --version 'v1.0.1'" \
             "Delete standalone config command failed" \
             "Delete standalone config command completed successfully"
+
+# Get Node Metrics
+run_command "get" "node metrics" "-n $node_id_1" \
+            "Get node metrics command failed" \
+            "Get node metrics command completed successfully"
 
 echo "All commands executed"

@@ -16,7 +16,6 @@ func RenderNodeMetrics(metrics model.MetricResponse, sortBy string) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
 	defer w.Flush()
 
-	// Print headers with better alignment
 	fmt.Fprintf(w, "Service\tMetric\tTotal\tUsed\tAvailable\n")
 
 	metricsMap := make(map[string]map[string]float64)
@@ -30,21 +29,20 @@ func RenderNodeMetrics(metrics model.MetricResponse, sortBy string) {
 			}
 			if strings.Contains(metricName, "total") {
 				metricsMap[metricName]["total"] = val
-			} else if strings.Contains(metricName, "usage") {
+			} else if strings.Contains(metricName, "usage") || strings.Contains(metricName, "available") {
 				metricsMap[metricName]["used"] = val
 			}
 		}
 	}
 
-	printNodeMetrics(w, "Node", "cpu", metricsMap["custom_node_cpu_usage_percentage_total"], "%")
-	printNodeMetrics(w, "Node", "disk", metricsMap["custom_node_disk_total_gb_total"], "GB", metricsMap["custom_node_disk_usage_gb_total"])
-	printNodeMetrics(w, "Node", "memory", metricsMap["custom_node_ram_total_mb_total"], "MB", metricsMap["custom_node_ram_usage_mb_total"])
+	printNodeMetrics(w, "Node", "cpu", nil, "%", metricsMap["custom_node_cpu_usage_percentage"])
+	printNodeMetrics(w, "Node", "disk", metricsMap["custom_node_disk_total_gb"], "GB", metricsMap["custom_node_disk_usage_gb"])
+	printMemoryMetrics(w, "Node", "memory", metricsMap["custom_node_ram_total_mb"], metricsMap["custom_node_ram_available_mb"], "MB")
 }
 
 func RenderServiceMetrics(metrics model.MetricResponse, sortBy string) {
 	serviceMetrics := metrics.FilterServiceMetrics()
 
-	// Sort service metrics based on the sortBy flag
 	sort.Slice(serviceMetrics, func(i, j int) bool {
 		if sortBy == "memory" {
 			return utils.GetServiceMemoryUsage(serviceMetrics[i]) > utils.GetServiceMemoryUsage(serviceMetrics[j])
@@ -55,7 +53,6 @@ func RenderServiceMetrics(metrics model.MetricResponse, sortBy string) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
 	defer w.Flush()
 
-	// Print headers for service metrics
 	fmt.Fprintf(w, "Service\tCPU\tTotal Memory\tUsed Memory\n")
 
 	serviceMap := make(map[string]map[string]float64)
@@ -99,7 +96,10 @@ func RenderServiceMetrics(metrics model.MetricResponse, sortBy string) {
 }
 
 func printNodeMetrics(w *tabwriter.Writer, service, metric string, totalValues map[string]float64, unit string, usedValues ...map[string]float64) {
-	total, used := totalValues["total"], 0.0
+	var total, used float64
+	if totalValues != nil {
+		total = totalValues["total"]
+	}
 	if len(usedValues) > 0 {
 		used = usedValues[0]["used"]
 	}
@@ -107,7 +107,7 @@ func printNodeMetrics(w *tabwriter.Writer, service, metric string, totalValues m
 	available := total - used
 
 	if metric == "cpu" {
-		fmt.Fprintf(w, "%s\t%s\t-\t%.2f %s\t-\n", service, metric, total, unit)
+		fmt.Fprintf(w, "%s\t%s\t-\t%.2f %s\t-\n", service, metric, used, unit)
 	} else {
 		if total == 0 {
 			fmt.Fprintf(w, "%s\t%s\t0.0 %s\t0.0 %s\t0.0 %s\n", service, metric, unit, unit, unit)
@@ -115,4 +115,12 @@ func printNodeMetrics(w *tabwriter.Writer, service, metric string, totalValues m
 			fmt.Fprintf(w, "%s\t%s\t%.2f %s\t%.2f %s\t%.2f %s\n", service, metric, total, unit, used, unit, available, unit)
 		}
 	}
+}
+
+func printMemoryMetrics(w *tabwriter.Writer, service, metric string, totalValues map[string]float64, availableValues map[string]float64, unit string) {
+	total := totalValues["total"]
+	available := availableValues["used"]
+	used := total - available
+
+	fmt.Fprintf(w, "%s\t%s\t%.2f %s\t%.2f %s\t%.2f %s\n", service, metric, total, unit, used, unit, available, unit)
 }

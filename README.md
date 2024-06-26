@@ -157,12 +157,12 @@ Add a label to a node.
 - **Command**: `cockpit put label`
 - **Options**:
     - `--org`: Organization of the node.
-    - `--node_id`: ID of the node.
+    - `--node-id`: ID of the node.
     - `--key`: Key of the label.
     - `--value`: Value of the label.
 - **Example**:
     ```sh
-    cockpit put label --org 'c12s' --node_id 'nodeId' --key 'newlabel' --value '25.00'
+    cockpit put label --org 'c12s' --node-id 'nodeId' --key 'newlabel' --value '25.00'
     ```
 
 #### Delete Label
@@ -174,7 +174,7 @@ Delete a label from a node.
     - `--key`: Key of the label.
 - **Example**:
     ```sh
-    cockpit delete label --org 'c12s' --node_id 'nodeId' --key 'newlabel'
+    cockpit delete label --org 'c12s' --node-id 'nodeId' --key 'newlabel'
     ```
 
 ### Schema Management
@@ -184,12 +184,12 @@ Create a new schema.
 - **Command**: `cockpit create schema`
 - **Options**:
     - `--org`: Organization.
-    - `--schema_name`: Name of the schema.
+    - `--schema-name`: Name of the schema.
     - `--version`: Version of the schema.
     - `--path`: Path to the schema file.
 - **Example**:
     ```sh
-    cockpit create schema --org 'c12s' --schema_name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'
+    cockpit create schema --org 'c12s' --schema-name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'
     ```
 
 #### Get Schema Version
@@ -200,7 +200,7 @@ Retrieve schema version details.
     - `--schema`: Name of the schema.
 - **Example**:
     ```sh
-    cockpit get schema version --org 'c12s' --schema_name 'schema'
+    cockpit get schema version --org 'c12s' --schema-name 'schema'
     ```
 
 #### Get Schema
@@ -212,7 +212,7 @@ Retrieve a specific schema.
     - `--version`: Version of the schema.
 - **Example**:
     ```sh
-    cockpit get schema --org 'c12s' --schema_name 'schema' --version 'v1.0.0'
+    cockpit get schema --org 'c12s' --schema-name 'schema' --version 'v1.0.0'
     ```
 
 #### Validate Schema
@@ -225,7 +225,7 @@ Validate a schema.
     - `--path`: Path to the validation file.
 - **Example**:
     ```sh
-    cockpit validate schema --org 'c12s' --schema_name 'schema' --version 'v1.0.0' --path 'request/schema/validate-schema.yaml'
+    cockpit validate schema --org 'c12s' --schema-name 'schema' --version 'v1.0.0' --path 'request/schema/validate-schema.yaml'
     ```
 
 #### Delete Schema
@@ -237,7 +237,7 @@ Delete a schema.
     - `--version`: Version of the schema.
 - **Example**:
     ```sh
-    cockpit delete schema --org 'c12s' --schema_name 'schema' --version 'v1.0.0'
+    cockpit delete schema --org 'c12s' --schema-name 'schema' --version 'v1.0.0'
     ```
 
 ### Config Group Management
@@ -435,8 +435,8 @@ Retrieve metrics for a specific node.
   - `--sort`: Sort metrics by 'cpu' or 'memory' (optional).
 - **Example**:
     ```sh
-    cockpit get node metrics --node_id 'nodeID'
-    cockpit get node metrics --node_id 'nodeID' --all --sort 'memory'
+    cockpit get node metrics --node-id 'nodeID'
+    cockpit get node metrics --node-id 'nodeID' --all --sort 'memory'
     ```
 
 ## Contributing

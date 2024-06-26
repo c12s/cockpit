@@ -67,19 +67,19 @@ node_id_1=${node_ids[0]}
 node_id_2=${node_ids[1]}
 
 # Put labels using the captured node IDs
-run_command "put" "label" "--org 'c12s' --key 'newlabel' --value '25.00' --node_id $node_id_1" \
+run_command "put" "label" "--org 'c12s' --key 'newlabel' --value '25.00' --node-id $node_id_1" \
             "Put label (newLabel1) command failed" \
             "Put label (newLabel1) command completed successfully"
 
-run_command "put" "label" "--org 'c12s' --key 'newLabel2' --value 'stringValue' --node_id $node_id_1" \
+run_command "put" "label" "--org 'c12s' --key 'newLabel2' --value 'stringValue' --node-id $node_id_1" \
             "Put label (newLabel2) command failed" \
             "Put label (newLabel2) command completed successfully"
 
-run_command "put" "label" "--org 'c12s' --key 'newLabel3' --value 'true' --node_id $node_id_2" \
+run_command "put" "label" "--org 'c12s' --key 'newLabel3' --value 'true' --node-id $node_id_2" \
             "Put label (newLabel3) command failed" \
             "Put label (newLabel3) command completed successfully"
 
-run_command "delete" "label" "--org 'c12s' --key 'newLabel2' --node_id $node_id_1" \
+run_command "delete" "label" "--org 'c12s' --key 'newLabel2' --node-id $node_id_1" \
             "Delete label (newLabel2) command failed" \
             "Delete label (newLabel2) command completed successfully"
 
@@ -94,7 +94,7 @@ run_command "create" "relations" "--ids 'c12s|dev' --kinds 'org|namespace'" \
             "Create relations command completed successfully"
 
 # Schema operations
-run_command "create" "schema" "--org 'c12s' --schema_name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'" \
+run_command "create" "schema" "--org 'c12s' --schema-name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'" \
             "Create schema command failed" \
             "Create schema command completed successfully"
 
@@ -110,7 +110,7 @@ run_command "delete" "schema" "--org c12s -s schema -v v1.0.0" \
             "Delete schema command failed" \
             "Delete schema command completed successfully"
 
-run_command "create" "schema" "--org 'c12s' --schema_name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'" \
+run_command "create" "schema" "--org 'c12s' --schema-name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'" \
             "Create schema command failed" \
             "Create schema command completed successfully"
 
@@ -190,8 +190,8 @@ run_command "delete" "standalone config" "--org 'c12s' --name 'db_config' --vers
             "Delete standalone config command failed" \
             "Delete standalone config command completed successfully"
 
-# Get Node Metrics
-run_command "get" "node metrics" "-n $node_id_1" \
+# Node Metrics
+run_command "get" "node metrics" "--node-id $node_id_1" \
             "Get node metrics command failed" \
             "Get node metrics command completed successfully"
 

@@ -29,7 +29,7 @@ var CreatePoliciesCmd = &cobra.Command{
 	Long:    createPoliciesLongDesc,
 	Run:     executeCreatePolicies,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, filePathFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{filePathFlag})
 	},
 }
 

@@ -43,7 +43,7 @@ func DisplayResponseAsJSONOrYAML(response interface{}, format, message string) {
 		fmt.Println(string(jsonData))
 		println()
 		if message != "" {
-			fmt.Println(message)
+			fmt.Print(message)
 		}
 	case "yaml":
 		yamlData, err := yaml.Marshal(response)
@@ -54,7 +54,7 @@ func DisplayResponseAsJSONOrYAML(response interface{}, format, message string) {
 		fmt.Println(string(yamlData))
 		println()
 		if message != "" {
-			fmt.Println(message)
+			fmt.Print(message)
 		}
 	default:
 		fmt.Printf("Invalid output format: %v. Supported formats are 'json' and 'yaml'\n", format)

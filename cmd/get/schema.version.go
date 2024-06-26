@@ -52,8 +52,8 @@ func executeGetSchemaVersion(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	render.DisplayResponseAsJSONOrYAML(schemaVersionResponse, "yaml", "")
-
+	render.RenderSchemaVersionsTabWriter(schemaVersionResponse.SchemaVersions)
+	println()
 	if err := utils.SaveVersionResponseToYAML(&schemaVersionResponse, saveSchemaVersionToFile); err != nil {
 		fmt.Printf("Failed to save response to YAML file: %v\n", err)
 		os.Exit(1)

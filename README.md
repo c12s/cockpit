@@ -435,8 +435,8 @@ Retrieve metrics for a specific node.
   - `--sort`: Sort metrics by 'cpu' or 'memory' (optional).
 - **Example**:
     ```sh
-    cockpit get node metrics --node-id 'nodeID'
-    cockpit get node metrics --node-id 'nodeID' --all --sort 'memory'
+    cockpit get node metrics --node_id 'nodeID'
+    cockpit get node metrics --node_id 'nodeID' --all --sort 'memory'
     ```
 
 ## Contributing

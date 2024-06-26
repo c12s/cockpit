@@ -31,6 +31,9 @@ var PutStandaloneConfigCmd = &cobra.Command{
 	Short:   putStandaloneConfigShortDesc,
 	Long:    putStandaloneConfigLongDesc,
 	Run:     executePutStandaloneConfig,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{pathFlag})
+	},
 }
 
 func executePutStandaloneConfig(cmd *cobra.Command, args []string) {
@@ -68,6 +71,6 @@ func sendStandaloneConfigData(requestBody interface{}) error {
 }
 
 func init() {
-	PutStandaloneConfigCmd.Flags().StringVarP(&filePath, "path", "p", "", "Path to the configuration file (required)")
-	PutStandaloneConfigCmd.MarkFlagRequired("path")
+	PutStandaloneConfigCmd.Flags().StringVarP(&filePath, pathFlag, pathShorthandFlag, "", pathDescription)
+	PutStandaloneConfigCmd.MarkFlagRequired(pathFlag)
 }

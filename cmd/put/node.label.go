@@ -58,6 +58,9 @@ var LabelsCmd = &cobra.Command{
 	Short:   shortLabelDescription,
 	Long:    longLabelDescription,
 	Run:     executeLabelCommand,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{keyFlag, valueFlag, nodeIdFlag, organizationFlag})
+	},
 }
 
 func executeLabelCommand(cmd *cobra.Command, args []string) {

@@ -35,6 +35,9 @@ var GetSchemaVersionCmd = &cobra.Command{
 	Short:   getSchemaVersionShortDesc,
 	Long:    getSchemaVersionLongDesc,
 	Run:     executeGetSchemaVersion,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, schemaNameFlag})
+	},
 }
 
 func executeGetSchemaVersion(cmd *cobra.Command, args []string) {

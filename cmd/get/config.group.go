@@ -49,6 +49,9 @@ var GetSingleConfigGroupCmd = &cobra.Command{
 	Short:   getAppConfigShortDesc,
 	Long:    getAppConfigLongDesc,
 	Run:     executeGetAppConfig,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+	},
 }
 
 func executeGetAppConfig(cmd *cobra.Command, args []string) {

@@ -22,8 +22,8 @@ Example:
 - cockpit delete config group --org 'org' --name 'app_config' --version 'v1.0.0'`
 
 	// Flag Constants
-	flagName   = "name"
-	flagOutput = "output"
+	nameFlag   = "name"
+	outputFlag = "output"
 
 	// Flag Shorthand Constants
 	nameShorthandFlag   = "n"
@@ -46,6 +46,9 @@ var DeleteConfigGroupCmd = &cobra.Command{
 	Short:   deleteConfigGroupShortDesc,
 	Long:    deleteConfigGroupLongDesc,
 	Run:     executeDeleteConfigGroup,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+	},
 }
 
 func executeDeleteConfigGroup(cmd *cobra.Command, args []string) {
@@ -99,11 +102,11 @@ func sendDeleteConfigGroupRequest(requestBody interface{}) model.HTTPRequestConf
 
 func init() {
 	DeleteConfigGroupCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	DeleteConfigGroupCmd.Flags().StringVarP(&name, flagName, nameShorthandFlag, "", nameDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
 	DeleteConfigGroupCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
-	DeleteConfigGroupCmd.Flags().StringVarP(&outputFormat, flagOutput, outputShorthandFlag, "", outputDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
 
 	DeleteConfigGroupCmd.MarkFlagRequired(organizationFlag)
-	DeleteConfigGroupCmd.MarkFlagRequired(flagName)
+	DeleteConfigGroupCmd.MarkFlagRequired(nameFlag)
 	DeleteConfigGroupCmd.MarkFlagRequired(versionFlag)
 }

@@ -48,6 +48,9 @@ var DeleteSchemaCmd = &cobra.Command{
 	Short:   deleteSchemaShortDesc,
 	Long:    deleteSchemaLongDesc,
 	Run:     executeDeleteSchema,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{schemaNameFlag, organizationFlag, versionFlag})
+	},
 }
 
 func executeDeleteSchema(cmd *cobra.Command, args []string) {

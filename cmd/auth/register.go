@@ -54,18 +54,23 @@ var RegisterCmd = &cobra.Command{
 	Short:   shortRegisterDescription,
 	Aliases: aliases.RegisterAliases,
 	Long:    longRegisterDescription,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{usernameFlag, emailFlag, nameFlag, orgFlag, surnameFlag})
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		password, err := utils.PromptForPassword()
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
+
 		err = register(email, name, org, password, surname, username)
 		if err != nil {
 			fmt.Println("Error:", err)
 			println()
 			os.Exit(1)
 		}
+
 		fmt.Println("Registration successful!\n")
 	},
 }

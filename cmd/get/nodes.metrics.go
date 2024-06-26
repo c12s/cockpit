@@ -48,6 +48,9 @@ var LatestMetricsCmd = &cobra.Command{
 	Short:   latestMetricsShortDesc,
 	Long:    latestMetricsLongDesc,
 	Run:     executeLatestMetrics,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{nodeIDFlag})
+	},
 }
 
 func executeLatestMetrics(cmd *cobra.Command, args []string) {

@@ -5,8 +5,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/c12s/cockpit/model"
+	"github.com/spf13/cobra"
 	"golang.org/x/term"
 	"gopkg.in/yaml.v3"
 	"io/ioutil"
@@ -208,4 +210,17 @@ func LoadEnvFile(filePath string) error {
 func StringToFloat(s string) float64 {
 	value, _ := strconv.ParseFloat(s, 64)
 	return value
+}
+
+func ValidateRequiredFlags(cmd *cobra.Command, requiredFlags []string) error {
+	for _, flag := range requiredFlags {
+		value, err := cmd.Flags().GetString(flag)
+		if err != nil {
+			return err
+		}
+		if strings.TrimSpace(value) == "" {
+			return errors.New("required flag --" + flag + " cannot be empty")
+		}
+	}
+	return nil
 }

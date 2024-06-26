@@ -29,17 +29,22 @@ var LoginCmd = &cobra.Command{
 	Aliases: aliases.LoginAliases,
 	Short:   shortLoginDescription,
 	Long:    longLoginDescription,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{usernameFlag})
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		password, err := utils.PromptForPassword()
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
+
 		err = login(username, password)
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
+
 		fmt.Println("Login successful!\n")
 	},
 }

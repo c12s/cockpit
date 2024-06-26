@@ -8,7 +8,6 @@ import (
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -42,7 +41,7 @@ Example:
 	versionsDescription = "Configuration group versions separated by '|' (required)"
 	outputDescription   = "Output format (yaml or json)"
 
-	// Path to files
+	// Path to file
 	diffConfigFilePathJSON = "./response/config-group/config-group-diff.json"
 	diffConfigFilePathYAML = "./response/config-group/config-group-diff.yaml"
 )
@@ -61,6 +60,9 @@ var DiffConfigGroupCmd = &cobra.Command{
 	Short:   diffConfigGroupShortDesc,
 	Long:    diffConfigGroupLongDesc,
 	Run:     executeDiffConfigGroup,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, namesFlag, versionsFlag})
+	},
 }
 
 func executeDiffConfigGroup(cmd *cobra.Command, args []string) {
@@ -95,30 +97,6 @@ func executeDiffConfigGroup(cmd *cobra.Command, args []string) {
 	}
 
 	println()
-}
-
-func prepareDiffRequest() (interface{}, error) {
-	namesList := strings.Split(names, "|")
-	versionsList := strings.Split(versions, "|")
-
-	if len(namesList) != 2 || len(versionsList) != 2 {
-		return nil, fmt.Errorf("invalid names or versions format. Please use 'name1|name2' and 'version1|version2'")
-	}
-
-	requestBody := model.ConfigGroupDiffRequest{
-		Reference: model.ConfigReference{
-			Name:         namesList[0],
-			Organization: organization,
-			Version:      versionsList[0],
-		},
-		Diff: model.ConfigReference{
-			Name:         namesList[1],
-			Organization: organization,
-			Version:      versionsList[1],
-		},
-	}
-
-	return requestBody, nil
 }
 
 func sendDiffRequest(requestBody interface{}) error {

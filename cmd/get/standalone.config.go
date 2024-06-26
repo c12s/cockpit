@@ -36,6 +36,9 @@ var GetStandaloneConfigCmd = &cobra.Command{
 	Short:   getStandaloneConfigShortDesc,
 	Long:    getStandaloneConfigLongDesc,
 	Run:     executeGetStandaloneConfig,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+	},
 }
 
 func executeGetStandaloneConfig(cmd *cobra.Command, args []string) {

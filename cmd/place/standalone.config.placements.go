@@ -34,6 +34,9 @@ var PlaceStandaloneConfigPlacementsCmd = &cobra.Command{
 	Short:   placeStandaloneConfigPlacementsShortDesc,
 	Long:    placeStandaloneConfigPlacementsLongDesc,
 	Run:     executePlaceStandaloneConfigPlacements,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{pathFlag})
+	},
 }
 
 func executePlaceStandaloneConfigPlacements(cmd *cobra.Command, args []string) {

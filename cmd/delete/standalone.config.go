@@ -32,6 +32,9 @@ var DeleteStandaloneConfigCmd = &cobra.Command{
 	Short:   deleteStandaloneConfigShortDesc,
 	Long:    deleteStandaloneConfigLongDesc,
 	Run:     executeDeleteStandaloneConfig,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+	},
 }
 
 func executeDeleteStandaloneConfig(cmd *cobra.Command, args []string) {
@@ -85,11 +88,11 @@ func sendDeleteStandaloneConfigRequestConfig(requestBody interface{}) model.HTTP
 
 func init() {
 	DeleteStandaloneConfigCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&name, flagName, nameShorthandFlag, "", nameDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
 	DeleteStandaloneConfigCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&outputFormat, flagOutput, outputShorthandFlag, "", outputDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
 
 	DeleteStandaloneConfigCmd.MarkFlagRequired(organizationFlag)
-	DeleteStandaloneConfigCmd.MarkFlagRequired(flagName)
+	DeleteStandaloneConfigCmd.MarkFlagRequired(nameFlag)
 	DeleteStandaloneConfigCmd.MarkFlagRequired(versionFlag)
 }

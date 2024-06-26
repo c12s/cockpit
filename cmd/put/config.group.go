@@ -20,6 +20,15 @@ It processes the file and uploads the configuration group, displaying the server
 
 Example:
 - cockpit put config group --path 'path to yaml or JSON file'`
+
+	// Flag Constants
+	pathFlag = "path"
+
+	// Flag Shorthand Constants
+	pathShorthandFlag = "p"
+
+	// Flag Descriptions
+	pathDescription = "Path to the input YAML or JSON file (required)"
 )
 
 var (
@@ -33,6 +42,9 @@ var PutConfigGroupCmd = &cobra.Command{
 	Short:   putConfigGroupShortDesc,
 	Long:    putConfigGroupLongDesc,
 	Run:     executePutConfigGroup,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{pathFlag})
+	},
 }
 
 func executePutConfigGroup(cmd *cobra.Command, args []string) {
@@ -70,6 +82,6 @@ func sendConfigGroupData(requestBody interface{}) error {
 }
 
 func init() {
-	PutConfigGroupCmd.Flags().StringVarP(&filePath, "path", "p", "", "Path to the configuration file (required)")
+	PutConfigGroupCmd.Flags().StringVarP(&filePath, pathFlag, pathShorthandFlag, "", pathDescription)
 	PutConfigGroupCmd.MarkFlagRequired("path")
 }

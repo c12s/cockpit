@@ -44,6 +44,9 @@ var CreateRelationsCmd = &cobra.Command{
 	Short:   createRelationsShortDescription,
 	Long:    createRelationsLongDescription,
 	Run:     executeCreateRelations,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{idsFlag, kindsFlag})
+	},
 }
 
 func executeCreateRelations(cmd *cobra.Command, args []string) {

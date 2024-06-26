@@ -41,6 +41,9 @@ var AllocatedNodesCmd = &cobra.Command{
 	Short:   allocatedNodesShortDescription,
 	Long:    allocatedNodesLongDescription,
 	Run:     executeAllocatedNodes,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag})
+	},
 }
 
 func executeAllocatedNodes(cmd *cobra.Command, args []string) {

@@ -47,6 +47,9 @@ var ListConfigGroupPlacementsCmd = &cobra.Command{
 	Short:   listConfigGroupPlacementsShortDesc,
 	Long:    listConfigGroupPlacementsLongDesc,
 	Run:     executeListConfigGroupPlacements,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+	},
 }
 
 func executeListConfigGroupPlacements(cmd *cobra.Command, args []string) {

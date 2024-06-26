@@ -46,6 +46,9 @@ var DeleteNodeLabelsCmd = &cobra.Command{
 	Short:   deleteNodeLabelsShortDesc,
 	Long:    deleteNodeLabelsLongDesc,
 	Run:     executeDeleteLabel,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{nodeIdFlag, organizationFlag, keyFlag})
+	},
 }
 
 func executeDeleteLabel(cmd *cobra.Command, args []string) {

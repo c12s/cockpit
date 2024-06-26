@@ -51,6 +51,9 @@ var CreateSchemaCmd = &cobra.Command{
 	Short:   createSchemaShortDescription,
 	Long:    createSchemaLongDescription,
 	Run:     executeCreateSchema,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, schemaNameFlag, versionFlag, filePathFlag})
+	},
 }
 
 func executeCreateSchema(cmd *cobra.Command, args []string) {

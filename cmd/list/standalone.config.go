@@ -37,6 +37,9 @@ var ListStandaloneConfigCmd = &cobra.Command{
 	Short:   listStandaloneConfigShortDesc,
 	Long:    listStandaloneConfigLongDesc,
 	Run:     executeListStandaloneConfig,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag})
+	},
 }
 
 func executeListStandaloneConfig(cmd *cobra.Command, args []string) {
@@ -96,5 +99,5 @@ func init() {
 	ListStandaloneConfigCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
 	ListStandaloneConfigCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
 
-	ListStandaloneConfigCmd.MarkFlagRequired("org")
+	ListStandaloneConfigCmd.MarkFlagRequired(organizationFlag)
 }

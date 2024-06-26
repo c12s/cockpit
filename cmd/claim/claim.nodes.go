@@ -47,7 +47,10 @@ var ClaimNodesCmd = &cobra.Command{
 	Aliases: aliases.ClaimAliases,
 	Short:   claimNodesShortDescription,
 	Long:    claimNodesLongDescription,
-	Run:     executeClaimNodes,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, queryFlag})
+	},
+	Run: executeClaimNodes,
 }
 
 func executeClaimNodes(cmd *cobra.Command, args []string) {

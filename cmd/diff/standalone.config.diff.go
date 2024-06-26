@@ -38,6 +38,9 @@ var DiffStandaloneConfigCmd = &cobra.Command{
 	Short:   diffStandaloneConfigShortDesc,
 	Long:    diffStandaloneConfigLongDesc,
 	Run:     executeDiffStandaloneConfig,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, namesFlag, versionsFlag})
+	},
 }
 
 func executeDiffStandaloneConfig(cmd *cobra.Command, args []string) {

@@ -49,6 +49,9 @@ var ListConfigGroupCmd = &cobra.Command{
 	Short:   listConfigGroupShortDesc,
 	Long:    listConfigGroupLongDesc,
 	Run:     executeListConfigGroup,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag})
+	},
 }
 
 func executeListConfigGroup(cmd *cobra.Command, args []string) {

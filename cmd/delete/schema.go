@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
@@ -17,11 +18,11 @@ const (
 The user must provide the organization name, schema name, and version to delete the schema. This ensures that the specified schema version is removed from the system.
 
 Example:
-- cockpit delete schema --org 'c12s' --schema_name 'schema' --version 'v1.0.1'`
+- cockpit delete schema --org 'c12s' --schema-name 'schema' --version 'v1.0.1'`
 
 	// Flag Constants
 	organizationFlag = "org"
-	schemaNameFlag   = "schema_name"
+	schemaNameFlag   = "schema-name"
 	versionFlag      = "version"
 
 	// Flag Shorthand Constants
@@ -43,7 +44,7 @@ var (
 
 var DeleteSchemaCmd = &cobra.Command{
 	Use:     "schema",
-	Aliases: []string{"schem", "schemaa", "sch", "sche"},
+	Aliases: aliases.SchemaAliases,
 	Short:   deleteSchemaShortDesc,
 	Long:    deleteSchemaLongDesc,
 	Run:     executeDeleteSchema,

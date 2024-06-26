@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -13,19 +14,20 @@ import (
 const (
 	latestMetricsShortDesc = "Retrieve and display the latest metrics"
 	latestMetricsLongDesc  = `This command fetches the latest metrics for a specific node and displays them in a nicely formatted way.
-The user can specify the node ID to retrieve the metrics. The response can be formatted as either YAML or JSON based on user preference.
+The user can specify the node ID to retrieve the metrics. 
 
 Example:
 - cockpit get nodes metrics --node-id 'nodeID'`
 
 	// Flag Constants
 	nodeIDFlag = "node-id"
-	allFlag    = "all"
+	allFlag    = "all-services"
 	sortFlag   = "sort"
 
 	// Flag Shorthand Constants
 	nodeIDShorthandFlag = "n"
 	sortShorthandFlag   = "s"
+	allShorthandFlag    = "a"
 
 	// Flag Descriptions
 	nodeIDDescription = "Node ID (required)"
@@ -41,10 +43,11 @@ var (
 )
 
 var LatestMetricsCmd = &cobra.Command{
-	Use:   "metrics",
-	Short: latestMetricsShortDesc,
-	Long:  latestMetricsLongDesc,
-	Run:   executeLatestMetrics,
+	Use:     "metrics",
+	Aliases: aliases.MetricsAliases,
+	Short:   latestMetricsShortDesc,
+	Long:    latestMetricsLongDesc,
+	Run:     executeLatestMetrics,
 }
 
 func executeLatestMetrics(cmd *cobra.Command, args []string) {
@@ -92,7 +95,7 @@ func fetchMetrics(url string) (model.MetricResponse, error) {
 
 func init() {
 	LatestMetricsCmd.Flags().StringVarP(&nodeID, nodeIDFlag, nodeIDShorthandFlag, "", nodeIDDescription)
-	LatestMetricsCmd.Flags().BoolVarP(&all, allFlag, "a", false, allDescription)
+	LatestMetricsCmd.Flags().BoolVarP(&all, allFlag, allShorthandFlag, false, allDescription)
 	LatestMetricsCmd.Flags().StringVarP(&sortBy, sortFlag, sortShorthandFlag, "cpu", sortDescription)
 
 	LatestMetricsCmd.MarkFlagRequired(nodeIDFlag)

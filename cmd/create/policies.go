@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
@@ -23,7 +24,7 @@ Example:
 
 var CreatePoliciesCmd = &cobra.Command{
 	Use:     "policies",
-	Aliases: []string{"policie", "policiess", "pol"},
+	Aliases: aliases.PoliciesAliases,
 	Short:   createPoliciesShortDesc,
 	Long:    createPoliciesLongDesc,
 	Run:     executeCreatePolicies,

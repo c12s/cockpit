@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
@@ -16,11 +17,11 @@ const (
 Schemas define the structure of configuration data that can be used across various services and applications within the organization. This command uploads and saves the schema to the server.
 
 Example:
-- cockpit create schema --org 'org' --schema_name 'schema' --version 'v1.0.0' --path 'path to yaml or json file'`
+- cockpit create schema --org 'org' --schema-name 'schema' --version 'v1.0.0' --path 'path to yaml or json file'`
 
 	// Flag Constants
 	organizationFlag = "org"
-	schemaNameFlag   = "schema_name"
+	schemaNameFlag   = "schema-name"
 	versionFlag      = "version"
 	filePathFlag     = "path"
 
@@ -46,7 +47,7 @@ var (
 
 var CreateSchemaCmd = &cobra.Command{
 	Use:     "schema",
-	Aliases: []string{"schem", "schemaa", "sche"},
+	Aliases: aliases.SchemaAliases,
 	Short:   createSchemaShortDescription,
 	Long:    createSchemaLongDescription,
 	Run:     executeCreateSchema,

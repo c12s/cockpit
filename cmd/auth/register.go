@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
@@ -51,7 +52,7 @@ var (
 var RegisterCmd = &cobra.Command{
 	Use:     "register",
 	Short:   shortRegisterDescription,
-	Aliases: []string{"reg", "signup"},
+	Aliases: aliases.RegisterAliases,
 	Long:    longRegisterDescription,
 	Run: func(cmd *cobra.Command, args []string) {
 		password, err := utils.PromptForPassword()

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
@@ -17,10 +18,10 @@ const (
 This command allows the user to remove a label from a node by specifying the node ID, organization, and the label key. The response includes the updated node details.
 
 Example:
-- cockpit delete label --nodeId 'nodeID' --org 'org' --key 'labelKey'`
+- cockpit delete label --node-id 'nodeID' --org 'org' --key 'labelKey'`
 
 	// Flag Constants
-	nodeIdFlag = "node_id"
+	nodeIdFlag = "node-id"
 	keyFlag    = "key"
 
 	// Flag Shorthand Constants
@@ -41,7 +42,7 @@ var (
 
 var DeleteNodeLabelsCmd = &cobra.Command{
 	Use:     "label",
-	Aliases: []string{"l", "lab", "lbl"},
+	Aliases: aliases.LabelAliases,
 	Short:   deleteNodeLabelsShortDesc,
 	Long:    deleteNodeLabelsLongDesc,
 	Run:     executeDeleteLabel,

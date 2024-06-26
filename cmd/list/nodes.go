@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
@@ -30,7 +31,7 @@ var (
 
 var NodesCmd = &cobra.Command{
 	Use:     "nodes",
-	Aliases: []string{"node", "nod", "nodess"},
+	Aliases: aliases.NodesAliases,
 	Short:   nodesShortDescription,
 	Long:    nodesLongDescription,
 	Run:     executeRetrieveNodes,

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
@@ -18,11 +19,11 @@ const (
 The user can specify the organization, schema name, and version to retrieve the schema details. The response will be displayed in a tabular format and saved as a YAML file.
 
 Example:
-- cockpit get schema --org 'org' --schema_name 'schema_name' --version 'v1.0.0'`
+- cockpit get schema --org 'org' --schema-name 'schema_name' --version 'v1.0.0'`
 
 	// Flag Constants
 	organizationFlag = "org"
-	schemaNameFlag   = "schema_name"
+	schemaNameFlag   = "schema-name"
 	versionFlag      = "version"
 
 	// Flag Shorthand Constants
@@ -48,7 +49,7 @@ var (
 
 var GetSchemaCmd = &cobra.Command{
 	Use:     "schema",
-	Aliases: []string{"schem", "schemaa", "sch", "sche"},
+	Aliases: aliases.SchemaAliases,
 	Short:   getSchemaShortDesc,
 	Long:    getSchemaLongDesc,
 	Run:     executeGetSchema,

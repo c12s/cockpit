@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"os"
 	"time"
@@ -39,7 +40,7 @@ var (
 
 var CreateRelationsCmd = &cobra.Command{
 	Use:     "relations",
-	Aliases: []string{"relationss", "relation", "rel", "relate"},
+	Aliases: aliases.RelationsAliases,
 	Short:   createRelationsShortDescription,
 	Long:    createRelationsLongDescription,
 	Run:     executeCreateRelations,

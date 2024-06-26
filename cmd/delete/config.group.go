@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
@@ -41,7 +42,7 @@ var (
 
 var DeleteConfigGroupCmd = &cobra.Command{
 	Use:     "group",
-	Aliases: []string{"groupp", "grou", "grp", "gr"},
+	Aliases: aliases.GroupAliases,
 	Short:   deleteConfigGroupShortDesc,
 	Long:    deleteConfigGroupLongDesc,
 	Run:     executeDeleteConfigGroup,

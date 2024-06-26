@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
@@ -56,7 +57,7 @@ var (
 
 var DiffConfigGroupCmd = &cobra.Command{
 	Use:     "group",
-	Aliases: []string{"conf", "cnfg", "cfg"},
+	Aliases: aliases.ConfigAliases,
 	Short:   diffConfigGroupShortDesc,
 	Long:    diffConfigGroupLongDesc,
 	Run:     executeDiffConfigGroup,

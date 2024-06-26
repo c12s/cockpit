@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
@@ -20,14 +21,14 @@ The command supports different types of values: strings, boolean, and floating-p
 The input format determines the appropriate type and URL for the request.
 
 Examples:
-- cockpit put label --key 'env' --value 'production' --nodeId 'nodeId' --org 'org'
-- cockpit put label --key 'active' --value 'true' --nodeId 'nodeId' --org 'org'
-- cockpit put label --key 'cpu' --value '2.5' --nodeId 'nodeId' --org 'org'`
+- cockpit put label --key 'env' --value 'production' --node-id 'nodeId' --org 'org'
+- cockpit put label --key 'active' --value 'true' --node-id 'nodeId' --org 'org'
+- cockpit put label --key 'cpu' --value '2.5' --node-id 'nodeId' --org 'org'`
 
 	// Flag Constants
 	keyFlag          = "key"
 	valueFlag        = "value"
-	nodeIdFlag       = "node_id"
+	nodeIdFlag       = "node-id"
 	organizationFlag = "org"
 
 	// Flag Shorthand Constants
@@ -53,7 +54,7 @@ var (
 
 var LabelsCmd = &cobra.Command{
 	Use:     "label",
-	Aliases: []string{"lbl", "lab"},
+	Aliases: aliases.LabelAliases,
 	Short:   shortLabelDescription,
 	Long:    longLabelDescription,
 	Run:     executeLabelCommand,

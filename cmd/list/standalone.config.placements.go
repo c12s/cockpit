@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
@@ -28,7 +29,7 @@ var (
 
 var ListStandaloneConfigPlacementsCmd = &cobra.Command{
 	Use:     "placements",
-	Aliases: []string{"placement", "placementss"},
+	Aliases: aliases.PlacementAliases,
 	Short:   listStandaloneConfigPlacementsShortDesc,
 	Long:    listStandaloneConfigPlacementsLongDesc,
 	Run:     executeListStandaloneConfigPlacements,

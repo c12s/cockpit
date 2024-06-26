@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
@@ -36,7 +37,7 @@ Examples:
 
 var AllocatedNodesCmd = &cobra.Command{
 	Use:     "allocated",
-	Aliases: []string{"alloc"},
+	Aliases: aliases.AllocatedAliases,
 	Short:   allocatedNodesShortDescription,
 	Long:    allocatedNodesLongDescription,
 	Run:     executeAllocatedNodes,

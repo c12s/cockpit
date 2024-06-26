@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
@@ -25,7 +26,7 @@ var (
 
 var LoginCmd = &cobra.Command{
 	Use:     "login",
-	Aliases: []string{"log", "signin", "auth", "authenticate"},
+	Aliases: aliases.LoginAliases,
 	Short:   shortLoginDescription,
 	Long:    longLoginDescription,
 	Run: func(cmd *cobra.Command, args []string) {

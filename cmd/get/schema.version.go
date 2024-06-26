@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
@@ -18,7 +19,7 @@ const (
 The user can specify the organization and schema name to retrieve the list of schema versions. The response will be displayed in a tabular format and saved as a YAML file.
 
 Example:
-- cockpit get schema version --org 'org' --schema_name 'schema_name'`
+- cockpit get schema version --org 'org' --schema-name 'schema_name'`
 
 	//Path to file
 	saveSchemaVersionToFile = "response/schema/schema-version.yaml"
@@ -30,7 +31,7 @@ var (
 
 var GetSchemaVersionCmd = &cobra.Command{
 	Use:     "version",
-	Aliases: []string{"ver", "versionn"},
+	Aliases: aliases.VersionAliases,
 	Short:   getSchemaVersionShortDesc,
 	Long:    getSchemaVersionLongDesc,
 	Run:     executeGetSchemaVersion,

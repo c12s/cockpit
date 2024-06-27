@@ -27,6 +27,8 @@ func RenderResponseAsTabWriter(data interface{}) {
 		RenderConfigGroupsTabWriter(v)
 	case []model.Task:
 		RenderTasksTabWriter(v)
+	case []model.Node:
+		RenderNodesTabWriter(v)
 	default:
 		fmt.Println("Unsupported data type for tabular rendering")
 	}

@@ -5,7 +5,6 @@ import (
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/model"
-	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
 	"os"
@@ -77,9 +76,7 @@ func executeLabelCommand(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	render.RenderNode(nodeResponse.Node)
-	fmt.Println("Label added or updated successfully.")
-	println()
+	fmt.Printf("Label %s with value %s:added or updated successfully.", key, value)
 }
 
 func sendLabelRequest(input model.LabelInput, url string) error {

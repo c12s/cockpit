@@ -26,6 +26,7 @@ Examples:
 var (
 	query         string
 	org           string
+	details       bool
 	nodesResponse model.NodesResponse
 )
 
@@ -49,8 +50,11 @@ func executeRetrieveNodes(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	render.RenderNodes(nodesResponse.Nodes)
-	println()
+	if details {
+		render.RenderNodes(nodesResponse.Nodes)
+	} else {
+		render.RenderNodesTabWriter(nodesResponse.Nodes)
+	}
 }
 
 func prepareRequest(query string) (interface{}, string, error) {
@@ -80,4 +84,5 @@ func sendNodeRequest(requestBody interface{}, url string) error {
 
 func init() {
 	NodesCmd.Flags().StringVarP(&query, queryFlag, queryShorthandFlag, "", queryFlag)
+	NodesCmd.Flags().BoolVarP(&details, "details", "d", false, "Display detailed node information")
 }

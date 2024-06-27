@@ -65,7 +65,7 @@ func executeClaimNodes(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	render.RenderNodes(claimNodeResponse.Nodes)
+	render.RenderResponseAsTabWriter(claimNodeResponse.Nodes)
 	fmt.Println()
 }
 

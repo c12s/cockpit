@@ -67,7 +67,6 @@ func executeGetStandaloneConfig(cmd *cobra.Command, args []string) {
 	} else {
 		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
-	fmt.Println()
 }
 
 func prepareStandaloneRequestConfig() interface{} {

@@ -77,7 +77,6 @@ func executeCreateSchema(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println("Schema created successfully!")
-	fmt.Println()
 }
 
 func createSchemaRequest(schema string) map[string]interface{} {
@@ -116,7 +115,10 @@ func init() {
 	CreateSchemaCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
 	CreateSchemaCmd.Flags().StringVarP(&filePath, filePathFlag, filePathShorthandFlag, "", filePathDescription)
 
-	CreateSchemaCmd.MarkFlagRequired(organizationFlag)
+	err := CreateSchemaCmd.MarkFlagRequired(organizationFlag)
+	if err != nil {
+		return
+	}
 	CreateSchemaCmd.MarkFlagRequired(schemaNameFlag)
 	CreateSchemaCmd.MarkFlagRequired(versionFlag)
 	CreateSchemaCmd.MarkFlagRequired(filePathFlag)

@@ -58,8 +58,11 @@ func executeAllocatedNodes(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	render.RenderNodes(nodesResponse.Nodes)
-	println()
+	if details {
+		render.RenderNodes(nodesResponse.Nodes)
+	} else {
+		render.RenderNodesTabWriter(nodesResponse.Nodes)
+	}
 }
 
 func prepareAllocatedRequest(query string) (interface{}, string, error) {

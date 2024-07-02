@@ -262,7 +262,7 @@ Retrieve a configuration group.
     - `--output`: Output format (json, yaml).
 - **Example**:
     ```sh
-    cockpit get config group --org 'c12s' --name 'app_config' --version 'v1.0.1' -o 'json'
+    cockpit get config group --org 'c12s' --name 'app_config' --version 'v1.0.1'
     ```
 
 #### List Config Groups

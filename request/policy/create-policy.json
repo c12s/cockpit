@@ -1,0 +1,17 @@
+{
+  "objectScope": {
+    "id": "dev",
+    "kind": "namespace"
+  },
+  "permission": {
+    "condition": {
+      "expression": ""
+    },
+    "kind": "ALLOW",
+    "name": "config.get"
+  },
+  "subjectScope": {
+    "id": "my-app",
+    "kind": "app"
+  }
+}

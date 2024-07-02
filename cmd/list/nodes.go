@@ -1,112 +1,79 @@
-package list
+package cmd
 
 import (
-	"context"
+	"fmt"
+	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
+	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
-	"github.com/c12s/magnetar/pkg/api"
+	"github.com/c12s/cockpit/utils"
+	"os"
+	"time"
+
 	"github.com/spf13/cobra"
-	"strings"
 )
 
-const (
-	labelFlag      = "label"
-	labelFlagShort = "l"
+var (
+	query         string
+	org           string
+	details       bool
+	nodesResponse model.NodesResponse
 )
-
-func init() {
-	NodesCmd.Flags().StringArrayP(labelFlag, labelFlagShort, []string{}, "node query selector <key>[=|!=|>|<]<value>")
-}
 
 var NodesCmd = &cobra.Command{
-	Use:   "nodes",
-	Short: "List or query nodes",
-	Run: func(cmd *cobra.Command, args []string) {
-		selector, err := cmd.Flags().GetStringArray(labelFlag)
-		var nodes []*api.NodeStringified
-		if err != nil || len(selector) == 0 {
-			resp, err := listNodesReq()
-			if err != nil {
-				render.Error(err)
-				return
-			}
-			nodes = resp
-		} else {
-			resp, err := queryNodesReq(selector)
-			if err != nil {
-				render.Error(err)
-				return
-			}
-			nodes = resp
-		}
-		render.Nodes(nodes)
-	},
+	Use:     "nodes",
+	Aliases: aliases.NodesAliases,
+	Short:   constants.ListNodesShortDesc,
+	Long:    constants.ListNodesLongDesc,
+	Run:     executeRetrieveNodes,
 }
 
-func listNodesReq() ([]*api.NodeStringified, error) {
-	resp, err := clients.Magnetar.ListNodes(context.Background(), &api.ListNodesReq{})
+func executeRetrieveNodes(cmd *cobra.Command, args []string) {
+	requestBody, url, err := prepareRequest(query)
 	if err != nil {
-		return nil, err
+		fmt.Println("Error preparing request:", err)
+		os.Exit(1)
 	}
-	return resp.Nodes, nil
+
+	if err := sendNodeRequest(requestBody, url); err != nil {
+		fmt.Println("Error sending list nodes request:", err)
+		os.Exit(1)
+	}
+
+	if details {
+		render.RenderNodes(nodesResponse.Nodes)
+	} else {
+		render.RenderNodesTabWriter(nodesResponse.Nodes)
+	}
 }
 
-func queryNodesReq(selector []string) ([]*api.NodeStringified, error) {
-	req := &api.QueryNodesReq{
-		Queries: make([]*api.Query, 0),
+func prepareRequest(query string) (interface{}, string, error) {
+	if query == "" {
+		return nil, clients.BuildURL("core", "v1", "ListNodePool"), nil
 	}
-	for _, q := range selector {
-		op := ">"
-		split := strings.Split(q, op)
-		if len(split) == 2 {
-			query := &api.Query{
-				LabelKey: split[0],
-				ShouldBe: op,
-				Value:    split[1],
-			}
-			req.Queries = append(req.Queries, query)
-			continue
-		}
 
-		op = "<"
-		split = strings.Split(q, op)
-		if len(split) == 2 {
-			query := &api.Query{
-				LabelKey: split[0],
-				ShouldBe: op,
-				Value:    split[1],
-			}
-			req.Queries = append(req.Queries, query)
-			continue
-		}
-
-		op = "!="
-		split = strings.Split(q, op)
-		if len(split) == 2 {
-			query := &api.Query{
-				LabelKey: split[0],
-				ShouldBe: op,
-				Value:    split[1],
-			}
-			req.Queries = append(req.Queries, query)
-			continue
-		}
-
-		op = "="
-		split = strings.Split(q, op)
-		if len(split) == 2 {
-			query := &api.Query{
-				LabelKey: split[0],
-				ShouldBe: op,
-				Value:    split[1],
-			}
-			req.Queries = append(req.Queries, query)
-			continue
-		}
-	}
-	resp, err := clients.Magnetar.QueryNodes(context.Background(), req)
+	nodeQueries, err := utils.CreateNodeQuery(query)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return resp.Nodes, nil
+	requestBody := map[string][]model.NodeQuery{"query": nodeQueries}
+	url := clients.BuildURL("core", "v1", "QueryNodePool")
+	return requestBody, url, nil
+}
+
+func sendNodeRequest(requestBody interface{}, url string) error {
+	return utils.SendHTTPRequest(model.HTTPRequestConfig{
+		URL:         url,
+		Method:      "GET",
+		Headers:     map[string]string{"Content-Type": "application/json"},
+		RequestBody: requestBody,
+		Response:    &nodesResponse,
+		Timeout:     10 * time.Second,
+	})
+}
+
+func init() {
+	NodesCmd.Flags().StringVarP(&query, constants.QueryFlag, constants.QueryFlagShorthandFlag, "", constants.NodeQueryDescription)
+	NodesCmd.Flags().BoolVarP(&details, "details", "d", false, "Display detailed node information")
 }

@@ -16,3 +16,12 @@
 
 # binary
 cockpit
+
+# txt files
+token.txt
+
+#.idea files
+.idea
+
+#files
+response/

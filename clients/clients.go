@@ -1,44 +1,44 @@
 package clients
 
 import (
-	kuiperapi "github.com/c12s/kuiper/pkg/api"
-	magnetarapi "github.com/c12s/magnetar/pkg/api"
-	oortapi "github.com/c12s/oort/pkg/api"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"fmt"
+	"github.com/c12s/cockpit/config"
+	"github.com/c12s/cockpit/utils"
 	"log"
+	"os"
 )
 
-var Magnetar magnetarapi.MagnetarClient
-var Kuiper kuiperapi.KuiperClient
-var OortAdministrator oortapi.OortAdministratorClient
+var cfg *config.Config
 
 func Init() {
-	Magnetar = newMagnetar("localhost:5000")
-	Kuiper = newKuiper("localhost:9001")
-	OortAdministrator = newOortAdministrator("localhost:8000")
+	err := utils.LoadEnvFile(".env")
+	if err != nil {
+		fmt.Println("Error loading .env file:", err)
+		os.Exit(1)
+	}
+
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		fmt.Println("CONFIG_PATH is not set in the .env file")
+		os.Exit(1)
+	}
+
+	cfg, err = config.LoadConfig(configPath)
+	if err != nil {
+		fmt.Println("Failed to load configuration:", err)
+		os.Exit(1)
+	}
 }
 
-func newMagnetar(address string) magnetarapi.MagnetarClient {
-	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return magnetarapi.NewMagnetarClient(conn)
-}
+func BuildURL(group, version, action string) string {
+	gateway := fmt.Sprintf("http://%s:%s", "localhost", cfg.Gateway.Port)
 
-func newKuiper(address string) kuiperapi.KuiperClient {
-	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalln(err)
+	methodConfig, ok := cfg.Groups[group][version][action]
+	if !ok {
+		log.Fatalf("Configuration for %s/%s/%s not found", group, version, action)
 	}
-	return kuiperapi.NewKuiperClient(conn)
-}
 
-func newOortAdministrator(address string) oortapi.OortAdministratorClient {
-	conn, err := grpc.Dial(address, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		log.Fatalln(err)
-	}
-	return oortapi.NewOortAdministratorClient(conn)
+	fullMethodRoute := fmt.Sprintf("%s/%s/%s%s", cfg.Gateway.Route, group, version, methodConfig.MethodRoute)
+
+	return fmt.Sprintf("%s%s", gateway, fullMethodRoute)
 }

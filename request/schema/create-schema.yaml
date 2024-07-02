@@ -1,0 +1,16 @@
+name: app_config
+organization: c12s
+type: object
+properties:
+  db_config:
+    type: object
+    properties:
+      address:
+        type: string
+      port:
+        type: string
+    required:
+      - address
+      - port
+required:
+  - db_config

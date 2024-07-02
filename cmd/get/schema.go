@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -11,33 +12,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-)
-
-const (
-	getSchemaShortDesc = "Retrieve and display the schema"
-	getSchemaLongDesc  = `This command retrieves the schema from a specified organization and specific version, displays it in a nicely formatted way, and saves it to a YAML file.
-The user can specify the organization, schema name, and version to retrieve the schema details. The response will be displayed in a tabular format and saved as a YAML file.
-
-Example:
-- cockpit get schema --org 'org' --schema-name 'schema_name' --version 'v1.0.0'`
-
-	// Flag Constants
-	organizationFlag = "org"
-	schemaNameFlag   = "schema-name"
-	versionFlag      = "version"
-
-	// Flag Shorthand Constants
-	organizationShorthandFlag = "r"
-	schemaNameShorthandFlag   = "s"
-	versionShorthandFlag      = "v"
-
-	// Flag Descriptions
-	organizationDescription = "Organization name (required)"
-	schemaNameDescription   = "Schema name (required)"
-	versionDescription      = "Schema version (required)"
-
-	//Path to file
-	getSchemaFilePath = "response/schema/schema.yaml"
 )
 
 var (
@@ -50,11 +24,11 @@ var (
 var GetSchemaCmd = &cobra.Command{
 	Use:     "schema",
 	Aliases: aliases.SchemaAliases,
-	Short:   getSchemaShortDesc,
-	Long:    getSchemaLongDesc,
+	Short:   constants.GetSchemaShortDesc,
+	Long:    constants.GetSchemaLongDesc,
 	Run:     executeGetSchema,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, schemaNameFlag, versionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.SchemaNameFlag, constants.VersionFlag})
 	},
 }
 
@@ -67,7 +41,7 @@ func executeGetSchema(cmd *cobra.Command, args []string) {
 	}
 
 	render.DisplayResponseAsJSONOrYAML(schemaResponse.SchemaData, "yaml", "")
-	if err := utils.SaveSchemaResponseToYAML(&schemaResponse, getSchemaFilePath); err != nil {
+	if err := utils.SaveSchemaResponseToYAML(&schemaResponse, constants.GetSchemaFilePathYAML); err != nil {
 		fmt.Printf("Failed to save response to YAML file: %v\n", err)
 		os.Exit(1)
 	}
@@ -104,11 +78,11 @@ func sendSchemaRequest(requestBody interface{}) error {
 }
 
 func init() {
-	GetSchemaCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	GetSchemaCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameShorthandFlag, "", schemaNameDescription)
-	GetSchemaCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	GetSchemaCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	GetSchemaCmd.Flags().StringVarP(&schemaName, constants.SchemaNameFlag, constants.SchemaNameShorthandFlag, "", constants.SchemaNameDescription)
+	GetSchemaCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
 
-	GetSchemaCmd.MarkFlagRequired(organizationFlag)
-	GetSchemaCmd.MarkFlagRequired(schemaNameFlag)
-	GetSchemaCmd.MarkFlagRequired(versionFlag)
+	GetSchemaCmd.MarkFlagRequired(constants.OrganizationFlag)
+	GetSchemaCmd.MarkFlagRequired(constants.SchemaNameFlag)
+	GetSchemaCmd.MarkFlagRequired(constants.VersionFlag)
 }

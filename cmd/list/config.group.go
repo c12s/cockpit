@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -11,30 +12,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-)
-
-const (
-	listConfigGroupShortDesc = "Retrieve and display the configuration groups"
-	listConfigGroupLongDesc  = `This command retrieves all configuration groups from a specified organization,
-displays them in a nicely formatted way, and saves them to both YAML and JSON files.
-You can choose the output format by specifying either 'yaml' or 'json'.
-
-Examples:
-- cockpit list config group --organization 'org' --output 'json'
-- cockpit list config group --organization 'org' --output 'yaml'`
-
-	// Flag Constants
-	outputFlag = "output"
-
-	// Flag Shorthand Constants
-	outputShorthandFlag = "o"
-
-	// Flag Descriptions
-	outputDescription = "Output format (yaml or json)"
-
-	// Path to files
-	listConfigFilePathJSON = "./response/config-group/list-config.json"
-	listConfigFilePathYAML = "./response/config-group/list-config.yaml"
 )
 
 var (
@@ -46,11 +23,11 @@ var (
 var ListConfigGroupCmd = &cobra.Command{
 	Use:     "group",
 	Aliases: aliases.GroupAliases,
-	Short:   listConfigGroupShortDesc,
-	Long:    listConfigGroupLongDesc,
+	Short:   constants.ListStandaloneConfigShortDesc,
+	Long:    constants.ListStandaloneConfigLongDesc,
 	Run:     executeListConfigGroup,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag})
 	},
 }
 
@@ -68,9 +45,9 @@ func executeListConfigGroup(cmd *cobra.Command, args []string) {
 	} else if outputFormat == "yaml" || outputFormat == "json" {
 		render.DisplayResponseAsJSONOrYAML(&configGroupResponse, outputFormat, "")
 
-		filePath := listConfigFilePathYAML
+		filePath := constants.ListConfigGroupFilePathYAML
 		if outputFormat == "json" {
-			filePath = listConfigFilePathJSON
+			filePath = constants.ListConfigGroupFilePathJSON
 		}
 
 		if err := utils.SaveYAMLOrJSONResponseToFile(&configGroupResponse, filePath); err != nil {
@@ -81,7 +58,6 @@ func executeListConfigGroup(cmd *cobra.Command, args []string) {
 	} else {
 		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
-	fmt.Println()
 }
 
 func createListRequestConfig() model.HTTPRequestConfig {
@@ -108,8 +84,8 @@ func createListRequestConfig() model.HTTPRequestConfig {
 }
 
 func init() {
-	ListConfigGroupCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	ListConfigGroupCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
+	ListConfigGroupCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	ListConfigGroupCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
 
-	ListConfigGroupCmd.MarkFlagRequired(organizationFlag)
+	ListConfigGroupCmd.MarkFlagRequired(constants.OrganizationFlag)
 }

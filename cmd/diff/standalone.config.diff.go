@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -13,21 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	diffStandaloneConfigShortDesc = "Compare two standalone configurations"
-	diffStandaloneConfigLongDesc  = `This command compares two standalone configurations specified by their names and versions, displays the differences in a nicely formatted way, and saves them to both YAML and JSON files.
-The user can specify the organization, names, and versions of the two standalone configurations to be compared. The differences between the configurations will be highlighted and saved in the specified format.
-
-Example:
-- cockpit diff standalone config --org 'org' --names 'db_config|db_config' --versions 'v1.0.0|v1.0.1'
-- cockpit diff standalone config --org 'org' --names 'db_config' --versions 'v1.0.0|v1.0.1'
-- cockpit diff standalone config --org 'org' --names 'db_config|db_config' --versions 'v1.0.0`
-
-	// Path to files
-	diffStandaloneFilePathJSON = "./response/standalone-config/standalone-config-diff.json"
-	diffStandaloneFilePathYAML = "./response/standalone-config/standalone-config-diff.yaml"
-)
-
 var (
 	standaloneConfigDiffResponse model.StandaloneConfigDiffResponse
 )
@@ -35,11 +21,11 @@ var (
 var DiffStandaloneConfigCmd = &cobra.Command{
 	Use:     "config",
 	Aliases: aliases.GroupAliases,
-	Short:   diffStandaloneConfigShortDesc,
-	Long:    diffStandaloneConfigLongDesc,
+	Short:   constants.DiffStandaloneConfigShortDesc,
+	Long:    constants.DiffStandaloneConfigLongDesc,
 	Run:     executeDiffStandaloneConfig,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, namesFlag, versionsFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NamesFlag, constants.VersionsFlag})
 	},
 }
 
@@ -60,9 +46,9 @@ func executeDiffStandaloneConfig(cmd *cobra.Command, args []string) {
 	} else if outputFormat == "yaml" || outputFormat == "json" {
 		render.DisplayResponseAsJSONOrYAML(&standaloneConfigDiffResponse, outputFormat, "")
 
-		filePath := diffStandaloneFilePathYAML
+		filePath := constants.DiffStandaloneConfigFilePathYAML
 		if outputFormat == "json" {
-			filePath = diffStandaloneFilePathJSON
+			filePath = constants.DiffStandaloneConfigFilePathJSON
 		}
 
 		if err := utils.SaveYAMLOrJSONResponseToFile(&standaloneConfigDiffResponse, filePath); err != nil {
@@ -73,7 +59,6 @@ func executeDiffStandaloneConfig(cmd *cobra.Command, args []string) {
 	} else {
 		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
-	fmt.Println()
 }
 
 func sendStandaloneDiffRequest(requestBody interface{}) error {
@@ -101,12 +86,12 @@ func sendStandaloneDiffRequest(requestBody interface{}) error {
 }
 
 func init() {
-	DiffStandaloneConfigCmd.Flags().StringVarP(&organization, organizationFlag, orgShorthandFlag, "", orgDescription)
-	DiffStandaloneConfigCmd.Flags().StringVarP(&names, namesFlag, namesShorthandFlag, "", namesDescription)
-	DiffStandaloneConfigCmd.Flags().StringVarP(&versions, versionsFlag, versionShorthandFlag, "", versionsDescription)
-	DiffStandaloneConfigCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
+	DiffStandaloneConfigCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	DiffStandaloneConfigCmd.Flags().StringVarP(&names, constants.NamesFlag, constants.NamesShorthandFlag, "", constants.ConfigDiffNamesDescription)
+	DiffStandaloneConfigCmd.Flags().StringVarP(&versions, constants.VersionsFlag, constants.VersionsShorthandFlag, "", constants.ConfigDiffVersionsDescription)
+	DiffStandaloneConfigCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
 
-	DiffStandaloneConfigCmd.MarkFlagRequired(organizationFlag)
-	DiffStandaloneConfigCmd.MarkFlagRequired(namesFlag)
-	DiffStandaloneConfigCmd.MarkFlagRequired(versionsFlag)
+	DiffStandaloneConfigCmd.MarkFlagRequired(constants.OrganizationFlag)
+	DiffStandaloneConfigCmd.MarkFlagRequired(constants.NamesFlag)
+	DiffStandaloneConfigCmd.MarkFlagRequired(constants.VersionsFlag)
 }

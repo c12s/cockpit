@@ -28,6 +28,7 @@ func SaveSchemaResponseToYAML(response *model.SchemaResponse, filePath string) e
 
 func SaveVersionResponseToYAML(response *model.SchemaVersionResponse, filePath string) error {
 	if len(response.SchemaVersions) != 0 {
+		println()
 		yamlData, err := MarshalSchemaVersionResponse(response)
 		if err != nil {
 			return fmt.Errorf("failed to convert to YAML: %v", err)

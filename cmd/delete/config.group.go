@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -11,27 +12,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-)
-
-const (
-	deleteConfigGroupShortDesc = "Delete a configuration group version"
-	deleteConfigGroupLongDesc  = `This command deletes a specified configuration group version and displays the deleted configuration group details in JSON or YAML format.
-The user can specify the organization, the configuration group name, and the version to be deleted. The output can be formatted as either JSON or YAML based on user preference.
-
-Example:
-- cockpit delete config group --org 'org' --name 'app_config' --version 'v1.0.0'`
-
-	// Flag Constants
-	nameFlag   = "name"
-	outputFlag = "output"
-
-	// Flag Shorthand Constants
-	nameShorthandFlag   = "n"
-	outputShorthandFlag = "o"
-
-	// Flag Descriptions
-	nameDescription   = "Configuration group name (required)"
-	outputDescription = "Output format (json or yaml)"
 )
 
 var (
@@ -43,11 +23,11 @@ var (
 var DeleteConfigGroupCmd = &cobra.Command{
 	Use:     "group",
 	Aliases: aliases.GroupAliases,
-	Short:   deleteConfigGroupShortDesc,
-	Long:    deleteConfigGroupLongDesc,
+	Short:   constants.DeleteConfigGroupShortDesc,
+	Long:    constants.DeleteConfigGroupLongDesc,
 	Run:     executeDeleteConfigGroup,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -69,7 +49,6 @@ func executeDeleteConfigGroup(cmd *cobra.Command, args []string) {
 	} else {
 		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
-	fmt.Println()
 }
 
 func prepareDeleteConfigGroupRequest() interface{} {
@@ -101,12 +80,12 @@ func sendDeleteConfigGroupRequest(requestBody interface{}) model.HTTPRequestConf
 }
 
 func init() {
-	DeleteConfigGroupCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	DeleteConfigGroupCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
-	DeleteConfigGroupCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
-	DeleteConfigGroupCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
 
-	DeleteConfigGroupCmd.MarkFlagRequired(organizationFlag)
-	DeleteConfigGroupCmd.MarkFlagRequired(nameFlag)
-	DeleteConfigGroupCmd.MarkFlagRequired(versionFlag)
+	DeleteConfigGroupCmd.MarkFlagRequired(constants.OrganizationFlag)
+	DeleteConfigGroupCmd.MarkFlagRequired(constants.NameFlag)
+	DeleteConfigGroupCmd.MarkFlagRequired(constants.VersionFlag)
 }

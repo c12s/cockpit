@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -11,28 +12,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-)
-
-const (
-	listConfigGroupPlacementsShortDesc = "Retrieve and display the configuration group placements"
-	listConfigGroupPlacementsLongDesc  = `This command retrieves all configuration group placements from a specified organization,
-displays them in a nicely formatted way, and allows you to see the placements in detail.
-
-Examples:
-- cockpit list config group placements --org 'org' --name 'app_config' --version 'v1.0.0'
-- cockpit list config group placements --org 'org' --name 'db_config' --version 'v2.0.0'`
-
-	// Flag Constants
-	nameFlag    = "name"
-	versionFlag = "version"
-
-	// Flag Shorthand Constants
-	nameShorthandFlag    = "n"
-	versionShorthandFlag = "v"
-
-	// Flag Descriptions
-	nameDescription    = "Configuration group name (required)"
-	versionDescription = "Configuration group version (required)"
 )
 
 var (
@@ -44,11 +23,11 @@ var (
 var ListConfigGroupPlacementsCmd = &cobra.Command{
 	Use:     "placements",
 	Aliases: aliases.PlacementAliases,
-	Short:   listConfigGroupPlacementsShortDesc,
-	Long:    listConfigGroupPlacementsLongDesc,
+	Short:   constants.ListConfigGroupPlacementsShortDesc,
+	Long:    constants.ListConfigGroupPlacementsLongDesc,
 	Run:     executeListConfigGroupPlacements,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -61,7 +40,6 @@ func executeListConfigGroupPlacements(cmd *cobra.Command, args []string) {
 	}
 
 	render.RenderResponseAsTabWriter(groupConfigPlacementsResponse.Tasks)
-	println()
 }
 
 func preparePlacementsRequestConfig() interface{} {
@@ -93,11 +71,11 @@ func sendPlacementsRequest(requestBody interface{}) error {
 }
 
 func init() {
-	ListConfigGroupPlacementsCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	ListConfigGroupPlacementsCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
-	ListConfigGroupPlacementsCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	ListConfigGroupPlacementsCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	ListConfigGroupPlacementsCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
+	ListConfigGroupPlacementsCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
 
-	ListConfigGroupPlacementsCmd.MarkFlagRequired(organizationFlag)
-	ListConfigGroupPlacementsCmd.MarkFlagRequired(nameFlag)
-	ListConfigGroupPlacementsCmd.MarkFlagRequired(versionFlag)
+	ListConfigGroupPlacementsCmd.MarkFlagRequired(constants.OrganizationFlag)
+	ListConfigGroupPlacementsCmd.MarkFlagRequired(constants.NameFlag)
+	ListConfigGroupPlacementsCmd.MarkFlagRequired(constants.VersionFlag)
 }

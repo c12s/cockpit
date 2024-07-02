@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -14,25 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	placeConfigGroupPlacementsShortDesc = "Place configuration group placements"
-	placeConfigGroupPlacementsLongDesc  = `This command places configuration group placements based on the input file.
-The input file should be in either YAML or JSON format, containing the details of the configuration group placements.
-It reads the file, processes the placements, and applies them accordingly.
-
-Example:
-- cockpit place config group placements --path 'path to yaml or json file'`
-
-	// Flag Constants
-	pathFlag = "path"
-
-	// Flag Shorthand Constants
-	pathShorthandFlag = "p"
-
-	// Flag Descriptions
-	pathDescription = "Path to the input YAML or JSON file (required)"
-)
-
 var (
 	path                          string
 	groupConfigPlacementsResponse model.ConfigGroupPlacementsResponse
@@ -41,11 +23,11 @@ var (
 var PlaceConfigGroupPlacementsCmd = &cobra.Command{
 	Use:     "group",
 	Aliases: aliases.GroupAliases,
-	Short:   placeConfigGroupPlacementsShortDesc,
-	Long:    placeConfigGroupPlacementsLongDesc,
+	Short:   constants.PlaceConfigGroupPlacementsShortDesc,
+	Long:    constants.PlaceConfigGroupPlacementsLongDesc,
 	Run:     executePlaceConfigGroupPlacements,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{pathFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.FilePathFlag})
 	},
 }
 
@@ -62,7 +44,6 @@ func executePlaceConfigGroupPlacements(cmd *cobra.Command, args []string) {
 	}
 
 	render.RenderResponseAsTabWriter(groupConfigPlacementsResponse.Tasks)
-	println()
 }
 
 func preparePlacementsRequestConfig() (interface{}, error) {
@@ -102,6 +83,6 @@ func sendPlacementsRequest(requestBody interface{}) error {
 }
 
 func init() {
-	PlaceConfigGroupPlacementsCmd.Flags().StringVarP(&path, pathFlag, pathShorthandFlag, "", pathDescription)
-	PlaceConfigGroupPlacementsCmd.MarkFlagRequired(pathFlag)
+	PlaceConfigGroupPlacementsCmd.Flags().StringVarP(&path, constants.FilePathFlag, constants.FilePathShorthandFlag, "", constants.FilePathDescription)
+	PlaceConfigGroupPlacementsCmd.MarkFlagRequired(constants.FilePathFlag)
 }

@@ -4,33 +4,13 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"os"
 	"time"
 
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-)
-
-const (
-	createRelationsShortDescription = "Create relations between entities"
-	createRelationsLongDescription  = `This command creates relations between entities specified by their IDs and kinds.
-Relations help to establish a hierarchical or dependency structure between different entities within the organization. This can include relationships between organizations, namespaces, and other resources.
-
-Example:
-- cockpit create relations --ids 'myOrg|dev' --kinds 'org|namespace'`
-
-	// Flag Constants
-	idsFlag   = "ids"
-	kindsFlag = "kinds"
-
-	// Flag Shorthand Constants
-	idsShorthandFlag   = "i"
-	kindsShorthandFlag = "k"
-
-	// Flag Descriptions
-	idsDescription   = "IDs of the entities separated by '|' (required)"
-	kindsDescription = "Kinds of the entities separated by '|' (required)"
 )
 
 var (
@@ -41,11 +21,11 @@ var (
 var CreateRelationsCmd = &cobra.Command{
 	Use:     "relations",
 	Aliases: aliases.RelationsAliases,
-	Short:   createRelationsShortDescription,
-	Long:    createRelationsLongDescription,
+	Short:   constants.CreateRelationsShortDesc,
+	Long:    constants.CreateRelationsLongDesc,
 	Run:     executeCreateRelations,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{idsFlag, kindsFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.IdsFlag, constants.KindsFlag})
 	},
 }
 
@@ -66,7 +46,6 @@ func executeCreateRelations(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	fmt.Println("Relations created successfully")
-	fmt.Println()
 }
 
 func sendCreateRelationsRequest(relation model.Relation) error {
@@ -102,9 +81,9 @@ func prepareRelationsRequestConfig(relation model.Relation) (model.HTTPRequestCo
 }
 
 func init() {
-	CreateRelationsCmd.Flags().StringVarP(&ids, idsFlag, idsShorthandFlag, "", idsDescription)
-	CreateRelationsCmd.Flags().StringVarP(&kinds, kindsFlag, kindsShorthandFlag, "", kindsDescription)
+	CreateRelationsCmd.Flags().StringVarP(&ids, constants.IdsFlag, constants.IdsShorthandFlag, "", constants.IdsDescription)
+	CreateRelationsCmd.Flags().StringVarP(&kinds, constants.KindsFlag, constants.KindsShorthandFlag, "", constants.KindsDescription)
 
-	CreateRelationsCmd.MarkFlagRequired(idsFlag)
-	CreateRelationsCmd.MarkFlagRequired(kindsFlag)
+	CreateRelationsCmd.MarkFlagRequired(constants.IdsFlag)
+	CreateRelationsCmd.MarkFlagRequired(constants.KindsFlag)
 }

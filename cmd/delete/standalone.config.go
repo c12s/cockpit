@@ -4,22 +4,13 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
+	"github.com/spf13/cobra"
 	"os"
 	"time"
-
-	"github.com/spf13/cobra"
-)
-
-const (
-	deleteStandaloneConfigShortDesc = "Delete a standalone configuration version"
-	deleteStandaloneConfigLongDesc  = `This command deletes a specified standalone configuration version and displays the deleted configuration details in JSON format.
-The user can specify the organization, standalone configuration name, and version to delete the configuration. The output can be formatted as either JSON or YAML based on user preference.
-
-Example:
-- cockpit delete standalone config --org 'c12s' --name 'db_config' --version 'v1.0.1'`
 )
 
 var (
@@ -29,11 +20,11 @@ var (
 var DeleteStandaloneConfigCmd = &cobra.Command{
 	Use:     "config",
 	Aliases: aliases.ConfigAliases,
-	Short:   deleteStandaloneConfigShortDesc,
-	Long:    deleteStandaloneConfigLongDesc,
+	Short:   constants.DeleteStandaloneConfigShortDesc,
+	Long:    constants.DeleteStandaloneConfigLongDesc,
 	Run:     executeDeleteStandaloneConfig,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -55,7 +46,6 @@ func executeDeleteStandaloneConfig(cmd *cobra.Command, args []string) {
 	} else {
 		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
-	fmt.Println()
 }
 
 func prepareDeleteStandaloneConfigRequestConfig() model.SingleConfigReference {
@@ -87,12 +77,12 @@ func sendDeleteStandaloneConfigRequestConfig(requestBody interface{}) model.HTTP
 }
 
 func init() {
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
-	DeleteStandaloneConfigCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
 
-	DeleteStandaloneConfigCmd.MarkFlagRequired(organizationFlag)
-	DeleteStandaloneConfigCmd.MarkFlagRequired(nameFlag)
-	DeleteStandaloneConfigCmd.MarkFlagRequired(versionFlag)
+	DeleteStandaloneConfigCmd.MarkFlagRequired(constants.OrganizationFlag)
+	DeleteStandaloneConfigCmd.MarkFlagRequired(constants.NameFlag)
+	DeleteStandaloneConfigCmd.MarkFlagRequired(constants.VersionFlag)
 }

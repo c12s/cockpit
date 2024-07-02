@@ -4,33 +4,12 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
-	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
 	"os"
 	"time"
-)
-
-const (
-	deleteNodeLabelsShortDesc = "Delete a label from a node"
-	deleteNodeLabelsLongDesc  = `Delete a specific label from a node using its key.
-This command allows the user to remove a label from a node by specifying the node ID, organization, and the label key. The response includes the updated node details.
-
-Example:
-- cockpit delete label --node-id 'nodeID' --org 'org' --key 'labelKey'`
-
-	// Flag Constants
-	nodeIdFlag = "node-id"
-	keyFlag    = "key"
-
-	// Flag Shorthand Constants
-	flagShorthandFlag = "n"
-	keyShorthandFlag  = "k"
-
-	// Flag Descriptions
-	nodeIdDescription = "Node ID (required)"
-	keyDescription    = "Label key (required)"
 )
 
 var (
@@ -43,11 +22,11 @@ var (
 var DeleteNodeLabelsCmd = &cobra.Command{
 	Use:     "label",
 	Aliases: aliases.LabelAliases,
-	Short:   deleteNodeLabelsShortDesc,
-	Long:    deleteNodeLabelsLongDesc,
+	Short:   constants.DeleteNodeLabelsShortDesc,
+	Long:    constants.DeleteNodeLabelsLongDesc,
 	Run:     executeDeleteLabel,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{nodeIdFlag, organizationFlag, keyFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NodeIdFlag, constants.OrganizationFlag, constants.KeyFlag})
 	},
 }
 
@@ -59,10 +38,7 @@ func executeDeleteLabel(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	render.RenderNode(nodeResponse.Node)
-	println()
-	fmt.Println("Label deleted successfully.")
-	println()
+	fmt.Printf("Label %s deleted successfully.\n", key)
 }
 
 func prepareLabelRequest() model.DeleteLabelInput {
@@ -95,11 +71,11 @@ func sendDeleteLabelRequest() error {
 }
 
 func init() {
-	DeleteNodeLabelsCmd.Flags().StringVarP(&nodeId, nodeIdFlag, flagShorthandFlag, "", nodeIdDescription)
-	DeleteNodeLabelsCmd.Flags().StringVarP(&org, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	DeleteNodeLabelsCmd.Flags().StringVarP(&key, keyFlag, keyShorthandFlag, "", keyDescription)
+	DeleteNodeLabelsCmd.Flags().StringVarP(&nodeId, constants.NodeIdFlag, constants.NodeIdShorthandFlag, "", constants.NodeIdDescription)
+	DeleteNodeLabelsCmd.Flags().StringVarP(&org, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	DeleteNodeLabelsCmd.Flags().StringVarP(&key, constants.KeyFlag, constants.KeyShorthandFlag, "", constants.LabelKeyDescription)
 
-	DeleteNodeLabelsCmd.MarkFlagRequired(nodeIdFlag)
-	DeleteNodeLabelsCmd.MarkFlagRequired(organizationFlag)
-	DeleteNodeLabelsCmd.MarkFlagRequired(keyFlag)
+	DeleteNodeLabelsCmd.MarkFlagRequired(constants.NodeIdFlag)
+	DeleteNodeLabelsCmd.MarkFlagRequired(constants.OrganizationFlag)
+	DeleteNodeLabelsCmd.MarkFlagRequired(constants.KeyFlag)
 }

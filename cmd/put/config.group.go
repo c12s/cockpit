@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -11,24 +12,6 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-)
-
-const (
-	putConfigGroupShortDesc = "Send a configuration group to the server"
-	putConfigGroupLongDesc  = `This command sends a configuration group read from a file (JSON or YAML) to the server.
-It processes the file and uploads the configuration group, displaying the server's response in the same format as the input file.
-
-Example:
-- cockpit put config group --path 'path to yaml or JSON file'`
-
-	// Flag Constants
-	pathFlag = "path"
-
-	// Flag Shorthand Constants
-	pathShorthandFlag = "p"
-
-	// Flag Descriptions
-	pathDescription = "Path to the input YAML or JSON file (required)"
 )
 
 var (
@@ -39,11 +22,11 @@ var (
 var PutConfigGroupCmd = &cobra.Command{
 	Use:     "group",
 	Aliases: aliases.GroupAliases,
-	Short:   putConfigGroupShortDesc,
-	Long:    putConfigGroupLongDesc,
+	Short:   constants.PutConfigGroupShortDesc,
+	Long:    constants.PutConfigGroupLongDesc,
 	Run:     executePutConfigGroup,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{pathFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.FilePathFlag})
 	},
 }
 
@@ -60,7 +43,6 @@ func executePutConfigGroup(cmd *cobra.Command, args []string) {
 	}
 
 	render.RenderResponseAsTabWriter(configGroupPutResponse)
-	println()
 }
 
 func sendConfigGroupData(requestBody interface{}) error {
@@ -82,6 +64,6 @@ func sendConfigGroupData(requestBody interface{}) error {
 }
 
 func init() {
-	PutConfigGroupCmd.Flags().StringVarP(&filePath, pathFlag, pathShorthandFlag, "", pathDescription)
-	PutConfigGroupCmd.MarkFlagRequired("path")
+	PutConfigGroupCmd.Flags().StringVarP(&filePath, constants.FilePathFlag, constants.FilePathShorthandFlag, "", constants.FilePathDescription)
+	PutConfigGroupCmd.MarkFlagRequired(constants.FilePathFlag)
 }

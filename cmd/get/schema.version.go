@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -13,18 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	getSchemaVersionShortDesc = "Retrieve and display schema versions"
-	getSchemaVersionLongDesc  = `This command retrieves schema versions for a specific schema, displays them in a nicely formatted way, and saves them to a YAML file.
-The user can specify the organization and schema name to retrieve the list of schema versions. The response will be displayed in a tabular format and saved as a YAML file.
-
-Example:
-- cockpit get schema version --org 'org' --schema-name 'schema_name'`
-
-	//Path to file
-	saveSchemaVersionToFile = "response/schema/schema-version.yaml"
-)
-
 var (
 	schemaVersionResponse model.SchemaVersionResponse
 )
@@ -32,11 +21,11 @@ var (
 var GetSchemaVersionCmd = &cobra.Command{
 	Use:     "version",
 	Aliases: aliases.VersionAliases,
-	Short:   getSchemaVersionShortDesc,
-	Long:    getSchemaVersionLongDesc,
+	Short:   constants.GetSchemaVersionShortDesc,
+	Long:    constants.GetSchemaVersionLongDesc,
 	Run:     executeGetSchemaVersion,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, schemaNameFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.SchemaNameFlag})
 	},
 }
 
@@ -53,8 +42,7 @@ func executeGetSchemaVersion(cmd *cobra.Command, args []string) {
 	}
 
 	render.RenderSchemaVersionsTabWriter(schemaVersionResponse.SchemaVersions)
-	println()
-	if err := utils.SaveVersionResponseToYAML(&schemaVersionResponse, saveSchemaVersionToFile); err != nil {
+	if err := utils.SaveVersionResponseToYAML(&schemaVersionResponse, constants.GetSchemaVersionFilePathYAML); err != nil {
 		fmt.Printf("Failed to save response to YAML file: %v\n", err)
 		os.Exit(1)
 	}
@@ -90,9 +78,9 @@ func sendSchemaVersionRequest(requestBody interface{}) error {
 }
 
 func init() {
-	GetSchemaVersionCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	GetSchemaVersionCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameShorthandFlag, "", schemaNameDescription)
+	GetSchemaVersionCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	GetSchemaVersionCmd.Flags().StringVarP(&schemaName, constants.SchemaNameFlag, constants.SchemaNameShorthandFlag, "", constants.SchemaNameDescription)
 
-	GetSchemaVersionCmd.MarkFlagRequired(organizationFlag)
-	GetSchemaVersionCmd.MarkFlagRequired(schemaNameFlag)
+	GetSchemaVersionCmd.MarkFlagRequired(constants.OrganizationFlag)
+	GetSchemaVersionCmd.MarkFlagRequired(constants.SchemaNameFlag)
 }

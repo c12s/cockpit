@@ -4,38 +4,12 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
 	"os"
 	"time"
-)
-
-const (
-	createSchemaShortDescription = "Create a schema for an organization"
-	createSchemaLongDescription  = `Creates a schema for an organization by providing schema details and the path to a YAML or JSON file containing the schema definition.
-Schemas define the structure of configuration data that can be used across various services and applications within the organization. This command uploads and saves the schema to the server.
-
-Example:
-- cockpit create schema --org 'org' --schema-name 'schema' --version 'v1.0.0' --path 'path to yaml or json file'`
-
-	// Flag Constants
-	organizationFlag = "org"
-	schemaNameFlag   = "schema-name"
-	versionFlag      = "version"
-	filePathFlag     = "path"
-
-	// Flag Shorthand Constants
-	organizationShorthandFlag = "r"
-	schemaNameShorthandFlag   = "s"
-	versionShorthandFlag      = "v"
-	filePathShorthandFlag     = "p"
-
-	// Flag Descriptions
-	organizationDescription = "Organization name (required)"
-	schemaNameDescription   = "Schema name (required)"
-	versionDescription      = "Schema version (required)"
-	filePathDescription     = "Path to the YAML file containing the schema definition (required)"
 )
 
 var (
@@ -48,11 +22,11 @@ var (
 var CreateSchemaCmd = &cobra.Command{
 	Use:     "schema",
 	Aliases: aliases.SchemaAliases,
-	Short:   createSchemaShortDescription,
-	Long:    createSchemaLongDescription,
+	Short:   constants.CreateSchemaShortDesc,
+	Long:    constants.CreateSchemaLongDesc,
 	Run:     executeCreateSchema,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, schemaNameFlag, versionFlag, filePathFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.SchemaNameFlag, constants.VersionFlag, constants.FilePathFlag})
 	},
 }
 
@@ -110,16 +84,12 @@ func prepareSchemaRequest(requestBody map[string]interface{}) (model.HTTPRequest
 }
 
 func init() {
-	CreateSchemaCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	CreateSchemaCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameShorthandFlag, "", schemaNameDescription)
-	CreateSchemaCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
-	CreateSchemaCmd.Flags().StringVarP(&filePath, filePathFlag, filePathShorthandFlag, "", filePathDescription)
+	CreateSchemaCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	CreateSchemaCmd.Flags().StringVarP(&schemaName, constants.SchemaNameFlag, constants.SchemaNameShorthandFlag, "", constants.SchemaNameDescription)
+	CreateSchemaCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
+	CreateSchemaCmd.Flags().StringVarP(&filePath, constants.FilePathFlag, constants.FilePathShorthandFlag, "", constants.FilePathDescription)
 
-	err := CreateSchemaCmd.MarkFlagRequired(organizationFlag)
-	if err != nil {
-		return
-	}
-	CreateSchemaCmd.MarkFlagRequired(schemaNameFlag)
-	CreateSchemaCmd.MarkFlagRequired(versionFlag)
-	CreateSchemaCmd.MarkFlagRequired(filePathFlag)
+	CreateSchemaCmd.MarkFlagRequired(constants.SchemaNameFlag)
+	CreateSchemaCmd.MarkFlagRequired(constants.VersionFlag)
+	CreateSchemaCmd.MarkFlagRequired(constants.FilePathFlag)
 }

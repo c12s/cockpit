@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -14,16 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	placeStandaloneConfigPlacementsShortDesc = "Place standalone configuration placements"
-	placeStandaloneConfigPlacementsLongDesc  = `This command places standalone configuration placements based on the input file.
-The input file should be in either YAML or JSON format, containing the details of the standalone configuration placements.
-It reads the file, processes the placements, and applies them accordingly.
-
-Example:
-- cockpit place standalone config placements --path 'path to yaml or json file'`
-)
-
 var (
 	standaloneConfigPlacementsResponse model.ConfigGroupPlacementsResponse
 )
@@ -31,11 +22,11 @@ var (
 var PlaceStandaloneConfigPlacementsCmd = &cobra.Command{
 	Use:     "config",
 	Aliases: aliases.ConfigAliases,
-	Short:   placeStandaloneConfigPlacementsShortDesc,
-	Long:    placeStandaloneConfigPlacementsLongDesc,
+	Short:   constants.PlaceStandaloneConfigPlacementsShortDesc,
+	Long:    constants.PlaceStandaloneConfigPlacementsLongDesc,
 	Run:     executePlaceStandaloneConfigPlacements,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{pathFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.FilePathFlag})
 	},
 }
 
@@ -52,7 +43,6 @@ func executePlaceStandaloneConfigPlacements(cmd *cobra.Command, args []string) {
 	}
 
 	render.RenderResponseAsTabWriter(standaloneConfigPlacementsResponse.Tasks)
-	println()
 }
 
 func prepareStandaloneConfigPlacementsRequestConfig() (interface{}, error) {
@@ -92,6 +82,6 @@ func sendStandaloneConfigPlacementsRequest(requestBody interface{}) error {
 }
 
 func init() {
-	PlaceStandaloneConfigPlacementsCmd.Flags().StringVarP(&path, pathFlag, pathShorthandFlag, "", pathDescription)
-	PlaceStandaloneConfigPlacementsCmd.MarkFlagRequired(pathFlag)
+	PlaceStandaloneConfigPlacementsCmd.Flags().StringVarP(&path, constants.FilePathFlag, constants.FilePathShorthandFlag, "", constants.FilePathDescription)
+	PlaceStandaloneConfigPlacementsCmd.MarkFlagRequired(constants.FilePathFlag)
 }

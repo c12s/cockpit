@@ -4,32 +4,23 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
+	"github.com/spf13/cobra"
 	"os"
 	"strings"
 	"time"
-
-	"github.com/spf13/cobra"
-)
-
-const (
-	createPoliciesShortDesc = "Create policies from YAML or JSON file"
-	createPoliciesLongDesc  = `This command is for creating security policies based on the input file.
-Policies are used to define and enforce security rules within the organization. The input file can be in YAML or JSON format, specifying the policy details.
-
-Example:
-- cockpit create policies --path 'path to yaml or json file'`
 )
 
 var CreatePoliciesCmd = &cobra.Command{
 	Use:     "policies",
 	Aliases: aliases.PoliciesAliases,
-	Short:   createPoliciesShortDesc,
-	Long:    createPoliciesLongDesc,
+	Short:   constants.CreatePoliciesShortDesc,
+	Long:    constants.CreatePoliciesLongDesc,
 	Run:     executeCreatePolicies,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{filePathFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.FilePathFlag})
 	},
 }
 
@@ -46,7 +37,6 @@ func executeCreatePolicies(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println("Policies created successfully")
-	fmt.Println()
 }
 
 func preparePoliciesRequestBody() (model.PoliciesRequest, error) {
@@ -92,13 +82,13 @@ func preparePoliciesRequestConfig(requestBody model.PoliciesRequest) (model.HTTP
 	return model.HTTPRequestConfig{
 		URL:         url,
 		Method:      "POST",
-		Token:       token,
 		RequestBody: requestBody,
+		Token:       token,
 		Timeout:     10 * time.Second,
 	}, nil
 }
 
 func init() {
-	CreatePoliciesCmd.Flags().StringVarP(&filePath, filePathFlag, "p", "", filePathDescription)
-	CreatePoliciesCmd.MarkFlagRequired(filePathFlag)
+	CreatePoliciesCmd.Flags().StringVarP(&filePath, constants.FilePathFlag, constants.FilePathShorthandFlag, "", constants.FilePathDescription)
+	CreatePoliciesCmd.MarkFlagRequired(constants.FilePathFlag)
 }

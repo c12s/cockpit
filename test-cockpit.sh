@@ -54,7 +54,7 @@ run_command "list" "nodes allocated" "--org c12s --query 'memory-totalGB > 2'" \
             "List allocated nodes with query command completed successfully"
 
 # List nodes and capture node IDs
-node_ids=($(go run main.go list nodes allocated --org c12s | grep -oP '(?<=Node ID: ).*'))
+node_ids=($(go run main.go list nodes allocated --org c12s | awk '/^[0-9a-f-]+/ {print $1}'))
 
 # Check if at least two nodes are found
 if [ ${#node_ids[@]} -lt 2 ]; then
@@ -98,15 +98,15 @@ run_command "create" "schema" "--org 'c12s' --schema-name 'schema' --version 'v1
             "Create schema command failed" \
             "Create schema command completed successfully"
 
-run_command "get" "schema version" "--org c12s -s schema" \
+run_command "get" "schema version" "--org c12s -n schema" \
             "Get schema version command failed" \
             "Get schema version command completed successfully"
 
-run_command "get" "schema" "--org c12s -s schema -v v1.0.0" \
+run_command "get" "schema" "--org c12s -n schema -v v1.0.0" \
             "Get schema command failed" \
             "Get schema command completed successfully"
 
-run_command "delete" "schema" "--org c12s -s schema -v v1.0.0" \
+run_command "delete" "schema" "--org c12s -n schema -v v1.0.0" \
             "Delete schema command failed" \
             "Delete schema command completed successfully"
 
@@ -114,7 +114,7 @@ run_command "create" "schema" "--org 'c12s' --schema-name 'schema' --version 'v1
             "Create schema command failed" \
             "Create schema command completed successfully"
 
-run_command "validate" "schema" "--org c12s -s schema -v v1.0.0 -p 'request/schema/validate-schema.yaml'" \
+run_command "validate" "schema" "--org c12s -n schema -v v1.0.0 -p 'request/schema/validate-schema.yaml'" \
             "Validate schema command failed" \
             "Validate schema command completed successfully"
 

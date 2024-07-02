@@ -93,7 +93,7 @@ func RenderConfigGroupDiffsTabWriter(diffResponse model.ConfigGroupDiffResponse)
 					"-",
 				)
 			case "addition":
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s -> %s\t\n",
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s%s\t\n",
 					category,
 					diff.Diff.Key,
 					diff.Diff.Value,

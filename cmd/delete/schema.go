@@ -4,36 +4,12 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
+	"github.com/spf13/cobra"
 	"os"
 	"time"
-
-	"github.com/spf13/cobra"
-)
-
-const (
-	deleteSchemaShortDesc = "Delete a schema"
-	deleteSchemaLongDesc  = `This command deletes a schema version from the specified organization.
-The user must provide the organization name, schema name, and version to delete the schema. This ensures that the specified schema version is removed from the system.
-
-Example:
-- cockpit delete schema --org 'c12s' --schema-name 'schema' --version 'v1.0.1'`
-
-	// Flag Constants
-	organizationFlag = "org"
-	schemaNameFlag   = "schema-name"
-	versionFlag      = "version"
-
-	// Flag Shorthand Constants
-	organizationShorthandFlag = "r"
-	schemaNameShorthandFlag   = "s"
-	versionShorthandFlag      = "v"
-
-	// Flag Descriptions
-	organizationDescription = "Organization name (required)"
-	schemaNameDescription   = "Schema name (required)"
-	versionDescription      = "Schema version (required)"
 )
 
 var (
@@ -45,11 +21,11 @@ var (
 var DeleteSchemaCmd = &cobra.Command{
 	Use:     "schema",
 	Aliases: aliases.SchemaAliases,
-	Short:   deleteSchemaShortDesc,
-	Long:    deleteSchemaLongDesc,
+	Short:   constants.DeleteSchemaShortDesc,
+	Long:    constants.DeleteSchemaLongDesc,
 	Run:     executeDeleteSchema,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{schemaNameFlag, organizationFlag, versionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.SchemaNameFlag, constants.OrganizationFlag, constants.VersionFlag})
 	},
 }
 
@@ -62,7 +38,6 @@ func executeDeleteSchema(cmd *cobra.Command, args []string) {
 	}
 
 	fmt.Println("Schema deleted successfully!")
-	println()
 }
 
 func prepareDeleteSchemaRequest() interface{} {
@@ -97,11 +72,11 @@ func sendDeleteRequestConfig(requestBody interface{}) error {
 }
 
 func init() {
-	DeleteSchemaCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	DeleteSchemaCmd.Flags().StringVarP(&schemaName, schemaNameFlag, schemaNameShorthandFlag, "", schemaNameDescription)
-	DeleteSchemaCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	DeleteSchemaCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	DeleteSchemaCmd.Flags().StringVarP(&schemaName, constants.SchemaNameFlag, constants.SchemaNameShorthandFlag, "", constants.SchemaNameDescription)
+	DeleteSchemaCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
 
-	DeleteSchemaCmd.MarkFlagRequired(organizationFlag)
-	DeleteSchemaCmd.MarkFlagRequired(schemaNameFlag)
-	DeleteSchemaCmd.MarkFlagRequired(versionFlag)
+	DeleteSchemaCmd.MarkFlagRequired(constants.OrganizationFlag)
+	DeleteSchemaCmd.MarkFlagRequired(constants.SchemaNameFlag)
+	DeleteSchemaCmd.MarkFlagRequired(constants.VersionFlag)
 }

@@ -4,23 +4,14 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"github.com/spf13/cobra"
 	"os"
 	"time"
-)
 
-const (
-	nodesShortDescription = "Retrieve a list of all available nodes"
-	nodesLongDescription  = `Retrieve a comprehensive list of all available nodes in the system.
-These nodes can be allocated to your organization based on your requirements.
-You can use a query to filter the nodes using operators like >, =, !=, and < with the label values.
-
-Examples:
-- cockpit list nodes --query 'labelKey >||=||!=||< value'
-- cockpit list nodes --query 'memory-totalGB > 2'`
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -33,8 +24,8 @@ var (
 var NodesCmd = &cobra.Command{
 	Use:     "nodes",
 	Aliases: aliases.NodesAliases,
-	Short:   nodesShortDescription,
-	Long:    nodesLongDescription,
+	Short:   constants.ListNodesShortDesc,
+	Long:    constants.ListNodesLongDesc,
 	Run:     executeRetrieveNodes,
 }
 
@@ -83,6 +74,6 @@ func sendNodeRequest(requestBody interface{}, url string) error {
 }
 
 func init() {
-	NodesCmd.Flags().StringVarP(&query, queryFlag, queryShorthandFlag, "", queryFlag)
+	NodesCmd.Flags().StringVarP(&query, constants.QueryFlag, constants.QueryFlagShorthandFlag, "", constants.NodeQueryDescription)
 	NodesCmd.Flags().BoolVarP(&details, "details", "d", false, "Display detailed node information")
 }

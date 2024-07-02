@@ -43,7 +43,6 @@ func DisplayResponseAsJSONOrYAML(response interface{}, format, message string) {
 			return
 		}
 		fmt.Println(string(jsonData))
-		println()
 		if message != "" {
 			fmt.Print(message)
 		}
@@ -54,7 +53,6 @@ func DisplayResponseAsJSONOrYAML(response interface{}, format, message string) {
 			return
 		}
 		fmt.Println(string(yamlData))
-		println()
 		if message != "" {
 			fmt.Print(message)
 		}

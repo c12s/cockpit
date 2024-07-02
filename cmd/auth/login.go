@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
@@ -11,26 +12,15 @@ import (
 	"time"
 )
 
-const (
-	shortLoginDescription = "Login into application"
-	longLoginDescription  = `Input your username after that you will be prompted to input your password.
-Your token will be saved in the token.txt file, which will be sent with all of your request headers.
-
-Example:
-- cockpit login --username "username"`
-)
-
-var (
-	tokenResponse model.TokenResponse
-)
+var tokenResponse model.TokenResponse
 
 var LoginCmd = &cobra.Command{
 	Use:     "login",
 	Aliases: aliases.LoginAliases,
-	Short:   shortLoginDescription,
-	Long:    longLoginDescription,
+	Short:   constants.ShortLoginDesc,
+	Long:    constants.LongLoginDesc,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{usernameFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.UsernameFlag})
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		password, err := utils.PromptForPassword()
@@ -45,7 +35,7 @@ var LoginCmd = &cobra.Command{
 			os.Exit(1)
 		}
 
-		fmt.Println("Login successful!\n")
+		fmt.Println("Login successful!")
 	},
 }
 
@@ -77,6 +67,6 @@ func login(username, password string) error {
 }
 
 func init() {
-	LoginCmd.Flags().StringVarP(&username, usernameFlag, usernameShorthandFlag, "", "Username for login")
-	LoginCmd.MarkFlagRequired(usernameFlag)
+	LoginCmd.Flags().StringVarP(&username, constants.UsernameFlag, constants.UsernameShorthandFlag, "", "Username for login")
+	LoginCmd.MarkFlagRequired(constants.UsernameFlag)
 }

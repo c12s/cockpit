@@ -432,7 +432,7 @@ Retrieve metrics for a specific node.
 - **Options**:
   - `--node-id`: Node ID (required).
   - `--all`: Display all metrics (optional).
-  - `--sort`: Sort metrics by 'cpu' or 'memory' (optional).
+  - `--sort`: Sort metrics by 'cpu', 'memory', 'disk', 'network receive', 'network transmit' or 'bandwidth'.
 - **Example**:
     ```sh
     cockpit get node metrics --node-id 'nodeID'

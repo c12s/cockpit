@@ -4,36 +4,14 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
+	"github.com/cheggaaa/pb/v3"
+	"github.com/spf13/cobra"
 	"os"
 	"time"
-
-	"github.com/spf13/cobra"
-)
-
-const (
-	claimNodesShortDescription = "Claim nodes for an organization based on specific criteria"
-	claimNodesLongDescription  = `Claims nodes for an organization based on a defined query that specifies criteria like labels.
-The command allows the organization to take ownership of nodes that match the provided query criteria.
-The query can include conditions based on node labels such as memory, CPU, and other attributes. 
-
-Example:
-- cockpit claim nodes --org 'org' --query 'labelKey >||=||!=||< value'
-- cockpit claim nodes --org 'org' --query 'memory-totalGB > 2'`
-
-	// Flag Constants
-	organizationFlag = "org"
-	queryFlag        = "query"
-
-	// Flag Shorthand Constants
-	organizationShorthandFlag = "r"
-	queryFlagShorthandFlag    = "q"
-
-	// Flag Descriptions
-	organizationDesc = "Organization name (required)"
-	queryDesc        = "Query label for finding specific nodes (required)"
 )
 
 var (
@@ -45,10 +23,10 @@ var (
 var ClaimNodesCmd = &cobra.Command{
 	Use:     "nodes",
 	Aliases: aliases.ClaimAliases,
-	Short:   claimNodesShortDescription,
-	Long:    claimNodesLongDescription,
+	Short:   constants.ClaimNodesShortDesc,
+	Long:    constants.ClaimNodesLongDesc,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, queryFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.QueryFlag})
 	},
 	Run: executeClaimNodes,
 }
@@ -60,13 +38,26 @@ func executeClaimNodes(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := sendClaimNodeRequest(requestBody); err != nil {
+	bar := pb.StartNew(100)
+	bar.SetTemplate(pb.Full)
+	bar.SetWidth(50)
+
+	go func() {
+		for {
+			time.Sleep(50 * time.Millisecond)
+			bar.Increment()
+		}
+	}()
+
+	if err := sendClaimNodeRequest(requestBody, bar); err != nil {
+		bar.Finish()
 		fmt.Println("Error claiming nodes:", err)
 		os.Exit(1)
 	}
 
+	bar.Finish()
 	render.RenderResponseAsTabWriter(claimNodeResponse.Nodes)
-	fmt.Println()
+	fmt.Println("These nodes were successfully claimed!")
 }
 
 func prepareClaimNodesRequest() (interface{}, error) {
@@ -83,7 +74,7 @@ func prepareClaimNodesRequest() (interface{}, error) {
 	return request, nil
 }
 
-func sendClaimNodeRequest(requestBody interface{}) error {
+func sendClaimNodeRequest(requestBody interface{}, bar *pb.ProgressBar) error {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		return fmt.Errorf("error reading token: %v", err)
@@ -91,20 +82,27 @@ func sendClaimNodeRequest(requestBody interface{}) error {
 
 	url := clients.BuildURL("core", "v1", "ClaimOwnership")
 
-	return utils.SendHTTPRequest(model.HTTPRequestConfig{
+	err = utils.SendHTTPRequestWithProgress(model.HTTPRequestConfig{
 		URL:         url,
 		Method:      "PATCH",
 		Token:       token,
 		RequestBody: requestBody,
 		Response:    &claimNodeResponse,
 		Timeout:     10 * time.Second,
-	})
+	}, bar)
+
+	if err != nil {
+		return err
+	}
+
+	bar.SetCurrent(100)
+	return nil
 }
 
 func init() {
-	ClaimNodesCmd.Flags().StringVarP(&org, organizationFlag, organizationShorthandFlag, "", organizationDesc)
-	ClaimNodesCmd.Flags().StringVarP(&query, queryFlag, queryFlagShorthandFlag, "", queryDesc)
+	ClaimNodesCmd.Flags().StringVarP(&org, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	ClaimNodesCmd.Flags().StringVarP(&query, constants.QueryFlag, constants.QueryFlagShorthandFlag, "", constants.NodeQueryRequiredDescription)
 
-	ClaimNodesCmd.MarkFlagRequired(organizationFlag)
-	ClaimNodesCmd.MarkFlagRequired(queryFlag)
+	ClaimNodesCmd.MarkFlagRequired(constants.OrganizationFlag)
+	ClaimNodesCmd.MarkFlagRequired(constants.QueryFlag)
 }

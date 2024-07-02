@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -13,16 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	listStandaloneConfigPlacementsShortDesc = "Retrieve and display the standalone configuration placements"
-	listStandaloneConfigPlacementsLongDesc  = `This command retrieves all standalone configuration placements from a specified organization,
-displays them in a nicely formatted way, and allows you to see the placements in detail.
-
-Examples:
-- cockpit list standalone config placements --org 'org' --name 'app_config' --version 'v1.0.0'
-- cockpit list standalone config placements --org 'org' --name 'db_config' --version 'v2.0.0'`
-)
-
 var (
 	standaloneConfigPlacementsResponse model.ConfigGroupPlacementsResponse
 )
@@ -30,11 +21,11 @@ var (
 var ListStandaloneConfigPlacementsCmd = &cobra.Command{
 	Use:     "placements",
 	Aliases: aliases.PlacementAliases,
-	Short:   listStandaloneConfigPlacementsShortDesc,
-	Long:    listStandaloneConfigPlacementsLongDesc,
+	Short:   constants.ListStandaloneConfigPlacementsShortDesc,
+	Long:    constants.ListStandaloneConfigPlacementsLongDesc,
 	Run:     executeListStandaloneConfigPlacements,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -47,7 +38,6 @@ func executeListStandaloneConfigPlacements(cmd *cobra.Command, args []string) {
 	}
 
 	render.RenderResponseAsTabWriter(standaloneConfigPlacementsResponse.Tasks)
-	println()
 }
 
 func prepareStandalonePlacementsRequestConfig() interface{} {
@@ -79,11 +69,11 @@ func sendStandaloneConfigPlacementsRequest(requestBody interface{}) error {
 }
 
 func init() {
-	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
-	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
+	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
+	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
 
-	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(organizationFlag)
-	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(nameFlag)
-	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(versionFlag)
+	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(constants.OrganizationFlag)
+	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(constants.NameFlag)
+	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(constants.VersionFlag)
 }

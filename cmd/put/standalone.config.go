@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -13,26 +14,17 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	putStandaloneConfigShortDesc = "Send a standalone configuration to the server"
-	putStandaloneConfigLongDesc  = `This command sends a standalone configuration read from a file (JSON or YAML) to the server.
-It processes the file and uploads the standalone configuration, displaying the server's response in the same format as the input file.
-
-Example:
-- cockpit put standalone config --path 'path to yaml or JSON file'`
-)
-
 var (
 	standaloneConfigPutResponse model.StandaloneConfig
 )
 var PutStandaloneConfigCmd = &cobra.Command{
 	Use:     "config",
 	Aliases: aliases.ConfigAliases,
-	Short:   putStandaloneConfigShortDesc,
-	Long:    putStandaloneConfigLongDesc,
+	Short:   constants.PutStandaloneConfigShortDesc,
+	Long:    constants.PutStandaloneConfigLongDesc,
 	Run:     executePutStandaloneConfig,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{pathFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.FilePathFlag})
 	},
 }
 
@@ -49,7 +41,6 @@ func executePutStandaloneConfig(cmd *cobra.Command, args []string) {
 	}
 
 	render.RenderResponseAsTabWriter(standaloneConfigPutResponse)
-	println()
 }
 
 func sendStandaloneConfigData(requestBody interface{}) error {
@@ -71,6 +62,6 @@ func sendStandaloneConfigData(requestBody interface{}) error {
 }
 
 func init() {
-	PutStandaloneConfigCmd.Flags().StringVarP(&filePath, pathFlag, pathShorthandFlag, "", pathDescription)
-	PutStandaloneConfigCmd.MarkFlagRequired(pathFlag)
+	PutStandaloneConfigCmd.Flags().StringVarP(&filePath, constants.FilePathFlag, constants.FilePathShorthandFlag, "", constants.FilePathDescription)
+	PutStandaloneConfigCmd.MarkFlagRequired(constants.FilePathFlag)
 }

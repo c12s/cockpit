@@ -4,45 +4,24 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"github.com/spf13/cobra"
 	"os"
 	"time"
-)
 
-const (
-	allocatedNodesShortDescription = "List organization nodes"
-	allocatedNodesLongDescription  = `This command allows you to list all nodes allocated to a specified organization.
-You can also use a query to search for nodes based on their labels.
-The query format allows you to filter nodes using operators like >, =, !=, and < with the label values.
-
-Examples:
-- cockpit list nodes allocated --org 'org' --query 'labelKey >||=||!=||< value'
-- cockpit list nodes allocated --org 'org' --query 'memory-totalGB > 2'`
-
-	// Flag Constants
-	organizationFlag = "org"
-	queryFlag        = "query"
-
-	// Flag Shorthand Constants
-	organizationShorthandFlag = "r"
-	queryShorthandFlag        = "q"
-
-	// Flag Descriptions
-	organizationDescription = "Organization name (required)"
-	queryDescription        = "Query label for finding specific nodes"
+	"github.com/spf13/cobra"
 )
 
 var AllocatedNodesCmd = &cobra.Command{
 	Use:     "allocated",
 	Aliases: aliases.AllocatedAliases,
-	Short:   allocatedNodesShortDescription,
-	Long:    allocatedNodesLongDescription,
+	Short:   constants.AllocatedNodesShortDesc,
+	Long:    constants.AllocatedNodesLongDesc,
 	Run:     executeAllocatedNodes,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag})
 	},
 }
 
@@ -103,7 +82,9 @@ func sendAllocatedNodeRequest(requestBody interface{}, url string) error {
 }
 
 func init() {
-	AllocatedNodesCmd.Flags().StringVarP(&org, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	AllocatedNodesCmd.Flags().StringVarP(&query, queryFlag, queryShorthandFlag, "", queryDescription)
-	AllocatedNodesCmd.MarkFlagRequired(organizationFlag)
+	AllocatedNodesCmd.Flags().StringVarP(&org, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	AllocatedNodesCmd.Flags().StringVarP(&query, constants.QueryFlag, constants.QueryFlagShorthandFlag, "", constants.NodeQueryDescription)
+	AllocatedNodesCmd.Flags().BoolVarP(&details, "details", "d", false, "Display detailed node information")
+
+	AllocatedNodesCmd.MarkFlagRequired(constants.OrganizationFlag)
 }

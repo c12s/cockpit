@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -11,30 +12,7 @@ import (
 	"time"
 )
 
-const (
-	latestMetricsShortDesc = "Retrieve and display the latest metrics"
-	latestMetricsLongDesc  = `This command fetches the latest metrics for a specific node and displays them in a nicely formatted way.
-The user can specify the node ID to retrieve the metrics. 
-
-Example:
-- cockpit get nodes metrics --node-id 'nodeID'`
-
-	// Flag Constants
-	nodeIDFlag = "node-id"
-	allFlag    = "all-services"
-	sortFlag   = "sort"
-
-	// Flag Shorthand Constants
-	nodeIDShorthandFlag = "n"
-	sortShorthandFlag   = "s"
-	allShorthandFlag    = "a"
-
-	// Flag Descriptions
-	nodeIDDescription = "Node ID (required)"
-	allDescription    = "Display all metrics (optional)"
-	sortDescription   = "Sort metrics by 'cpu' or 'memory'"
-	metricsBaseURL    = "http://localhost:8086/api/metrics-api/latest-node-data/"
-)
+const metricsBaseURL = "http://localhost:8086/api/metrics-api/latest-node-data/"
 
 var (
 	nodeID string
@@ -45,11 +23,11 @@ var (
 var LatestMetricsCmd = &cobra.Command{
 	Use:     "metrics",
 	Aliases: aliases.MetricsAliases,
-	Short:   latestMetricsShortDesc,
-	Long:    latestMetricsLongDesc,
+	Short:   constants.LatestMetricsShortDesc,
+	Long:    constants.LatestMetricsLongDesc,
 	Run:     executeLatestMetrics,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{nodeIDFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NodeIdFlag})
 	},
 }
 
@@ -97,9 +75,9 @@ func fetchMetrics(url string) (model.MetricResponse, error) {
 }
 
 func init() {
-	LatestMetricsCmd.Flags().StringVarP(&nodeID, nodeIDFlag, nodeIDShorthandFlag, "", nodeIDDescription)
-	LatestMetricsCmd.Flags().BoolVarP(&all, allFlag, allShorthandFlag, false, allDescription)
-	LatestMetricsCmd.Flags().StringVarP(&sortBy, sortFlag, sortShorthandFlag, "cpu", sortDescription)
+	LatestMetricsCmd.Flags().StringVarP(&nodeID, constants.NodeIdFlag, constants.NodeIdShorthandFlag, "", constants.NodeIdDescription)
+	LatestMetricsCmd.Flags().BoolVarP(&all, constants.AllServicesFlag, constants.AllServicesShorthandFlag, false, constants.AllServicesDescription)
+	LatestMetricsCmd.Flags().StringVarP(&sortBy, constants.SortByFlag, constants.SortShorthandFlag, "cpu", constants.SortMetricsDescription)
 
-	LatestMetricsCmd.MarkFlagRequired(nodeIDFlag)
+	LatestMetricsCmd.MarkFlagRequired(constants.NodeIdFlag)
 }

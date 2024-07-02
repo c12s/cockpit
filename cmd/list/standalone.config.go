@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -13,20 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	listStandaloneConfigShortDesc = "List all standalone configurations"
-	listStandaloneConfigLongDesc  = `This command retrieves a list of all standalone configurations for a given organization,
-displays them in a nicely formatted way, and saves them to both YAML and JSON files.
-You can choose the output format by specifying either 'yaml' or 'json'.
-
-Examples:
-- cockpit list standalone config --org 'org' --output 'json'
-- cockpit list standalone config --org 'org' --output 'yaml'`
-
-	listStandaloneConfigFilePathJSON = "./response/standalone-config/list-standalone-config.json"
-	listStandaloneConfigFilePathYAML = "./response/standalone-config/list-standalone-config.yaml"
-)
-
 var (
 	listStandaloneConfigResponse model.StandaloneConfigsResponse
 )
@@ -34,11 +21,11 @@ var (
 var ListStandaloneConfigCmd = &cobra.Command{
 	Use:     "config",
 	Aliases: aliases.ConfigAliases,
-	Short:   listStandaloneConfigShortDesc,
-	Long:    listStandaloneConfigLongDesc,
+	Short:   constants.ListStandaloneConfigShortDesc,
+	Long:    constants.ListStandaloneConfigLongDesc,
 	Run:     executeListStandaloneConfig,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag})
 	},
 }
 
@@ -56,9 +43,9 @@ func executeListStandaloneConfig(cmd *cobra.Command, args []string) {
 	} else if outputFormat == "yaml" || outputFormat == "json" {
 		render.DisplayResponseAsJSONOrYAML(&listStandaloneConfigResponse, outputFormat, "")
 
-		filePath := listStandaloneConfigFilePathYAML
+		filePath := constants.ListStandaloneConfigFilePathYAML
 		if outputFormat == "json" {
-			filePath = listStandaloneConfigFilePathJSON
+			filePath = constants.ListStandaloneConfigFilePathJSON
 		}
 
 		if err := utils.SaveYAMLOrJSONResponseToFile(&listStandaloneConfigResponse, filePath); err != nil {
@@ -69,7 +56,6 @@ func executeListStandaloneConfig(cmd *cobra.Command, args []string) {
 	} else {
 		println("Invalid output format. Expected 'yaml' or 'json'.")
 	}
-	fmt.Println()
 }
 
 func createListStandaloneRequestConfig() model.HTTPRequestConfig {
@@ -96,8 +82,8 @@ func createListStandaloneRequestConfig() model.HTTPRequestConfig {
 }
 
 func init() {
-	ListStandaloneConfigCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	ListStandaloneConfigCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
+	ListStandaloneConfigCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	ListStandaloneConfigCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
 
-	ListStandaloneConfigCmd.MarkFlagRequired(organizationFlag)
+	ListStandaloneConfigCmd.MarkFlagRequired(constants.OrganizationFlag)
 }

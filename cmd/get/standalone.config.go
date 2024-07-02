@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
@@ -13,19 +14,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	getStandaloneConfigShortDesc = "Retrieve and display a standalone configuration"
-	getStandaloneConfigLongDesc  = `This command retrieves a standalone configuration specified by its name, organization, and version, displays it in a nicely formatted way, and saves it to both YAML and JSON files.
-The user can specify the organization, standalone configuration name, and version to retrieve the configuration details. The response can be formatted as either YAML or JSON based on user preference.
-
-Example:
-- cockpit get standalone config --org 'org' --name 'db_config' --version 'v1.0.0'`
-
-	// Path to files
-	getStandaloneConfigFilePathJSON = "./response/standalone-config/standalone-config.json"
-	getStandaloneConfigFilePathYAML = "./response/standalone-config/standalone-config.yaml"
-)
-
 var (
 	standaloneConfigResponse model.StandaloneConfig
 )
@@ -33,11 +21,11 @@ var (
 var GetStandaloneConfigCmd = &cobra.Command{
 	Use:     "config",
 	Aliases: aliases.ConfigAliases,
-	Short:   getStandaloneConfigShortDesc,
-	Long:    getStandaloneConfigLongDesc,
+	Short:   constants.GetStandaloneConfigShortDesc,
+	Long:    constants.GetStandaloneConfigLongDesc,
 	Run:     executeGetStandaloneConfig,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{organizationFlag, nameFlag, versionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -54,9 +42,9 @@ func executeGetStandaloneConfig(cmd *cobra.Command, args []string) {
 	} else if outputFormat == "yaml" || outputFormat == "json" {
 		render.DisplayResponseAsJSONOrYAML(&standaloneConfigResponse, outputFormat, "")
 
-		filePath := getStandaloneConfigFilePathYAML
+		filePath := constants.GetStandaloneConfigFilePathYAML
 		if outputFormat == "json" {
-			filePath = getStandaloneConfigFilePathJSON
+			filePath = constants.GetStandaloneConfigFilePathJSON
 		}
 
 		if err := utils.SaveYAMLOrJSONResponseToFile(&standaloneConfigResponse, filePath); err != nil {
@@ -96,13 +84,14 @@ func sendStandaloneRequest(requestBody interface{}) error {
 		Timeout:     10 * time.Second,
 	})
 }
-func init() {
-	GetStandaloneConfigCmd.Flags().StringVarP(&organization, organizationFlag, organizationShorthandFlag, "", organizationDescription)
-	GetStandaloneConfigCmd.Flags().StringVarP(&name, nameFlag, nameShorthandFlag, "", nameDescription)
-	GetStandaloneConfigCmd.Flags().StringVarP(&version, versionFlag, versionShorthandFlag, "", versionDescription)
-	GetStandaloneConfigCmd.Flags().StringVarP(&outputFormat, outputFlag, outputShorthandFlag, "", outputDescription)
 
-	GetStandaloneConfigCmd.MarkFlagRequired(organizationFlag)
-	GetStandaloneConfigCmd.MarkFlagRequired(nameFlag)
-	GetStandaloneConfigCmd.MarkFlagRequired(versionFlag)
+func init() {
+	GetStandaloneConfigCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	GetStandaloneConfigCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
+	GetStandaloneConfigCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
+	GetStandaloneConfigCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
+
+	GetStandaloneConfigCmd.MarkFlagRequired(constants.OrganizationFlag)
+	GetStandaloneConfigCmd.MarkFlagRequired(constants.NameFlag)
+	GetStandaloneConfigCmd.MarkFlagRequired(constants.VersionFlag)
 }

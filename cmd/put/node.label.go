@@ -4,43 +4,13 @@ import (
 	"fmt"
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
+	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
 	"os"
 	"strconv"
 	"time"
-)
-
-const (
-	shortLabelDescription = "Add a label to a node."
-	longLabelDescription  = `This command allows you to add a new label to a specified node, enhancing node metadata.
-Provide a key-value pair to define the label. If the label already exists, its value will be updated to the new specified value.
-The command supports different types of values: strings, boolean, and floating-point numbers.
-The input format determines the appropriate type and URL for the request.
-
-Examples:
-- cockpit put label --key 'env' --value 'production' --node-id 'nodeId' --org 'org'
-- cockpit put label --key 'active' --value 'true' --node-id 'nodeId' --org 'org'
-- cockpit put label --key 'cpu' --value '2.5' --node-id 'nodeId' --org 'org'`
-
-	// Flag Constants
-	keyFlag          = "key"
-	valueFlag        = "value"
-	nodeIdFlag       = "node-id"
-	organizationFlag = "org"
-
-	// Flag Shorthand Constants
-	keyShorthandFlag          = "k"
-	valueShorthandFlag        = "v"
-	nodeIdShorthandFlag       = "n"
-	organizationShorthandFlag = "r"
-
-	// Flag Descriptions
-	keyDescription          = "Label key (required)"
-	valueDescription        = "Label value (required)"
-	nodeIdDescription       = "Node ID (required)"
-	organizationDescription = "Organization (required)"
 )
 
 var (
@@ -54,29 +24,31 @@ var (
 var LabelsCmd = &cobra.Command{
 	Use:     "label",
 	Aliases: aliases.LabelAliases,
-	Short:   shortLabelDescription,
-	Long:    longLabelDescription,
+	Short:   constants.ShortLabelDesc,
+	Long:    constants.LongLabelDesc,
 	Run:     executeLabelCommand,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{keyFlag, valueFlag, nodeIdFlag, organizationFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.KeyFlag, constants.ValueFlag, constants.NodeIdFlag, constants.OrganizationFlag})
 	},
 }
 
 func executeLabelCommand(cmd *cobra.Command, args []string) {
-	value, url, err := determineValueTypeAndURL(value)
+	originalValue := value
+
+	formattedValue, url, err := determineValueTypeAndURL(value)
 	if err != nil {
 		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
 	}
 
-	labelInput := createLabelInput(key, value, nodeId, org)
+	labelInput := createLabelInput(key, formattedValue, nodeId, org)
 	err = sendLabelRequest(labelInput, url)
 	if err != nil {
 		fmt.Println("Error sending add node label request:", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("Label %s with value %s:added or updated successfully.", key, value)
+	fmt.Printf("Label %s with value %s: added or updated successfully.\n", key, originalValue)
 }
 
 func sendLabelRequest(input model.LabelInput, url string) error {
@@ -118,13 +90,13 @@ func createLabelInput(key string, value interface{}, nodeId string, org string) 
 }
 
 func init() {
-	LabelsCmd.Flags().StringVarP(&key, keyFlag, keyShorthandFlag, "", keyDescription)
-	LabelsCmd.Flags().StringVarP(&value, valueFlag, valueShorthandFlag, "", valueDescription)
-	LabelsCmd.Flags().StringVarP(&nodeId, nodeIdFlag, nodeIdShorthandFlag, "", nodeIdDescription)
-	LabelsCmd.Flags().StringVarP(&org, organizationFlag, organizationShorthandFlag, "", organizationDescription)
+	LabelsCmd.Flags().StringVarP(&key, constants.KeyFlag, constants.KeyShorthandFlag, "", constants.LabelKeyDescription)
+	LabelsCmd.Flags().StringVarP(&value, constants.ValueFlag, constants.ValueShorthandFlag, "", constants.LabelValueDescription)
+	LabelsCmd.Flags().StringVarP(&nodeId, constants.NodeIdFlag, constants.NodeIdShorthandFlag, "", constants.NodeIdDescription)
+	LabelsCmd.Flags().StringVarP(&org, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
 
-	LabelsCmd.MarkFlagRequired(keyFlag)
-	LabelsCmd.MarkFlagRequired(valueFlag)
-	LabelsCmd.MarkFlagRequired(nodeIdFlag)
-	LabelsCmd.MarkFlagRequired(organizationFlag)
+	LabelsCmd.MarkFlagRequired(constants.KeyFlag)
+	LabelsCmd.MarkFlagRequired(constants.ValueFlag)
+	LabelsCmd.MarkFlagRequired(constants.NodeIdFlag)
+	LabelsCmd.MarkFlagRequired(constants.OrganizationFlag)
 }

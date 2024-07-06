@@ -2,6 +2,7 @@
     "config": {
         "name": "app_config",
         "organization": "c12s",
+        "namespace": "default",
         "version": "v1.0.0"
     },
     "namespace": "dev",

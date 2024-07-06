@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -27,7 +28,7 @@ var DeleteConfigGroupCmd = &cobra.Command{
 	Long:    constants.DeleteConfigGroupLongDesc,
 	Run:     executeDeleteConfigGroup,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -54,6 +55,7 @@ func executeDeleteConfigGroup(cmd *cobra.Command, args []string) {
 func prepareDeleteConfigGroupRequest() interface{} {
 	requestBody := model.ConfigReference{
 		Organization: organization,
+		Namespace:    namespace,
 		Name:         name,
 		Version:      version,
 	}
@@ -84,7 +86,9 @@ func init() {
 	DeleteConfigGroupCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
 	DeleteConfigGroupCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
 	DeleteConfigGroupCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
+	DeleteConfigGroupCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamespaceShorthandFlag, "", constants.NamespaceDescription)
 
+	DeleteConfigGroupCmd.MarkFlagRequired(constants.NamespaceFlag)
 	DeleteConfigGroupCmd.MarkFlagRequired(constants.OrganizationFlag)
 	DeleteConfigGroupCmd.MarkFlagRequired(constants.NameFlag)
 	DeleteConfigGroupCmd.MarkFlagRequired(constants.VersionFlag)

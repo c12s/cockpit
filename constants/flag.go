@@ -6,6 +6,7 @@ const (
 	SurnameFlag      = "surname"
 	UsernameFlag     = "username"
 	OrganizationFlag = "org"
+	NamespaceFlag    = "namespace"
 	QueryFlag        = "query"
 	IdsFlag          = "ids"
 	KindsFlag        = "kinds"

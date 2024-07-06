@@ -1,5 +1,6 @@
 name: app_config
 organization: c12s
+namespace: default
 type: object
 properties:
   db_config:

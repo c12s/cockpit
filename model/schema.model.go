@@ -4,6 +4,7 @@ type SchemaDetails struct {
 	Organization string `json:"organization" yaml:"organization"`
 	SchemaName   string `json:"schemaName" yaml:"schemaName"`
 	Version      string `json:"version,omitempty" yaml:"version,omitempty"`
+	Namespace    string `json:"namespace,omitempty" yaml:"namespace,omitempty"`
 }
 
 type SchemaDetailsRequest struct {

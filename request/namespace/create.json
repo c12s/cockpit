@@ -1,0 +1,36 @@
+{
+    "labels": [
+        {
+            "key": "label1",
+            "value": "value1"
+        }
+    ],
+    "name": "prod",
+    "orgId": "c12s",
+    "parentName": "default",
+    "seccompDefinitionStrategy": "extend",
+    "profile": {
+        "defaultAction": "ALLOW",
+        "syscalls": [
+            {
+                "names": ["close"],
+                "action": "DENY"
+            }
+        ],
+        "version": "V1"
+    },
+    "quotas": [
+        {
+            "key": "cpu",
+            "value": 1
+        },
+        {
+            "key": "mem",
+            "value": 3
+        },
+        {
+            "key": "disk",
+            "value": 10
+        }
+    ]
+}

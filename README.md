@@ -210,13 +210,14 @@ Create a new schema.
 - **Command**: cockpit create schema
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --schema-name: Name of the schema.
   - --version: Version of the schema.
   - --path: Path to the schema file.
 - **Example**:
 
     ```sh
-    cockpit create schema --org 'c12s' --schema-name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'
+    cockpit create schema --org 'c12s' --namespace 'default' --schema-name 'schema' --version 'v1.0.0' --path 'request/schema/create-schema.yaml'
     ```
 
 #### Get Schema Version
@@ -224,11 +225,12 @@ Retrieve schema version details.
 - **Command**: cockpit get schema version
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --schema: Name of the schema.
 - **Example**:
 
     ```sh
-    cockpit get schema version --org 'c12s' --schema-name 'schema'
+    cockpit get schema version --org 'c12s' --namespace 'default' --schema-name 'schema'
     ```
 
 #### Get Schema
@@ -236,12 +238,13 @@ Retrieve a specific schema.
 - **Command**: cockpit get schema
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --schema: Name of the schema.
   - --version: Version of the schema.
 - **Example**:
 
     ```sh
-    cockpit get schema --org 'c12s' --schema-name 'schema' --version 'v1.0.0'
+    cockpit get schema --org 'c12s' --namespace 'default' --schema-name 'schema' --version 'v1.0.0'
     ```
 
 #### Validate Schema
@@ -249,13 +252,14 @@ Validate a schema.
 - **Command**: cockpit validate schema
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --schema: Name of the schema.
   - --version: Version of the schema.
   - --path: Path to the validation file.
 - **Example**:
 
     ```sh
-    cockpit validate schema --org 'c12s' --schema-name 'schema' --version 'v1.0.0' --path 'request/schema/validate-schema.yaml'
+    cockpit validate schema --org 'c12s' --namespace 'default' --schema-name 'schema' --version 'v1.0.0' --path 'request/schema/validate-schema.yaml'
     ```
 
 #### Delete Schema
@@ -263,12 +267,13 @@ Delete a schema.
 - **Command**: cockpit delete schema
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --schema: Name of the schema.
   - --version: Version of the schema.
 - **Example**:
 
     ```sh
-    cockpit delete schema --org 'c12s' --schema-name 'schema' --version 'v1.0.0'
+    cockpit delete schema --org 'c12s' --namespace 'default' --schema-name 'schema' --version 'v1.0.0'
     ```
 
 ### Config Group Management
@@ -289,13 +294,14 @@ Retrieve a configuration group.
 - **Command**: cockpit get config group
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --name: Name of the config group.
   - --version: Version of the config group.
   - --output: Output format (json, yaml).
 - **Example**:
 
     ```sh
-    cockpit get config group --org 'c12s' --name 'app_config' --version 'v1.0.1'
+    cockpit get config group --org 'c12s' --namespace 'default' --name 'app_config' --version 'v1.0.1'
     ```
 
 #### List Config Groups
@@ -303,11 +309,12 @@ List all configuration groups.
 - **Command**: cockpit list config group
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --output: Output format (json, yaml).
 - **Example**:
 
     ```sh
-    cockpit list config group --org 'c12s'
+    cockpit list config group --org 'c12s' --namespace 'default'
     ```
 
 #### Diff Config Groups
@@ -315,15 +322,16 @@ Compare differences between configuration groups.
 - **Command**: cockpit diff config group
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --names: Names of the config groups.
   - --versions: Versions of the config groups.
   - --output: Output format (json, yaml).
 - **Example**:
 
     ```sh
-    cockpit diff config group --org 'c12s' --names 'app_config|app_config' --versions 'v1.0.0|v1.0.1'
-    cockpit diff config group --org 'c12s' --names 'app_config' --versions 'v1.0.0|v1.0.1'
-    cockpit diff config group --org 'c12s' --names 'app_config|app_config' --versions 'v1.0.0'
+    cockpit diff config group --org 'c12s' --namespace 'default' --names 'app_config|app_config' --versions 'v1.0.0|v1.0.1'
+    cockpit diff config group --org 'c12s' --namespace 'default' --names 'app_config' --versions 'v1.0.0|v1.0.1'
+    cockpit diff config group --org 'c12s' --namespace 'default' --names 'app_config|app_config' --versions 'v1.0.0'
     ```
 
 #### Place Config Group
@@ -342,12 +350,13 @@ List all placements of a configuration group.
 - **Command**: cockpit list config group placements
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --name: Name of the config group.
   - --version: Version of the config group.
 - **Example**:
 
     ```sh
-    cockpit list config group placements --org 'c12s' --name 'app_config' --version 'v1.0.0'
+    cockpit list config group placements --org 'c12s' --namespace 'default' --name 'app_config' --version 'v1.0.0'
     ```
 
 #### Delete Config Group
@@ -355,13 +364,14 @@ Delete a configuration group.
 - **Command**: cockpit delete config group
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --name: Name of the config group.
   - --version: Version of the config group.
   - --output: Output format (json, yaml).
 - **Example**:
 
     ```sh
-    cockpit delete config group --org 'c12s' --name 'app_config' --version 'v1.0.1'
+    cockpit delete config group --org 'c12s' --namespace 'default' --name 'app_config' --version 'v1.0.1'
     ```
 
 ### Standalone Config Management
@@ -382,13 +392,14 @@ Retrieve a standalone configuration.
 - **Command**: cockpit get standalone config
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --name: Name of the config.
   - --version: Version of the config.
   - --output: Output format (json, yaml).
 - **Example**:
 
     ```sh
-    cockpit get standalone config --org 'c12s' --name 'db_config' --version 'v1.0.1'
+    cockpit get standalone config --org 'c12s' --namespace 'default' --name 'db_config' --version 'v1.0.1'
     ```
 
 #### List Standalone Configs
@@ -396,11 +407,12 @@ List all standalone configurations.
 - **Command**: cockpit list standalone config
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --output: Output format (json, yaml).
 - **Example**:
 
     ```sh
-    cockpit list standalone config --org 'c12s'
+    cockpit list standalone config --org 'c12s' --namespace 'default'
     ```
 
 #### Diff Standalone Configs
@@ -408,15 +420,16 @@ Compare differences between standalone configurations.
 - **Command**: cockpit diff standalone config
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --names: Names of the configs.
   - --versions: Versions of the configs.
   - --output: Output format (json, yaml).
 - **Example**:
 
     ```sh
-    cockpit diff standalone config --org 'c12s' --names 'db_config|db_config' --versions 'v1.0.1|v1.0.0'
-    cockpit diff standalone config --org 'c12s' --names 'db_config' --versions 'v1.0.1|v1.0.0'
-    cockpit diff standalone config --org 'c12s' --names 'db_config|db_config' --versions 'v1.0.1'
+    cockpit diff standalone config --org 'c12s' --namespace 'default' --names 'db_config|db_config' --versions 'v1.0.1|v1.0.0'
+    cockpit diff standalone config --org 'c12s' --namespace 'default' --names 'db_config' --versions 'v1.0.1|v1.0.0'
+    cockpit diff standalone config --org 'c12s' --namespace 'default' --names 'db_config|db_config' --versions 'v1.0.1'
     ```
 
 #### Place Standalone Config
@@ -435,12 +448,13 @@ List all placements of a standalone configuration.
 - **Command**: cockpit list standalone config placements
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --name: Name of the config.
   - --version: Version of the config.
 - **Example**:
 
     ```sh
-    cockpit list standalone config placements --org 'c12s' --name 'db_config' --version 'v1.0.0'
+    cockpit list standalone config placements --org 'c12s' --namespace 'default' --name 'db_config' --version 'v1.0.0'
     ```
 
 #### Delete Standalone Config
@@ -448,13 +462,14 @@ Delete a standalone configuration.
 - **Command**: cockpit delete standalone config
 - **Options**:
   - --org: Organization.
+  - --namespace: Namespace.
   - --name: Name of the config.
   - --version: Version of the config.
   - --output: Output format (json, yaml).
 - **Example**:
 
     ```sh
-    cockpit delete standalone config --org 'c12s' --name 'db_config' --version 'v1.0.1'
+    cockpit delete standalone config --org 'c12s' --namespace 'default' --name 'db_config' --version 'v1.0.1'
     ```
 
 ### Node Metrics Management

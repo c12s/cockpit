@@ -4,6 +4,7 @@ const (
 	EmailShorthandFlag        = "e"
 	NameShorthandFlag         = "n"
 	OrganizationShorthandFlag = "r"
+	NamespaceShorthandFlag    = "i"
 	SurnameShorthandFlag      = "s"
 	UsernameShorthandFlag     = "u"
 	QueryFlagShorthandFlag    = "q"

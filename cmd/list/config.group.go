@@ -2,20 +2,22 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 )
 
 var (
 	organization        string
+	namespace           string
 	configGroupResponse model.ConfigGroupsResponse
 	outputFormat        string
 )
@@ -27,7 +29,7 @@ var ListConfigGroupCmd = &cobra.Command{
 	Long:    constants.ListStandaloneConfigLongDesc,
 	Run:     executeListConfigGroup,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.OrganizationFlag})
 	},
 }
 
@@ -71,6 +73,7 @@ func createListRequestConfig() model.HTTPRequestConfig {
 
 	requestBody := map[string]string{
 		"organization": organization,
+		"namespace":    namespace,
 	}
 
 	return model.HTTPRequestConfig{
@@ -86,6 +89,9 @@ func createListRequestConfig() model.HTTPRequestConfig {
 func init() {
 	ListConfigGroupCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
 	ListConfigGroupCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
+	ListConfigGroupCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamesShorthandFlag, "", constants.NamespaceDescription)
 
+	ListConfigGroupCmd.MarkFlagRequired(constants.NamespaceFlag)
 	ListConfigGroupCmd.MarkFlagRequired(constants.OrganizationFlag)
+	ListConfigGroupCmd.MarkFlagRequired(constants.NamespaceFlag)
 }

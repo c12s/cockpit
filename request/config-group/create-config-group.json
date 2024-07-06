@@ -1,6 +1,7 @@
 {
   "name": "app_config",
   "organization": "c12s",
+  "namespace": "default",
   "paramSets": [
     {
       "paramSet": [

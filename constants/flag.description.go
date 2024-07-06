@@ -10,6 +10,7 @@ const (
 	IdsDescription                = "IDs of the entities separated by '|' (required)"
 	KindsDescription              = "Kinds of the entities separated by '|' (required)"
 	OrganizationDescription       = "Organization name (required)"
+	NamespaceDescription          = "Namespace name (required)"
 	SchemaNameDescription         = "Schema name (required)"
 	VersionDescription            = "Version of entity (required)"
 	FilePathDescription           = "Path to the YAML or JSON file (required)"

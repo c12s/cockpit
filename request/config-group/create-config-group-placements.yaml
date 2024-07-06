@@ -1,7 +1,8 @@
 config:
   name: app_config
   organization: c12s
-  version: v1.0.0
+  namespace: default
+  version: v1.0.1
 namespace: dev
 strategy:
   name: default

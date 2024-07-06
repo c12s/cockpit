@@ -2,8 +2,9 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/c12s/cockpit/aliases"
 	"os"
+
+	"github.com/c12s/cockpit/aliases"
 
 	"github.com/spf13/cobra"
 
@@ -52,6 +53,8 @@ func init() {
 	DeleteCmd.AddCommand(deleteCmd.DeleteSchemaCmd)
 	DeleteCmd.AddCommand(DeleteStandaloneConfigCmd)
 	DeleteCmd.AddCommand(DeleteConfigCmd)
+	DeleteCmd.AddCommand(deleteCmd.DeleteNamespaceCmd)
+	DeleteCmd.AddCommand(deleteCmd.DeleteAppCmd)
 	DeleteStandaloneConfigCmd.AddCommand(deleteCmd.DeleteStandaloneConfigCmd)
 	DeleteConfigCmd.AddCommand(deleteCmd.DeleteConfigGroupCmd)
 	RootCmd.AddCommand(DeleteCmd)
@@ -80,6 +83,8 @@ func init() {
 	CreateCmd.AddCommand(create.CreateSchemaCmd)
 	CreateCmd.AddCommand(create.CreateRelationsCmd)
 	CreateCmd.AddCommand(create.CreatePoliciesCmd)
+	CreateCmd.AddCommand(create.CreateAppCmd)
+	CreateCmd.AddCommand(create.CreateNamespaceCmd)
 	RootCmd.AddCommand(CreateCmd)
 
 	// Diff Commands

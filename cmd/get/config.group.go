@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -27,7 +28,7 @@ var GetSingleConfigGroupCmd = &cobra.Command{
 	Long:    constants.GetAppConfigLongDesc,
 	Run:     executeGetAppConfig,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -62,6 +63,7 @@ func executeGetAppConfig(cmd *cobra.Command, args []string) {
 func prepareRequestConfig() interface{} {
 	requestBody := model.ConfigReference{
 		Organization: organization,
+		Namespace:    namespace,
 		Name:         name,
 		Version:      version,
 	}
@@ -92,7 +94,9 @@ func init() {
 	GetSingleConfigGroupCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
 	GetSingleConfigGroupCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
 	GetSingleConfigGroupCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
+	GetSingleConfigGroupCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamespaceShorthandFlag, "", constants.NamespaceDescription)
 
+	GetSingleConfigGroupCmd.MarkFlagRequired(constants.NamespaceFlag)
 	GetSingleConfigGroupCmd.MarkFlagRequired(constants.OrganizationFlag)
 	GetSingleConfigGroupCmd.MarkFlagRequired(constants.NameFlag)
 	GetSingleConfigGroupCmd.MarkFlagRequired(constants.VersionFlag)

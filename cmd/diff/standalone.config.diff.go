@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -25,12 +26,12 @@ var DiffStandaloneConfigCmd = &cobra.Command{
 	Long:    constants.DiffStandaloneConfigLongDesc,
 	Run:     executeDiffStandaloneConfig,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NamesFlag, constants.VersionsFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.OrganizationFlag, constants.NamesFlag, constants.VersionsFlag})
 	},
 }
 
 func executeDiffStandaloneConfig(cmd *cobra.Command, args []string) {
-	requestBody, err := utils.PrepareConfigDiffRequest(names, versions, organization)
+	requestBody, err := utils.PrepareConfigDiffRequest(namespace, names, versions, organization)
 	if err != nil {
 		fmt.Println("Error preparing request:", err)
 		os.Exit(1)
@@ -90,7 +91,9 @@ func init() {
 	DiffStandaloneConfigCmd.Flags().StringVarP(&names, constants.NamesFlag, constants.NamesShorthandFlag, "", constants.ConfigDiffNamesDescription)
 	DiffStandaloneConfigCmd.Flags().StringVarP(&versions, constants.VersionsFlag, constants.VersionsShorthandFlag, "", constants.ConfigDiffVersionsDescription)
 	DiffStandaloneConfigCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
+	DiffStandaloneConfigCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamespaceShorthandFlag, "", constants.NamespaceDescription)
 
+	DiffStandaloneConfigCmd.MarkFlagRequired(constants.NamespaceFlag)
 	DiffStandaloneConfigCmd.MarkFlagRequired(constants.OrganizationFlag)
 	DiffStandaloneConfigCmd.MarkFlagRequired(constants.NamesFlag)
 	DiffStandaloneConfigCmd.MarkFlagRequired(constants.VersionsFlag)

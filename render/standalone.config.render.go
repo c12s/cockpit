@@ -2,9 +2,10 @@ package render
 
 import (
 	"fmt"
-	"github.com/c12s/cockpit/model"
 	"os"
 	"text/tabwriter"
+
+	"github.com/c12s/cockpit/model"
 )
 
 func RenderStandaloneConfigsTabWriter(configs []model.StandaloneConfig) {
@@ -16,11 +17,11 @@ func RenderStandaloneConfigsTabWriter(configs []model.StandaloneConfig) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
 	defer w.Flush()
 
-	fmt.Fprintln(w, "Organization\tName\tVersion\tCreated At\tParams\t")
+	fmt.Fprintln(w, "Organization\tNamespace\tName\tVersion\tCreated At\tParams\t")
 
 	for _, config := range configs {
 		for _, param := range config.ParamSet {
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s=%s\t\n", config.Organization, config.Name, config.Version, config.CreatedAt, param.Key, param.Value)
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s=%s\t\n", config.Organization, config.Namespace, config.Name, config.Version, config.CreatedAt, param.Key, param.Value)
 		}
 	}
 }
@@ -29,10 +30,10 @@ func RenderStandaloneConfigTabWriter(config model.StandaloneConfig) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
 	defer w.Flush()
 
-	fmt.Fprintln(w, "Organization\tName\tVersion\tCreated At\tParams\t")
+	fmt.Fprintln(w, "Organization\tNamespace\tName\tVersion\tCreated At\tParams\t")
 
 	for _, param := range config.ParamSet {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s=%s\t\n", config.Organization, config.Name, config.Version, config.CreatedAt, param.Key, param.Value)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s=%s\t\n", config.Organization, config.Namespace, config.Name, config.Version, config.CreatedAt, param.Key, param.Value)
 	}
 }
 

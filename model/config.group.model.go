@@ -9,8 +9,9 @@ type Query struct {
 type PlaceConfigGroupPlacementsRequest struct {
 	Config   ConfigReference `json:"config" yaml:"config"`
 	Strategy struct {
-		Name  string  `json:"name" yaml:"name"`
-		Query []Query `json:"query" yaml:"query"`
+		Name       string  `json:"name" yaml:"name"`
+		Query      []Query `json:"query" yaml:"query"`
+		Percentage int     `json:"percentage" yaml:"percentage"`
 	} `json:"strategy" yaml:"strategy"`
 }
 

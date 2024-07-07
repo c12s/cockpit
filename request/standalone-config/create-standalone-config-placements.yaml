@@ -3,10 +3,10 @@ config:
   organization: c12s
   namespace: default
   version: v1.0.0
-namespace: dev
 strategy:
-  name: default
-  query:
-    - labelKey: newlabel
-      shouldBe: ">"
-      value: "2"
+  name: gossip
+  percentage: 50
+  # query:
+  #   - labelKey: newlabel
+  #     shouldBe: ">"
+  #     value: "2"

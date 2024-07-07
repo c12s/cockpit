@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"os"
-	"strings"
-	"time"
 
 	"github.com/spf13/cobra"
 )

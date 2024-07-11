@@ -485,7 +485,7 @@ Retrieve metrics for a specific node.
 
     ```sh
     cockpit get node metrics --node-id 'nodeID'
-    cockpit get node metrics --node-id 'nodeID' --all --sort 'memory'
+    cockpit get node metrics --node-id 'nodeID' --all-services --sort 'memory'
     ```
 
 ## Contributing

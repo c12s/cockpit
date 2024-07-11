@@ -20,5 +20,6 @@ const (
 	SortShorthandFlag         = "s"
 	AllServicesShorthandFlag  = "a"
 	NodeIdShorthandFlag       = "n"
+	ClusterIdShorthandFlag    = "c"
 	ValueShorthandFlag        = "v"
 )

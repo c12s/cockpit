@@ -15,6 +15,7 @@ const (
 	FilePathFlag     = "path"
 	OutputFlag       = "output"
 	NodeIdFlag       = "node-id"
+	ClusterIdFlag    = "cluster-id"
 	KeyFlag          = "key"
 	NamesFlag        = "names"
 	VersionsFlag     = "versions"

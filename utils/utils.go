@@ -7,17 +7,18 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/c12s/cockpit/model"
-	"github.com/cheggaaa/pb/v3"
-	"github.com/spf13/cobra"
-	"golang.org/x/term"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"syscall"
+
+	"github.com/c12s/cockpit/model"
+	"github.com/cheggaaa/pb/v3"
+	"github.com/spf13/cobra"
+	"golang.org/x/term"
+	"gopkg.in/yaml.v3"
 )
 
 const (

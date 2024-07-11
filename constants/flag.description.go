@@ -16,6 +16,7 @@ const (
 	FilePathDescription           = "Path to the YAML or JSON file (required)"
 	OutputDescription             = "Output format (json or yaml)"
 	NodeIdDescription             = "Node ID (required)"
+	ClusterIdDescription          = "Cluster ID"
 	LabelKeyDescription           = "Label key (required)"
 	ConfigDiffNamesDescription    = "Configuration names separated by '|' (required)"
 	ConfigDiffVersionsDescription = "Configuration versions separated by '|' (required)"

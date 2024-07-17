@@ -2,8 +2,8 @@ name: db_config
 organization: c12s
 namespace: default
 paramSet:
-  - value: "1234"
-    key: port
+  - key: port
+    value: "1234"
   - key: address
     value: 127.0.0.1
 version: v1.0.0

@@ -56,12 +56,18 @@ func RenderStandaloneConfigDiffsTabWriter(diffResponse model.StandaloneConfigDif
 				diff.Diff["value"],
 				"-",
 			)
+		case "addition":
+			fmt.Fprintf(w, "%s\t%s\t%s\t\n",
+				diff.Diff["key"],
+				diff.Diff["value"],
+				"+",
+			)
 		case "replacement":
 			fmt.Fprintf(w, "%s\t%s -> %s\t%s\t\n",
 				diff.Diff["key"],
 				diff.Diff["old_value"],
 				diff.Diff["new_value"],
-				"+",
+				"->",
 			)
 		}
 	}

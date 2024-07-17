@@ -2,11 +2,12 @@ package utils
 
 import (
 	"fmt"
-	"github.com/c12s/cockpit/model"
 	"strings"
+
+	"github.com/c12s/cockpit/model"
 )
 
-func PrepareConfigDiffRequest(names, versions, organization string) (interface{}, error) {
+func PrepareConfigDiffRequest(namespace, names, versions, organization string) (interface{}, error) {
 	namesList := strings.Split(names, "|")
 	versionsList := strings.Split(versions, "|")
 
@@ -26,11 +27,13 @@ func PrepareConfigDiffRequest(names, versions, organization string) (interface{}
 		Reference: model.SingleConfigReference{
 			Name:         namesList[0],
 			Organization: organization,
+			Namespace:    namespace,
 			Version:      versionsList[0],
 		},
 		Diff: model.SingleConfigReference{
 			Name:         namesList[1],
 			Organization: organization,
+			Namespace:    namespace,
 			Version:      versionsList[1],
 		},
 	}

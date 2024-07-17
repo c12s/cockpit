@@ -1,0 +1,13 @@
+orgId: c12s
+namespace: default
+name: app 3
+seccompDefinitionStrategy: inherit
+profile:
+  version: V1
+quotas:
+- key: cpu
+  value: 1
+- key: mem
+  value: 1
+- key: disk
+  value: 1

@@ -2,9 +2,10 @@ package render
 
 import (
 	"fmt"
-	"github.com/c12s/cockpit/model"
 	"os"
 	"text/tabwriter"
+
+	"github.com/c12s/cockpit/model"
 )
 
 func RenderTasksTabWriter(tasks []model.Task) {
@@ -16,13 +17,12 @@ func RenderTasksTabWriter(tasks []model.Task) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
 	defer w.Flush()
 
-	fmt.Fprintln(w, "ID\tNode\tNamespace\tStatus\tAccepted At\tResolved At\t")
+	fmt.Fprintln(w, "ID\tNode\tStatus\tAccepted At\tResolved At\t")
 
 	for _, task := range tasks {
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t\n",
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t\n",
 			task.ID,
 			task.Node,
-			task.Namespace,
 			task.Status,
 			task.AcceptedAt,
 			task.ResolvedAt)
@@ -38,12 +38,12 @@ func RenderConfigGroupsTabWriter(groups []model.ConfigGroup) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
 	defer w.Flush()
 
-	fmt.Fprintln(w, "Organization\tName\tVersion\tCreated At\tParam Set Name\tParams\t")
+	fmt.Fprintln(w, "Organization\tNamespace\tName\tVersion\tCreated At\tParam Set Name\tParams\t")
 
 	for _, group := range groups {
 		for _, paramSet := range group.ParamSets {
 			for _, param := range paramSet.ParamSet {
-				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s=%s\t\n", group.Organization, group.Name, group.Version, group.CreatedAt, paramSet.Name, param.Key, param.Value)
+				fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%s=%s\t\n", group.Organization, group.Namespace, group.Name, group.Version, group.CreatedAt, paramSet.Name, param.Key, param.Value)
 			}
 		}
 	}
@@ -53,11 +53,11 @@ func RenderConfigGroupTabWriter(group model.ConfigGroup) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
 	defer w.Flush()
 
-	fmt.Fprintln(w, "Organization\tName\tVersion\tCreated At\tParam Set Name\tParams\t")
+	fmt.Fprintln(w, "Organization\tNamespace\tName\tVersion\tCreated At\tParam Set Name\tParams\t")
 
 	for _, paramSet := range group.ParamSets {
 		for _, param := range paramSet.ParamSet {
-			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s=%s\t\n", group.Organization, group.Name, group.Version, group.CreatedAt, paramSet.Name, param.Key, param.Value)
+			fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%s=%s\t\n", group.Organization, group.Namespace, group.Name, group.Version, group.CreatedAt, paramSet.Name, param.Key, param.Value)
 		}
 	}
 }

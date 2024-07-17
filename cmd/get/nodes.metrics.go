@@ -2,22 +2,25 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"time"
 )
 
 const metricsBaseURL = "http://localhost:8086/api/metrics-api/latest-node-data/"
+const clusterMetricsBaseURL = "http://localhost:8086/api/metrics-api/latest-cluster-data/"
 
 var (
-	nodeID string
-	all    bool
-	sortBy string
+	nodeID    string
+	clusterID string
+	all       bool
+	sortBy    string
 )
 
 var LatestMetricsCmd = &cobra.Command{
@@ -26,29 +29,36 @@ var LatestMetricsCmd = &cobra.Command{
 	Short:   constants.LatestMetricsShortDesc,
 	Long:    constants.LatestMetricsLongDesc,
 	Run:     executeLatestMetrics,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.NodeIdFlag})
-	},
+	// PreRunE: func(cmd *cobra.Command, args []string) error {
+	// 	return utils.ValidateRequiredFlags(cmd, []string{constants.NodeIdFlag})
+	// },
 }
 
 func executeLatestMetrics(cmd *cobra.Command, args []string) {
-	if nodeID == "" {
-		fmt.Println("Node ID is required")
+	if nodeID == "" && clusterID == "" {
+		fmt.Println("Either node ID or cluster ID are required")
 		os.Exit(1)
 	}
 
 	url := metricsBaseURL + nodeID
+	infraType := "Node"
+	cluster := false
+	if clusterID != "" {
+		url = clusterMetricsBaseURL + clusterID
+		infraType = "Cluster"
+		cluster = true
+	}
+
 	metricsResponse, err := fetchMetrics(url)
 	if err != nil {
 		fmt.Println("Error fetching metrics:", err)
 		os.Exit(1)
 	}
-
-	render.RenderNodeMetrics(metricsResponse, sortBy)
+	render.RenderNodeMetrics(metricsResponse, sortBy, infraType)
 
 	if all {
 		fmt.Println()
-		render.RenderServiceMetrics(metricsResponse, sortBy)
+		render.RenderServiceMetrics(metricsResponse, sortBy, cluster)
 	}
 }
 
@@ -76,8 +86,7 @@ func fetchMetrics(url string) (model.MetricResponse, error) {
 
 func init() {
 	LatestMetricsCmd.Flags().StringVarP(&nodeID, constants.NodeIdFlag, constants.NodeIdShorthandFlag, "", constants.NodeIdDescription)
+	LatestMetricsCmd.Flags().StringVarP(&clusterID, constants.ClusterIdFlag, constants.ClusterIdShorthandFlag, "", constants.ClusterIdDescription)
 	LatestMetricsCmd.Flags().BoolVarP(&all, constants.AllServicesFlag, constants.AllServicesShorthandFlag, false, constants.AllServicesDescription)
 	LatestMetricsCmd.Flags().StringVarP(&sortBy, constants.SortByFlag, constants.SortShorthandFlag, "cpu", constants.SortMetricsDescription)
-
-	LatestMetricsCmd.MarkFlagRequired(constants.NodeIdFlag)
 }

@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -25,7 +26,7 @@ var ListStandaloneConfigPlacementsCmd = &cobra.Command{
 	Long:    constants.ListStandaloneConfigPlacementsLongDesc,
 	Run:     executeListStandaloneConfigPlacements,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -43,6 +44,7 @@ func executeListStandaloneConfigPlacements(cmd *cobra.Command, args []string) {
 func prepareStandalonePlacementsRequestConfig() interface{} {
 	requestBody := model.ConfigReference{
 		Name:         name,
+		Namespace:    namespace,
 		Organization: organization,
 		Version:      version,
 	}
@@ -72,8 +74,10 @@ func init() {
 	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
 	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
 	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
+	ListStandaloneConfigPlacementsCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamespaceShorthandFlag, "", constants.NamespaceDescription)
 
 	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(constants.OrganizationFlag)
 	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(constants.NameFlag)
 	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(constants.VersionFlag)
+	ListStandaloneConfigPlacementsCmd.MarkFlagRequired(constants.NamespaceFlag)
 }

@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -27,7 +28,7 @@ var ListConfigGroupPlacementsCmd = &cobra.Command{
 	Long:    constants.ListConfigGroupPlacementsLongDesc,
 	Run:     executeListConfigGroupPlacements,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -45,6 +46,7 @@ func executeListConfigGroupPlacements(cmd *cobra.Command, args []string) {
 func preparePlacementsRequestConfig() interface{} {
 	requestBody := model.ConfigReference{
 		Name:         name,
+		Namespace:    namespace,
 		Organization: organization,
 		Version:      version,
 	}
@@ -74,8 +76,10 @@ func init() {
 	ListConfigGroupPlacementsCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
 	ListConfigGroupPlacementsCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
 	ListConfigGroupPlacementsCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
+	ListConfigGroupPlacementsCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamespaceShorthandFlag, "", constants.NamespaceDescription)
 
 	ListConfigGroupPlacementsCmd.MarkFlagRequired(constants.OrganizationFlag)
 	ListConfigGroupPlacementsCmd.MarkFlagRequired(constants.NameFlag)
 	ListConfigGroupPlacementsCmd.MarkFlagRequired(constants.VersionFlag)
+	ListConfigGroupPlacementsCmd.MarkFlagRequired(constants.NamespaceFlag)
 }

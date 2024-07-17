@@ -1,6 +1,8 @@
 package model
 
-import "strings"
+import (
+	"strings"
+)
 
 type MetricResponse struct {
 	Status int          `json:"status"`
@@ -9,7 +11,7 @@ type MetricResponse struct {
 
 type MetricData struct {
 	Metric map[string]string `json:"metric"`
-	Values [][]interface{}   `json:"values"`
+	Value  []interface{}     `json:"value"`
 }
 
 func (m *MetricResponse) FilterNodeMetrics() []MetricData {

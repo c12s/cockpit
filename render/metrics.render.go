@@ -2,15 +2,16 @@ package render
 
 import (
 	"fmt"
-	"github.com/c12s/cockpit/model"
-	"github.com/c12s/cockpit/utils"
 	"os"
 	"sort"
 	"strings"
 	"text/tabwriter"
+
+	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/utils"
 )
 
-func RenderNodeMetrics(metrics model.MetricResponse, sortBy string) {
+func RenderNodeMetrics(metrics model.MetricResponse, sortBy string, infraType string) {
 	nodeMetrics := metrics.FilterNodeMetrics()
 
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
@@ -22,31 +23,29 @@ func RenderNodeMetrics(metrics model.MetricResponse, sortBy string) {
 
 	for _, data := range nodeMetrics {
 		metricName := data.Metric["__name__"]
-		for _, value := range data.Values {
-			val := utils.StringToFloat(value[1].(string))
-			if metricsMap[metricName] == nil {
-				metricsMap[metricName] = make(map[string]float64)
-			}
-			switch {
-			case strings.Contains(metricName, "total"):
-				metricsMap[metricName]["total"] = val
-			case strings.Contains(metricName, "usage"), strings.Contains(metricName, "available"):
-				metricsMap[metricName]["used"] = val
-			case strings.Contains(metricName, "network_receive"):
-				metricsMap[metricName]["network_receive"] = val
-			case strings.Contains(metricName, "network_transmit"):
-				metricsMap[metricName]["network_transmit"] = val
-			}
+		val := utils.StringToFloat(data.Value[1].(string))
+		if metricsMap[metricName] == nil {
+			metricsMap[metricName] = make(map[string]float64)
+		}
+		switch {
+		case strings.Contains(metricName, "total"):
+			metricsMap[metricName]["total"] = val
+		case strings.Contains(metricName, "usage"), strings.Contains(metricName, "available"):
+			metricsMap[metricName]["used"] = val
+		case strings.Contains(metricName, "network_receive"):
+			metricsMap[metricName]["network_receive"] = val
+		case strings.Contains(metricName, "network_transmit"):
+			metricsMap[metricName]["network_transmit"] = val
 		}
 	}
 
-	printNodeMetrics(w, "Node", "cpu", nil, "%", metricsMap["custom_node_cpu_usage_percentage"])
-	printNodeMetrics(w, "Node", "disk", metricsMap["custom_node_disk_total_gb"], "GB", metricsMap["custom_node_disk_usage_gb"])
-	printMemoryMetrics(w, "Node", "memory", metricsMap["custom_node_ram_total_mb"], metricsMap["custom_node_ram_available_mb"], "MB")
-	printNetworkMetrics(w, "Node", "network", metricsMap["custom_node_network_receive_mb"], metricsMap["custom_node_network_transmit_mb"], "MB")
+	printNodeMetrics(w, infraType, "cpu", nil, "%", metricsMap["custom_node_cpu_usage_percentage"])
+	printNodeMetrics(w, infraType, "disk", metricsMap["custom_node_disk_total_gb"], "GB", metricsMap["custom_node_disk_usage_gb"])
+	printMemoryMetrics(w, infraType, "memory", metricsMap["custom_node_ram_total_mb"], metricsMap["custom_node_ram_available_mb"], "MB")
+	printNetworkMetrics(w, infraType, "network", metricsMap["custom_node_network_receive_mb"], metricsMap["custom_node_network_transmit_mb"], "MB")
 }
 
-func RenderServiceMetrics(metrics model.MetricResponse, sortBy string) {
+func RenderServiceMetrics(metrics model.MetricResponse, sortBy string, cluster bool) {
 	serviceMetrics := metrics.FilterServiceMetrics()
 
 	sort.Slice(serviceMetrics, func(i, j int) bool {
@@ -75,27 +74,35 @@ func RenderServiceMetrics(metrics model.MetricResponse, sortBy string) {
 
 	for _, data := range serviceMetrics {
 		service := data.Metric["service_name"]
-		if service == "" {
-			service = "Node"
+		if strings.Contains(data.Metric["__name__"], "cpu_usage") {
+			service = data.Metric["name"]
+		}
+		if cluster {
+			if strings.Contains(data.Metric["__name__"], "cpu_usage") {
+				service = data.Metric["nodeID"] + ": " + data.Metric["name"]
+			} else {
+				service = data.Metric["nodeID"] + ": " + data.Metric["service_name"]
+			}
+		}
+		if service == "" || strings.HasSuffix(service, ": ") {
+			continue
 		}
 		metricName := data.Metric["__name__"]
-		for _, value := range data.Values {
-			val := utils.StringToFloat(value[1].(string))
-			if serviceMap[service] == nil {
-				serviceMap[service] = make(map[string]float64)
-			}
-			switch {
-			case strings.Contains(metricName, "cpu"):
-				serviceMap[service]["cpu"] = val
-			case strings.Contains(metricName, "ram_usage"):
-				serviceMap[service]["used_memory"] = val
-			case strings.Contains(metricName, "disk_usage"):
-				serviceMap[service]["disk_usage"] = val
-			case strings.Contains(metricName, "network_receive"):
-				serviceMap[service]["network_receive"] = val
-			case strings.Contains(metricName, "network_transmit"):
-				serviceMap[service]["network_transmit"] = val
-			}
+		val := utils.StringToFloat(data.Value[1].(string))
+		if serviceMap[service] == nil {
+			serviceMap[service] = make(map[string]float64)
+		}
+		switch {
+		case strings.Contains(metricName, "cpu"):
+			serviceMap[service]["cpu"] = val
+		case strings.Contains(metricName, "ram_usage"):
+			serviceMap[service]["used_memory"] = val
+		case strings.Contains(metricName, "disk_usage"):
+			serviceMap[service]["disk_usage"] = val
+		case strings.Contains(metricName, "network_receive"):
+			serviceMap[service]["network_receive"] = val
+		case strings.Contains(metricName, "network_transmit"):
+			serviceMap[service]["network_transmit"] = val
 		}
 	}
 

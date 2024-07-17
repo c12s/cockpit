@@ -7,11 +7,11 @@ type Query struct {
 }
 
 type PlaceConfigGroupPlacementsRequest struct {
-	Config    ConfigReference `json:"config" yaml:"config"`
-	Namespace string          `json:"namespace" yaml:"namespace"`
-	Strategy  struct {
-		Name  string  `json:"name" yaml:"name"`
-		Query []Query `json:"query" yaml:"query"`
+	Config   ConfigReference `json:"config" yaml:"config"`
+	Strategy struct {
+		Name       string  `json:"name" yaml:"name"`
+		Query      []Query `json:"query" yaml:"query"`
+		Percentage int     `json:"percentage" yaml:"percentage"`
 	} `json:"strategy" yaml:"strategy"`
 }
 
@@ -22,6 +22,7 @@ type ParamSet struct {
 
 type ConfigGroup struct {
 	Organization string     `json:"organization" yaml:"organization"`
+	Namespace    string     `json:"namespace" yaml:"namespace"`
 	Name         string     `json:"name" yaml:"name"`
 	Version      string     `json:"version" yaml:"version"`
 	CreatedAt    string     `json:"createdAt" yaml:"createdAt"`
@@ -34,6 +35,7 @@ type ConfigGroupsResponse struct {
 
 type ConfigReference struct {
 	Name         string `json:"name" yaml:"name"`
+	Namespace    string `json:"namespace" yaml:"namespace"`
 	Organization string `json:"organization" yaml:"organization"`
 	Version      string `json:"version" yaml:"version"`
 }
@@ -50,7 +52,6 @@ type ConfigGroupPlacementsResponse struct {
 type Task struct {
 	ID         string `json:"id" yaml:"id"`
 	Node       string `json:"node" yaml:"node"`
-	Namespace  string `json:"namespace" yaml:"namespace"`
 	Status     string `json:"status" yaml:"status"`
 	AcceptedAt string `json:"acceptedAt" yaml:"acceptedAt"`
 	ResolvedAt string `json:"resolvedAt" yaml:"resolvedAt"`

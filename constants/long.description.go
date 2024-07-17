@@ -27,6 +27,16 @@ Policies are used to define and enforce security rules within the organization. 
 Example:
 - cockpit create policies --path 'path to yaml or json file'`
 
+	CreateAppLongDesc = `This command is for creating app specification based on the input file.
+
+Example:
+- cockpit create app --path 'path to yaml or json file'`
+
+	CreateNamespaceLongDesc = `This command is for creating namespaces based on the input file.
+
+Example:
+- cockpit create namespace --path 'path to yaml or json file'`
+
 	CreateRelationsLongDesc = `This command creates relations between entities specified by their IDs and kinds.
 Relations help to establish a hierarchical or dependency structure between different entities within the organization. 
 This can include relationships between organizations, namespaces, and other resources.
@@ -45,6 +55,18 @@ The user can specify the organization, the configuration group name, and the ver
 
 Example:
 - cockpit delete config group --org 'org' --name 'app_config' --version 'v1.0.0'`
+
+	DeleteAppLongDesc = `This command deletes a specified app.
+The user must specify the organization, namespace and the application name.
+
+Example:
+- cockpit delete app --org 'org' --namespace 'namespace' --name 'app'`
+
+	DeleteNamespaceLongDesc = `This command deletes a specified namespace.
+The user must specify the organization and name of the namespace.
+
+Example:
+- cockpit delete namespace --org 'org' --name 'name'`
 
 	DeleteNodeLabelsLongDesc = `Delete a specific label from a node using its key.
 This command allows the user to remove a label from a node by specifying the node ID, organization, and the label key.

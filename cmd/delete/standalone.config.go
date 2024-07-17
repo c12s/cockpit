@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
@@ -9,8 +12,6 @@ import (
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"time"
 )
 
 var (
@@ -24,7 +25,7 @@ var DeleteStandaloneConfigCmd = &cobra.Command{
 	Long:    constants.DeleteStandaloneConfigLongDesc,
 	Run:     executeDeleteStandaloneConfig,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.OrganizationFlag, constants.NameFlag, constants.VersionFlag})
 	},
 }
 
@@ -51,6 +52,7 @@ func executeDeleteStandaloneConfig(cmd *cobra.Command, args []string) {
 func prepareDeleteStandaloneConfigRequestConfig() model.SingleConfigReference {
 	requestBody := model.SingleConfigReference{
 		Organization: organization,
+		Namespace:    namespace,
 		Name:         name,
 		Version:      version,
 	}
@@ -81,7 +83,9 @@ func init() {
 	DeleteStandaloneConfigCmd.Flags().StringVarP(&name, constants.NameFlag, constants.NameShorthandFlag, "", constants.NameDescription)
 	DeleteStandaloneConfigCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
 	DeleteStandaloneConfigCmd.Flags().StringVarP(&outputFormat, constants.OutputFlag, constants.OutputShorthandFlag, "", constants.OutputDescription)
+	DeleteStandaloneConfigCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamespaceShorthandFlag, "", constants.NamespaceDescription)
 
+	DeleteStandaloneConfigCmd.MarkFlagRequired(constants.NamespaceFlag)
 	DeleteStandaloneConfigCmd.MarkFlagRequired(constants.OrganizationFlag)
 	DeleteStandaloneConfigCmd.MarkFlagRequired(constants.NameFlag)
 	DeleteStandaloneConfigCmd.MarkFlagRequired(constants.VersionFlag)

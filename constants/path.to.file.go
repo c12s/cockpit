@@ -15,4 +15,5 @@ const (
 	ListStandaloneConfigFilePathYAML = "./response/standalone-config/list-standalone-configs.yaml"
 	GetStandaloneConfigFilePathJSON  = "./response/standalone-config/standalone-config.json"
 	GetStandaloneConfigFilePathYAML  = "./response/standalone-config/standalone-config.yaml"
+	ResponseDirPathJSON              = "./response/"
 )

@@ -1,0 +1,9 @@
+name: prod
+orgId: c12s
+quotas:
+- key: mem
+  value: 1
+- key: cpu
+  value: 1
+- key: disk
+  value: 1

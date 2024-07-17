@@ -2,20 +2,22 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"time"
 )
 
 var (
 	organization string
 	schemaName   string
 	version      string
+	namespace    string
 )
 
 var DeleteSchemaCmd = &cobra.Command{
@@ -25,7 +27,7 @@ var DeleteSchemaCmd = &cobra.Command{
 	Long:    constants.DeleteSchemaLongDesc,
 	Run:     executeDeleteSchema,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.SchemaNameFlag, constants.OrganizationFlag, constants.VersionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.SchemaNameFlag, constants.OrganizationFlag, constants.VersionFlag})
 	},
 }
 
@@ -45,6 +47,7 @@ func prepareDeleteSchemaRequest() interface{} {
 		Organization: organization,
 		SchemaName:   schemaName,
 		Version:      version,
+		Namespace:    namespace,
 	}
 
 	requestBody := model.SchemaDetailsRequest{
@@ -73,10 +76,12 @@ func sendDeleteRequestConfig(requestBody interface{}) error {
 
 func init() {
 	DeleteSchemaCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	DeleteSchemaCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamespaceShorthandFlag, "", constants.NamespaceDescription)
 	DeleteSchemaCmd.Flags().StringVarP(&schemaName, constants.SchemaNameFlag, constants.SchemaNameShorthandFlag, "", constants.SchemaNameDescription)
 	DeleteSchemaCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
 
 	DeleteSchemaCmd.MarkFlagRequired(constants.OrganizationFlag)
+	DeleteSchemaCmd.MarkFlagRequired(constants.NamespaceFlag)
 	DeleteSchemaCmd.MarkFlagRequired(constants.SchemaNameFlag)
 	DeleteSchemaCmd.MarkFlagRequired(constants.VersionFlag)
 }

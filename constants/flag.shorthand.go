@@ -4,6 +4,7 @@ const (
 	EmailShorthandFlag        = "e"
 	NameShorthandFlag         = "n"
 	OrganizationShorthandFlag = "r"
+	NamespaceShorthandFlag    = "i"
 	SurnameShorthandFlag      = "s"
 	UsernameShorthandFlag     = "u"
 	QueryFlagShorthandFlag    = "q"
@@ -19,5 +20,6 @@ const (
 	SortShorthandFlag         = "s"
 	AllServicesShorthandFlag  = "a"
 	NodeIdShorthandFlag       = "n"
+	ClusterIdShorthandFlag    = "c"
 	ValueShorthandFlag        = "v"
 )

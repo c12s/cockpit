@@ -1,6 +1,7 @@
 {
   "name": "db_config",
   "organization": "c12s",
+  "namespace": "default",
   "paramSet": [
     {
       "value": "5432",

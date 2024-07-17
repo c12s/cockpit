@@ -2,6 +2,7 @@ package model
 
 type StandaloneConfig struct {
 	Organization string  `json:"organization" yaml:"organization"`
+	Namespace string          `json:"namespace" yaml:"namespace"`
 	Name         string  `json:"name" yaml:"name"`
 	Version      string  `json:"version" yaml:"version"`
 	CreatedAt    string  `json:"createdAt" yaml:"createdAt"`
@@ -27,6 +28,7 @@ type SingleConfigDiff struct {
 }
 
 type SingleConfigReference struct {
+	Namespace    string `json:"namespace" yaml:"namespace"`
 	Name         string `json:"name" yaml:"name"`
 	Organization string `json:"organization" yaml:"organization"`
 	Version      string `json:"version" yaml:"version"`

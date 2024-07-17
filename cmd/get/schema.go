@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
-	"os"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -18,6 +19,7 @@ var (
 	organization   string
 	schemaName     string
 	version        string
+	namespace      string
 	schemaResponse model.SchemaResponse
 )
 
@@ -28,7 +30,7 @@ var GetSchemaCmd = &cobra.Command{
 	Long:    constants.GetSchemaLongDesc,
 	Run:     executeGetSchema,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.SchemaNameFlag, constants.VersionFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.OrganizationFlag, constants.SchemaNameFlag, constants.VersionFlag})
 	},
 }
 
@@ -53,6 +55,7 @@ func prepareSchemaRequestConfig() interface{} {
 			Organization: organization,
 			SchemaName:   schemaName,
 			Version:      version,
+			Namespace:    namespace,
 		},
 	}
 
@@ -81,8 +84,10 @@ func init() {
 	GetSchemaCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
 	GetSchemaCmd.Flags().StringVarP(&schemaName, constants.SchemaNameFlag, constants.SchemaNameShorthandFlag, "", constants.SchemaNameDescription)
 	GetSchemaCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
+	GetSchemaCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamespaceShorthandFlag, "", constants.NamespaceDescription)
 
 	GetSchemaCmd.MarkFlagRequired(constants.OrganizationFlag)
 	GetSchemaCmd.MarkFlagRequired(constants.SchemaNameFlag)
 	GetSchemaCmd.MarkFlagRequired(constants.VersionFlag)
+	GetSchemaCmd.MarkFlagRequired(constants.NamespaceFlag)
 }

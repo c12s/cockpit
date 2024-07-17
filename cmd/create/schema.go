@@ -2,20 +2,22 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"time"
 )
 
 var (
 	organization string
 	schemaName   string
 	version      string
+	namespace    string
 	filePath     string
 )
 
@@ -26,7 +28,7 @@ var CreateSchemaCmd = &cobra.Command{
 	Long:    constants.CreateSchemaLongDesc,
 	Run:     executeCreateSchema,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, constants.SchemaNameFlag, constants.VersionFlag, constants.FilePathFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NamespaceFlag, constants.OrganizationFlag, constants.SchemaNameFlag, constants.VersionFlag, constants.FilePathFlag})
 	},
 }
 
@@ -58,6 +60,7 @@ func createSchemaRequest(schema string) map[string]interface{} {
 		Organization: organization,
 		SchemaName:   schemaName,
 		Version:      version,
+		Namespace:    namespace,
 	}
 
 	return map[string]interface{}{
@@ -85,11 +88,13 @@ func prepareSchemaRequest(requestBody map[string]interface{}) (model.HTTPRequest
 
 func init() {
 	CreateSchemaCmd.Flags().StringVarP(&organization, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	CreateSchemaCmd.Flags().StringVarP(&namespace, constants.NamespaceFlag, constants.NamespaceShorthandFlag, "", constants.NamespaceDescription)
 	CreateSchemaCmd.Flags().StringVarP(&schemaName, constants.SchemaNameFlag, constants.SchemaNameShorthandFlag, "", constants.SchemaNameDescription)
 	CreateSchemaCmd.Flags().StringVarP(&version, constants.VersionFlag, constants.VersionShorthandFlag, "", constants.VersionDescription)
 	CreateSchemaCmd.Flags().StringVarP(&filePath, constants.FilePathFlag, constants.FilePathShorthandFlag, "", constants.FilePathDescription)
 
 	CreateSchemaCmd.MarkFlagRequired(constants.SchemaNameFlag)
+	CreateSchemaCmd.MarkFlagRequired(constants.NamespaceFlag)
 	CreateSchemaCmd.MarkFlagRequired(constants.VersionFlag)
 	CreateSchemaCmd.MarkFlagRequired(constants.FilePathFlag)
 }

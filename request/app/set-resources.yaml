@@ -1,0 +1,10 @@
+name: app 3
+namespace: default
+orgId: c12s
+quotas:
+- key: mem
+  value: 2
+- key: cpu
+  value: 2
+- key: disk
+  value: 2

@@ -1,4 +1,4 @@
-name: app_config
+name: schema
 organization: c12s
 namespace: default
 type: object

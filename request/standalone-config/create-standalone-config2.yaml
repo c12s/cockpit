@@ -1,0 +1,14 @@
+name: db_config
+organization: c12s
+namespace: default
+paramSet:
+  - key: port
+    value: "1234"
+  - key: address
+    value: 1.2.3.4
+  - key: new_config
+    value: new_value
+version: v1.0.1
+# schema:
+#   name: schema
+#   version: v1.0.0

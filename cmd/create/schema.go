@@ -82,7 +82,7 @@ func prepareSchemaRequest(requestBody map[string]interface{}) (model.HTTPRequest
 		Method:      "POST",
 		RequestBody: requestBody,
 		Token:       token,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	}, nil
 }
 

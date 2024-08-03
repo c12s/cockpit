@@ -57,7 +57,7 @@ func sendNamespaceHierarchyRequest(requestBody interface{}) error {
 		Token:       token,
 		RequestBody: requestBody,
 		Response:    &response,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	})
 }
 

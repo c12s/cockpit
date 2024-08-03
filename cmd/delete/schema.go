@@ -69,7 +69,7 @@ func sendDeleteRequestConfig(requestBody interface{}) error {
 		Method:      "DELETE",
 		URL:         url,
 		Token:       token,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 		RequestBody: requestBody,
 	})
 }

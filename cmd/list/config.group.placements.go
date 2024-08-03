@@ -68,7 +68,7 @@ func sendPlacementsRequest(requestBody interface{}) error {
 		Token:       token,
 		RequestBody: requestBody,
 		Response:    &groupConfigPlacementsResponse,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	})
 }
 

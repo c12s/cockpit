@@ -2,15 +2,16 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strconv"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"strconv"
-	"time"
 )
 
 var (
@@ -64,7 +65,7 @@ func sendLabelRequest(input model.LabelInput, url string) error {
 		RequestBody: input,
 		Token:       token,
 		Response:    &nodeResponse,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	})
 }
 

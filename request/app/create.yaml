@@ -1,6 +1,6 @@
 orgId: c12s
 namespace: default
-name: app 3
+name: app
 seccompDefinitionStrategy: inherit
 profile:
   version: V1

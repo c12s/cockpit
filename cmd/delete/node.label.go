@@ -2,14 +2,15 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"os"
-	"time"
 )
 
 var (
@@ -66,7 +67,7 @@ func sendDeleteLabelRequest() error {
 		RequestBody: input,
 		Token:       token,
 		Response:    &nodeResponse,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	})
 }
 

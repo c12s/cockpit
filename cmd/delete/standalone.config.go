@@ -72,7 +72,7 @@ func sendDeleteStandaloneConfigRequestConfig(requestBody interface{}) model.HTTP
 		Method:      "DELETE",
 		URL:         url,
 		Token:       token,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 		RequestBody: requestBody,
 		Response:    &deleteStandaloneConfigResponse,
 	}

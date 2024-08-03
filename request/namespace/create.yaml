@@ -1,7 +1,3 @@
----
-labels:
-- key: label1
-  value: value1
 name: prod
 orgId: c12s
 parentName: default
@@ -20,3 +16,6 @@ quotas:
   value: 3
 - key: disk
   value: 10
+labels:
+- key: label1
+  value: value1

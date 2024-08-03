@@ -78,7 +78,7 @@ func sendStandaloneConfigPlacementsRequest(requestBody interface{}) error {
 		Token:       token,
 		RequestBody: requestBody,
 		Response:    &standaloneConfigPlacementsResponse,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	})
 }
 

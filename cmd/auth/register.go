@@ -2,6 +2,9 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
@@ -9,8 +12,6 @@ import (
 	"github.com/c12s/cockpit/utils"
 	"github.com/cheggaaa/pb/v3"
 	"github.com/spf13/cobra"
-	"os"
-	"time"
 )
 
 var (
@@ -74,7 +75,7 @@ func register(email, name, org, password, surname, username string, bar *pb.Prog
 		URL:         url,
 		Method:      "POST",
 		RequestBody: registrationDetails,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	}, bar)
 
 	if err != nil {

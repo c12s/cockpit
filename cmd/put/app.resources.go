@@ -81,7 +81,7 @@ func prepareAppRequestConfig(requestBody map[string]any) (model.HTTPRequestConfi
 		Method:      "POST",
 		RequestBody: requestBody,
 		Token:       token,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	}, nil
 }
 

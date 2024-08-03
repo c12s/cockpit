@@ -2,11 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"time"
+
 	"github.com/c12s/cockpit/aliases"
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
-	"os"
-	"time"
 
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
@@ -76,7 +77,7 @@ func prepareRelationsRequestConfig(relation model.Relation) (model.HTTPRequestCo
 		Method:      "POST",
 		RequestBody: relation,
 		Token:       token,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	}, nil
 }
 

@@ -75,7 +75,7 @@ func sendSchemaVersionRequest(requestBody interface{}) error {
 		Token:       token,
 		RequestBody: requestBody,
 		Response:    &schemaVersionResponse,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	})
 }
 

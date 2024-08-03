@@ -74,7 +74,7 @@ func sendStandaloneDiffRequest(requestBody interface{}) error {
 		Method:      "GET",
 		URL:         url,
 		Token:       token,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 		RequestBody: requestBody,
 		Response:    &standaloneConfigDiffResponse,
 	}

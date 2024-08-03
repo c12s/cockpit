@@ -85,7 +85,7 @@ func sendConfigGroupRequest(requestBody interface{}) error {
 		Token:       token,
 		RequestBody: requestBody,
 		Response:    &configGroupResponse,
-		Timeout:     10 * time.Second,
+		Timeout:     30 * time.Second,
 	})
 }
 

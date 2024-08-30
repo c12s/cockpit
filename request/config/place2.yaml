@@ -2,7 +2,6 @@ config:
   name: db_config
   organization: c12s
   namespace: default
-  version: v1.0.0
+  version: v1.0.1
 strategy:
-  name: gossip
-  percentage: 50
+  name: default

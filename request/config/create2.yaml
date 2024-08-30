@@ -5,10 +5,10 @@ paramSet:
   # - key: port
   #   value: 1234
   - key: address
-    value: 127.0.0.1
+    value: 127.0.0.2
   - key: hostname
     value: node1
-version: v1.0.0
+version: v1.0.1
 schema:
   name: schema1
   version: v1

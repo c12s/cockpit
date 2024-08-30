@@ -1,0 +1,11 @@
+config:
+  name: db_config
+  organization: c12s
+  namespace: default
+  version: v1.0.2
+strategy:
+  name: default
+  query:
+    - labelKey: label
+      shouldBe: ">"
+      value: 4

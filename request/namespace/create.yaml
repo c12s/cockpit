@@ -15,7 +15,7 @@ quotas:
 - key: mem
   value: 3
 - key: disk
-  value: 10
+  value: 2
 labels:
 - key: label1
   value: value1

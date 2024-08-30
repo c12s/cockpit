@@ -61,6 +61,10 @@ func prepareStandaloneConfigPlacementsRequestConfig() (interface{}, error) {
 		return nil, fmt.Errorf("failed to read input file: %v", err)
 	}
 
+	if requestBody.Strategy.Query == nil {
+		requestBody.Strategy.Query = make([]model.Query, 0)
+	}
+
 	return requestBody, nil
 }
 

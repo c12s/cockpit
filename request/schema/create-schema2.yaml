@@ -8,10 +8,7 @@ properties:
     properties:
       address:
         type: string
-      hostname:
-        type: string
     required:
       - address
-      - hostname
 required:
   - db_config

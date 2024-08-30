@@ -3,11 +3,11 @@ namespace: default
 name: app
 seccompDefinitionStrategy: inherit
 profile:
-  version: V1
+  version: V2
 quotas:
 - key: cpu
   value: 1
 - key: mem
   value: 1
 - key: disk
-  value: 1
+  value: 0

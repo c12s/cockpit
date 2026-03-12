@@ -22,4 +22,7 @@ const (
 	NodeIdShorthandFlag       = "n"
 	ClusterIdShorthandFlag    = "c"
 	ValueShorthandFlag        = "v"
+	MaintainerShorthandFlag   = "m"
+	LabelsShorthandFlag       = "l"
+	LayersShorthandFlag       = "ly"
 )

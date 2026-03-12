@@ -9,6 +9,8 @@ Cockpit CLI is a command-line interface (CLI) tool designed for managing various
 - **Label Management**: Add, update, and delete labels for nodes.
 - **Schema Management**: Create, retrieve, validate, and delete schemas.
 - **Configuration Management**: Manage both config groups and standalone configs, including placing, listing, and diffing configurations.
+- **Starmap Management**: Manage charts on the starmap registry server, including create, retrieve, update, list, delete, and other related operations.
+
 
 ## Table of Contents
 - [Getting Started](#getting-started)
@@ -21,6 +23,7 @@ Cockpit CLI is a command-line interface (CLI) tool designed for managing various
   - [Config Group Management](#config-group-management)
   - [Standalone Config Management](#standalone-config-management)
   - [Node Metrics Management](#node-metrics-management)
+  - [Starmap Management](#starmap-management)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -487,6 +490,251 @@ Retrieve metrics for a specific node.
     cockpit get node metrics --node-id 'nodeID'
     cockpit get node metrics --node-id 'nodeID' --all-services --sort 'memory'
     ```
+
+### Starmap Management
+
+#### Put Chart
+Storing a new chart in the registry.
+- **Command**: cockpit starmap put
+- **Options**:
+  - `--path`: path to file (required).
+- **Example**:
+
+    ```sh
+    cockpit starmap put --path 'request/starmap/starchart1.yaml'
+    ```
+
+#### Get Chart by Metadata
+Retrieves a complete chart based on provided metadata.
+- **Command**: cockpit starmap metadata
+- **Options**:
+  - `--maintainer`: chart maintainer (required).
+  - `--name`: chart name (required).
+  - `--namespace`: chart namespace (optional).
+  - `--schema-version`: chart version (optional).
+- **Example**:
+
+    ```sh
+    cockpit starmap metadata \
+    --maintainer 'Nikola' \
+    --name 'My chart2' \
+    --namespace 'namespace1' \
+    —-schema-version 'v1.0.0'
+
+    //Retrieving latest version
+    cockpit starmap metadata \
+    --maintainer 'Nikola' \
+    --name 'My chart2' \
+    --namespace 'namespace1'
+    ```
+#### Get Chart by Id
+Retrieves a complete chart based on provided id.
+- **Command**: cockpit starmap id
+- **Options**:
+  - `--maintainer`: chart maintainer (required).
+  - `--id`: chart id (required).
+  - `--namespace`: chart namespace (optional).
+  - `--schema-version`: chart version (optional).
+- **Example**:
+
+    ```sh
+    cockpit starmap metadata \
+    --maintainer 'Nikola' \
+    --id 'a0715e59-49c3-4323-bf34-fbb4ccb7e8r4' \
+    --namespace 'namespace1' \
+    —-schema-version 'v1.0.0'
+
+    # Retrieving latest version
+    cockpit starmap metadata \
+    --maintainer 'Nikola' \
+    --id 'a0715e59-49c3-4323-bf34-fbb4ccb7e8r4' \
+    --namespace 'namespace1'
+    ```
+
+#### Get Charts by Labels
+Retrieves charts based on provided namespace, maintainer, labels, and schema version.
+
+- **Command**: `cockpit starmap labels`
+- **Options**:
+  - `--maintainer`: Chart maintainer (required)
+  - `--namespace`: Chart namespace (optional)
+  - `--labels`: Chart labels in `key=value` format (required)
+  - `--schema-version`: Chart version (optional)
+
+- **Example**:
+
+```sh
+cockpit starmap labels \
+  --maintainer 'Nikola' \
+  --namespace 'namespace1' \
+  --labels key=value \
+  --schema-version 'v1.0.0'
+
+  # Retrieving latest version
+cockpit starmap labels \
+  --maintainer 'Nikola' \
+  --namespace 'namespace1' \
+  --labels key=value
+
+```
+> Multiple labels can be provided by repeating the `--labels` option.
+
+#### Get Missing Layers
+Retrieves chart layers that are present in the registry but missing from the provided layer hashes.
+
+- **Command**: `cockpit starmap mslayers`
+- **Options**:
+  - `--id`: Chart ID (required)
+  - `--maintainer`: Chart maintainer (required)
+  - `--namespace`: Chart namespace (optional)
+  - `--layers`: Layer hash (can be specified multiple times) (required)
+  - `--schema-version`: Chart version (optional)
+
+- **Example**:
+
+```sh
+cockpit starmap mslayers \
+  --id 'a0715e59-49c3-4323-bf34-fbb4ccb7e8r4' \
+  --maintainer 'Nikola' \
+  --namespace 'namespace1' \
+  --layers 53f68b0bdd1e30158bfdbba8925103139181fb0cd6384539dbc8917be15cd969 \
+  --layers b2a73f5a23367a37fd6bde5b4aa2d0736ef32f04371f93315949bbe773b7e737 \
+  --schema-version 'v1.0.0'
+```
+
+#### Get Charts
+Retrieves all non-private charts from registry.
+
+- **Command**: `cockpit starmap charts`
+
+- **Example**:
+
+```sh
+cockpit starmap charts
+```
+
+
+#### Delete Chart
+Deletes a chart from the registry and cleans up orphaned nodes from the graph database.
+
+- **Command**: `cockpit starmap delete`
+- **Options**:
+  - `--id`: Chart ID (required)
+  - `--name`: Chart name (required)
+  - `--namespace`: Chart namespace (required)
+  - `--maintainer`: Chart maintainer (required)
+  - `--kind`: Chart kind (required)
+  - `--schema-version`: Chart version (optional)
+
+- **Example**:
+
+```sh
+cockpit starmap delete \
+  --id 'a0715e59-49c3-4323-bf34-fbb4ccb7e8r4' \
+  --maintainer 'Nikola' \
+  --kind 'StarChart' \
+  --namespace 'namespace1' \
+  --name 'My chart4' \
+  --schema-version 'v1.0.0'
+```
+
+#### Update Chart
+Updates a chart’s metadata, version, and associated resources in the registry.
+
+- **Command**: `cockpit starmap update`
+- **Options**:
+  - `--path`: Path to the chart definition file (JSON or YAML) (required)
+
+- **Example**:
+
+```sh
+cockpit starmap update \
+  --path 'request/starmap/updateStarchart1.json'
+```
+
+#### Switch Checkpoint
+Compares two versions of the same chart and determines which components must be started, stopped, or downloaded when switching between versions.
+
+- **Command**: `cockpit starmap swchp`
+- **Options**:
+  - `--id`: Chart ID (required)
+  - `--maintainer`: Chart maintainer (required)
+  - `--namespace`: Chart namespace (required)
+  - `--old-version`: Source chart version (required)
+  - `--new-version`: Target chart version (required)
+  - `--layers`: Layer hash (can be specified multiple times)
+
+- **Example**:
+
+```sh
+cockpit starmap swchp \
+  --id 'a0715e59-49c3-4323-bf34-fbb4ccb7e8r4' \
+  --maintainer 'Nikola' \
+  --namespace 'namespace1' \
+  --old-version 'v1.0.0' \
+  --new-version 'v1.0.1' \
+  --layers 134626abdf9171255f20b50b56e3a0723c55405f58f518fd1bea3a106e7968e6
+```
+
+#### Timeline
+Returns a chronological view of all versions of a chart.
+
+- **Command**: `cockpit starmap timeline`
+- **Options**:
+  - `--id`: Chart ID (required)
+  - `--namespace`: Chart namespace (optional)
+  - `--maintainer`: Chart maintainer (required)
+
+- **Example**:
+
+```sh
+cockpit starmap timeline \
+  --id 'a0715e59-49c3-4323-bf34-fbb4ccb7e8r4' \
+  --namespace 'namespace1' \
+  --maintainer 'Nikola'
+```
+
+#### Extend Chart
+Extends an existing chart version by creating a new version node and adding only resources that do not already exist in the base version.
+
+- **Command**: `cockpit starmap extend`
+- **Options**:
+  - `--path`: Path to the chart definition file (JSON or YAML) (required)
+
+- **Example**:
+
+```sh
+cockpit starmap extend \
+  --path 'request/starmap/extendChart.json'
+```
+
+#### Search Components
+
+Searches for components across all charts based on name, description, and tags. Results include matching DataSources, StoredProcedures, EventTriggers, and Events.
+
+- **Command**: `cockpit starmap search`
+- **Options**:
+  - `--name`: Filter by component name (optional)
+  - `--description`: Filter by component description (optional)
+  - `--tag`: Filter by tag key=value pair, can be repeated for multiple tags (optional)
+
+- **Example**:
+```sh
+# Search by name
+cockpit starmap search --name 'event2'
+
+# Search by description
+cockpit starmap search --description 'some description'
+
+# Search by tags
+cockpit starmap search --tag env=prod --tag region=us-east
+
+# Combined search
+cockpit starmap search \
+  --name 'event2' \
+  --description 'some description' \
+  --tag env=prod
+```
 
 ## Contributing
 

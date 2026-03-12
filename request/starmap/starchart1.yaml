@@ -1,0 +1,111 @@
+apiVersion: v1.0.0
+schemaVersion: v1.0.0
+kind: StarChart
+metadata:
+  id: a0715e59-49c3-4323-bf34-fbb4ccb7e8r4
+  name: My chart2
+  namespace: namespace1
+  maintainer: Nikola
+  description: My test chart.
+  visibility: public
+  engine: unikraft
+  labels:
+    key: value
+chart:
+  dataSources:
+    datasource_2:
+      id: e7fd471c-3e43-4c9f-b4b3-0a6a5bf1e128
+      name: Data Source 2
+      type: file
+      path: ./data_2.csv
+      resourceName: Data 2
+      description: This data source also contains some data.
+      labels:
+        key1: value
+  storedProcedures:
+    procedure_2:
+      metadata:
+        id: b3f94a2b-b302-4227-9205-85c8604639c4
+        name: Stored Procedure 2
+        image: unikernel://image_2
+        prefix: DEBUG
+        topic: ""
+        description: Stored Procedure 2
+        labels:
+          key2: value
+      control:
+        disableVirtualization: false
+        runDetached: true
+        removeOnStop: true
+        memory: 128Ki
+        kernelArgs: run process data_2.csv
+      features:
+        networks:
+          - network2:172.100.1.2
+        ports:
+          - "9000:9000"
+        volumes: []
+        targets:
+          - firecracker/arm64
+        envVars:
+          - MODE=production
+      links:
+        softLinks:
+          - Data Source 2
+        hardLinks: []
+        eventLinks: []
+  eventTriggers:
+    trigger_1:
+      metadata:
+        id: 1f9f4dff-8f6a-44a2-98a6-256ab48b61dc
+        name: Event Trigger 2
+        image: abc://abc2
+        prefix: DEBUG
+        topic: ""
+        description: Event Trigger 2
+        labels:
+          key3: value
+      control:
+        disableVirtualization: true
+        runDetached: true
+        removeOnStop: true
+        memory: 16K
+        kernelArgs: run process
+      features:
+        networks:
+          - network3:172.102.0.1
+          - network4:172.102.0.2
+        ports: []
+        volumes: []
+        targets:
+          - qemu/x86_64
+        envVars: []
+      links:
+        softLinks: []
+        hardLinks:
+          - Data Source 2
+        eventLinks:
+          - Event 2
+  events:
+    event_2:
+      metadata:
+        id: 35a2f847-b640-4a19-b0ec-5aebd26aa548
+        name: Event 2
+        image: unikernel://image_e2
+        prefix: DEBUG
+        topic: Delete
+        description: Event 2
+        labels: {}
+      control:
+        disableVirtualization: false
+        runDetached: false
+        removeOnStop: true
+        memory: 64G
+        kernelArgs: event2
+      features:
+        networks: []
+        ports: []
+        volumes: []
+        targets:
+          - qemu/arm64
+        envVars: []

@@ -278,3 +278,19 @@ func ValidateRequiredFlags(cmd *cobra.Command, requiredFlags []string) error {
 	}
 	return nil
 }
+
+func ValidateRequiredFlagsAny(cmd *cobra.Command, requiredFlags []string) error {
+	for _, flagName := range requiredFlags {
+		flag := cmd.Flags().Lookup(flagName)
+		if flag == nil {
+			return fmt.Errorf("flag --%s not defined", flagName)
+		}
+		if !flag.Changed {
+			return fmt.Errorf("required flag --%s not set", flagName)
+		}
+		if flag.Value.Type() == "string" && strings.TrimSpace(flag.Value.String()) == "" {
+			return fmt.Errorf("required flag --%s cannot be empty", flagName)
+		}
+	}
+	return nil
+}

@@ -17,6 +17,7 @@ import (
 	list "github.com/c12s/cockpit/cmd/list"
 	place "github.com/c12s/cockpit/cmd/place"
 	put "github.com/c12s/cockpit/cmd/put"
+	update "github.com/c12s/cockpit/cmd/update"
 	validate "github.com/c12s/cockpit/cmd/validate"
 )
 
@@ -41,6 +42,8 @@ func init() {
 	RootCmd.AddCommand(ListCmd)
 
 	// Put Commands
+	StarmapCmd.AddCommand(put.PutStarmapCmd)
+	StarmapCmd.AddCommand(put.ExtendStarmapCmd)
 	PutCmd.AddCommand(put.LabelsCmd)
 	PutCmd.AddCommand(PutConfigGroupCmd)
 	PutCmd.AddCommand(PutStandaloneConfigCmd)
@@ -51,6 +54,7 @@ func init() {
 	RootCmd.AddCommand(PutCmd)
 
 	// Delete Commands
+	StarmapCmd.AddCommand(deleteCmd.DeleteStarmapChartCmd)
 	DeleteCmd.AddCommand(deleteCmd.DeleteNodeLabelsCmd)
 	DeleteCmd.AddCommand(deleteCmd.DeleteSchemaCmd)
 	DeleteCmd.AddCommand(DeleteStandaloneConfigCmd)
@@ -66,6 +70,13 @@ func init() {
 	RootCmd.AddCommand(ClaimCmd)
 
 	// Get Commands
+	StarmapCmd.AddCommand(get.GetStarmapMissingLayers)
+	StarmapCmd.AddCommand(get.GetStarmapChartsByLabels)
+	StarmapCmd.AddCommand(get.GetStarmapChartById)
+	StarmapCmd.AddCommand(get.GetStarmapChartByMetadata)
+	StarmapCmd.AddCommand(get.GetStarmapChartTimeline)
+	StarmapCmd.AddCommand(get.GetStarmapAllCharts)
+	StarmapCmd.AddCommand(get.SearchStarmap)
 	GetCmd.AddCommand(get.GetSchemaCmd)
 	GetCmd.AddCommand(GetConfigCmd)
 	GetCmd.AddCommand(GetStandaloneConfigCmd)
@@ -91,7 +102,11 @@ func init() {
 	CreateCmd.AddCommand(create.CreateNamespaceCmd)
 	RootCmd.AddCommand(CreateCmd)
 
+	// Update Commands
+	StarmapCmd.AddCommand(update.UpdateStarmapCmd)
+
 	// Diff Commands
+	StarmapCmd.AddCommand(diff.SwitchCheckpointCmd)
 	DiffCmd.AddCommand(DiffConfigCmd)
 	DiffCmd.AddCommand(DiffStandaloneConfigCmd)
 	DiffStandaloneConfigCmd.AddCommand(diff.DiffStandaloneConfigCmd)
@@ -104,6 +119,9 @@ func init() {
 	PlaceStandaloneConfigGroupCmd.AddCommand(place.PlaceStandaloneConfigPlacementsCmd)
 	PlaceConfigGroupCmd.AddCommand(place.PlaceConfigGroupPlacementsCmd)
 	RootCmd.AddCommand(PlaceCmd)
+
+	//Starmap
+	RootCmd.AddCommand(StarmapCmd)
 
 	RootCmd.PersistentFlags().String(apiVersionFlag, "1.0.0", "specify c12s API version")
 }
@@ -132,6 +150,8 @@ var (
 	ValidateCmd                   = &cobra.Command{Use: "validate", Short: "Validate resources", Aliases: aliases.ValidateAliases}
 	GetNodesMetricsCmd            = &cobra.Command{Use: "get", Short: "Get resources", Aliases: aliases.FetchAliases}
 	NodesMetricsCmd               = &cobra.Command{Use: "nodes", Short: "Nodes resources", Aliases: aliases.NodesAliases}
+	UpdateCmd                     = &cobra.Command{Use: "update", Short: "Update resources"}
+	StarmapCmd                    = &cobra.Command{Use: "starmap", Short: "Manage StarMap charts"}
 
 	RootCmd = &cobra.Command{
 		Use:   "cockpit",

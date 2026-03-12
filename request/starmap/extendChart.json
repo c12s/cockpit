@@ -1,0 +1,135 @@
+{
+  "oldVersion": "v1.0.0",
+  "chart": {
+    "apiVersion": "v1.0.0",
+    "schemaVersion": "v1.0.1",
+    "kind": "StarChart",
+    "metadata": {
+      "id": "a0715e59-49c3-4323-bf34-fbb4ccb7e8r4",
+      "name": "My chart2",
+      "namespace": "namespace1",
+      "maintainer": "Nikola",
+      "description": "My test chart.",
+      "visibility": "public",
+      "engine": "unikraft",
+      "labels": {
+        "key": "value"
+      }
+    },
+    "chart": {
+      "dataSources": {
+            "datasource_2": {
+            "id": "e7fd471c-3e43-4c9f-b4b3-0a6a5bf1e128",
+            "name": "Data Source 2",
+            "type": "file",
+            "path": "./data_2.csv",
+            "resourceName": "Data 2",
+            "description": "This data source also contains some data.",
+            "labels": {
+                "key1": "value"
+            }
+        },
+        "datasource_1": {
+          "id": "a0715e59-49c3-4323-bf34-fbb4ccb7rere",
+          "name": "Data Source 3",
+          "type": "file3",
+          "path": "./data_1.csv",
+          "resourceName": "Data 3",
+          "description": "This data source contains some data.",
+          "labels": {
+            "key": "value"
+          }
+        }
+      },
+      "storedProcedures": {
+        "procedure_1": {
+          "metadata": {
+            "id": "017ba17b-cc52-4f10-b452-68483bc7rrtt",
+            "name": "Stored Procedure 1",
+            "image": "unikernel://image_sp3",
+            "prefix": "DEBUG",
+            "topic": "",
+            "labels": {
+              "key": "value"
+            }
+          },
+          "control": {
+            "disableVirtualization": true,
+            "runDetached": false,
+            "removeOnStop": false,
+            "memory": "32Mi",
+            "kernelArgs": "run process data_1.csv"
+          },
+          "features": {
+            "networks": ["network1:172.100.0.2","network2:172.100.0.3"],
+            "ports": ["8000:8000"],
+            "volumes": ["./path/to/dir:./path"],
+            "targets": ["qemu/x86_64"],
+            "envVars": ["MODE=production"]
+          },
+          "links": {
+            "softLinks": [],
+            "hardLinks": ["Data Source 3"]
+          }
+        }
+      },
+      "eventTriggers": {
+        "trigger_1": {
+          "metadata": {
+            "id": "1f9f4dff-8f6a-44a2-98a6-256ab48b6trt",
+            "name": "Event Trigger 3",
+            "image": "abc://abc3",
+            "prefix": "DEBUG",
+            "topic": "",
+            "labels": {"key3":"value"}
+          },
+          "control": {
+            "disableVirtualization": true,
+            "runDetached": true,
+            "removeOnStop": true,
+            "memory": "16K",
+            "kernelArgs": "run process"
+          },
+          "features": {
+            "networks": ["network3:172.102.0.1","network4:172.102.0.2"],
+            "ports": [],
+            "volumes": [],
+            "targets": ["qemu/x86_64"],
+            "envVars": []
+          },
+          "links": {
+            "softLinks": ["Data Source 1"],
+            "hardLinks": ["Data Source 2"],
+            "eventLinks": ["Event 3"]
+          }
+        }
+      },
+      "events": {
+        "event_1": {
+          "metadata": {
+            "id": "1eb31243-5f06-4e4b-ab69-0ff69e0frrtt",
+            "name": "Event 3",
+            "image": "unikernel://image_e3",
+            "prefix": "DEBUG",
+            "topic": "Insert",
+            "labels": {"key3":"value"}
+          },
+          "control": {
+            "disableVirtualization": false,
+            "runDetached": false,
+            "removeOnStop": true,
+            "memory": "64Gi",
+            "kernelArgs": "event1"
+          },
+          "features": {
+            "networks": [],
+            "ports": ["8000:8000","8080:8080"],
+            "volumes": [],
+            "targets": ["qemu/x86_64"],
+            "envVars": ["MODE=production"]
+          }
+        }
+      }
+    }
+  }
+}

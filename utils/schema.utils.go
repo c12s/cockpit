@@ -3,10 +3,11 @@ package utils
 import (
 	"bytes"
 	"fmt"
-	"github.com/c12s/cockpit/model"
-	"gopkg.in/yaml.v3"
 	"io/ioutil"
 	"strings"
+
+	"github.com/c12s/cockpit/model"
+	"gopkg.in/yaml.v3"
 )
 
 func SaveSchemaResponseToYAML(response *model.SchemaResponse, filePath string) error {

@@ -1,0 +1,161 @@
+{
+  "apiVersion": "v1.0.1",
+  "schemaVersion": "v1.0.1",
+  "kind": "StarChart",
+  "metadata": {
+    "id": "a0715e59-49c3-4323-bf34-fbb4ccb7e8r4",
+    "name": "My chart2",
+    "namespace": "namespace1",
+    "maintainer": "Nikola",
+    "description": "My test chart.",
+    "visibility": "public",
+    "engine": "unikraft",
+    "labels": {
+      "key": "value"
+    }
+  },
+  "chart": {
+    "dataSources": {
+      "datasource_1": {
+        "id": "a0715e59-49c3-4323-bf34-fbb4ccb7e8f4",
+        "name": "Data Source 1",
+        "type": "file",
+        "path": "./data_1.csv",
+        "resourceName": "Data 1",
+        "description": "This data source contains some data.",
+        "labels": {
+            "key": "value"
+        }
+      }
+    },
+    "storedProcedures": {
+      "procedure_1": {
+        "metadata": {
+          "id": "017ba17b-cc52-4f10-b452-68483bc708bc",
+          "name": "Stored Procedure 1",
+          "image": "unikernel://image_sp1",
+          "prefix": "DEBUG",
+          "topic": "",
+          "description": "Stored Procedure 1",
+                  "labels": {
+            "key": "value"
+        }
+        },
+        "control": {
+          "disableVirtualization": true,
+          "runDetached": false,
+          "removeOnStop": false,
+          "memory": "32Mi",
+          "kernelArgs": "run process data_1.csv"
+        },
+        "features": {
+          "networks": [
+            "network1:172.100.0.2",
+            "network2:172.100.0.3"
+          ],
+          "ports": [
+            "8000:8000"
+          ],
+          "volumes": [
+            "./path/to/dir:./path"
+          ],
+          "targets": [
+            "qemu/x86_64"
+          ],
+          "envVars": [
+            "MODE=production"
+          ]
+        },
+        "links": {
+          "softLinks": [
+          ],
+          "hardLinks": [
+            "Data Source 1"
+          ],
+          "eventLinks": [
+            "Event 1"
+          ]
+        }
+      }
+    },
+    "eventTriggers": {
+      "trigger_1": {
+        "metadata": {
+          "id": "1f9f4dff-8f6a-44a2-98a6-256ab48b61da",
+          "name": "Event Trigger 1",
+          "image": "abc://abc1",
+          "prefix": "DEBUG",
+          "topic": "",
+          "description": "Event Trigger 1",
+                  "labels": {
+            "key3": "value"
+        }
+        },
+        "control": {
+          "disableVirtualization": true,
+          "runDetached": true,
+          "removeOnStop": true,
+          "memory": "16K",
+          "kernelArgs": "run process"
+        },
+        "features": {
+          "networks": [
+            "network3:172.102.0.1",
+            "network4:172.102.0.2"
+          ],
+          "ports": [],
+          "volumes": [],
+          "targets": [
+            "qemu/x86_64"
+          ],
+          "envVars": []
+        },
+        "links": {
+          "softLinks": [
+            "Data Source 1"
+          ],
+          "hardLinks": [
+          ],
+          "eventLinks": [
+            "Event 1"
+          ]
+        }
+      }
+    },
+    "events": {
+      "event_1": {
+        "metadata": {
+          "id": "1eb31243-5f06-4e4b-ab69-0ff69e0f66bb",
+          "name": "Event 1",
+          "image": "unikernel://image_e1",
+          "prefix": "DEBUG",
+          "topic": "Insert",
+          "description": "Event 1",
+                  "labels": {
+        }
+        },
+        "control": {
+          "disableVirtualization": false,
+          "runDetached": false,
+          "removeOnStop": true,
+          "memory": "64Gi",
+          "kernelArgs": "event1"
+        },
+        "features": {
+          "networks": [],
+          "ports": [
+            "8000:8000",
+            "8080:8080"
+          ],
+          "volumes": [],
+          "targets": [
+            "qemu/x86_64"
+          ],
+          "envVars": [
+            "MODE=production"
+          ]
+        }
+      }
+    }
+  }
+}

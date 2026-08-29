@@ -23,4 +23,7 @@ const (
 	AllServicesDescription        = "Display metrics for all app services (optional)"
 	SortMetricsDescription        = "Sort metrics by 'cpu' (default), 'memory', 'disk', 'network receive', 'network transmit' or 'bandwidth'"
 	LabelValueDescription         = "Label value (required)"
+	ImageRefDescription           = "OS image reference, e.g. singularity:5000/os/edge-base:v2.0 (required for update)"
+	DigestDescription             = "OS image digest, e.g. sha256:... (required for update)"
+	RebootPolicyDescription       = "Reboot policy: immediate (default)"
 )

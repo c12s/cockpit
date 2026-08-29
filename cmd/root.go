@@ -14,6 +14,7 @@ import (
 	deleteCmd "github.com/c12s/cockpit/cmd/delete"
 	diff "github.com/c12s/cockpit/cmd/diff"
 	get "github.com/c12s/cockpit/cmd/get"
+	image "github.com/c12s/cockpit/cmd/image"
 	list "github.com/c12s/cockpit/cmd/list"
 	place "github.com/c12s/cockpit/cmd/place"
 	put "github.com/c12s/cockpit/cmd/put"
@@ -82,6 +83,9 @@ func init() {
 	// Validate Commands
 	ValidateCmd.AddCommand(validate.ValidateSchemaVersionCmd)
 	RootCmd.AddCommand(ValidateCmd)
+
+	// Image Commands
+	RootCmd.AddCommand(image.ImageCmd)
 
 	// Create Commands
 	CreateCmd.AddCommand(create.CreateSchemaCmd)

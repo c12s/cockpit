@@ -22,4 +22,7 @@ const (
 	AllServicesFlag  = "all-services"
 	SortByFlag       = "sort-by"
 	ValueFlag        = "value"
+	ImageRefFlag     = "image-ref"
+	DigestFlag       = "digest"
+	RebootPolicyFlag = "reboot-policy"
 )

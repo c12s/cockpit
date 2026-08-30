@@ -1,5 +1,29 @@
 package model
 
+import (
+	"strconv"
+	"strings"
+)
+
+// FlexInt64 tolerates the gateway's grpcurl/protojson responses, which
+// marshal proto int64 fields as JSON strings ("1788115200"), while our own
+// tooling emits plain numbers.
+type FlexInt64 int64
+
+func (f *FlexInt64) UnmarshalJSON(data []byte) error {
+	s := strings.Trim(strings.TrimSpace(string(data)), "\"")
+	if s == "" || s == "null" {
+		*f = 0
+		return nil
+	}
+	v, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return err
+	}
+	*f = FlexInt64(v)
+	return nil
+}
+
 type ClaimNodesRequest struct {
 	Org   string      `json:"org,omitempty"`
 	Query []NodeQuery `json:"query,omitempty"`
@@ -29,10 +53,10 @@ type OsStatus struct {
 }
 
 type OsAttempt struct {
-	Image     string `json:"image,omitempty"`
-	Digest    string `json:"digest,omitempty"`
-	Result    string `json:"result,omitempty"`
-	Timestamp int64  `json:"timestamp,omitempty"`
+	Image     string    `json:"image,omitempty"`
+	Digest    string    `json:"digest,omitempty"`
+	Result    string    `json:"result,omitempty"`
+	Timestamp FlexInt64 `json:"timestamp,omitempty"`
 }
 
 type NodeResponse struct {

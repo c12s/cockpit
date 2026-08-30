@@ -67,7 +67,7 @@ func executeImageStatus(cmd *cobra.Command, args []string) {
 				digest = node.OsStatus.BootedDigest[:19] + "..."
 			}
 			if node.OsStatus.LastAttempt != nil {
-				attempt = fmt.Sprintf("%s (%s)", node.OsStatus.LastAttempt.Result, time.Unix(node.OsStatus.LastAttempt.Timestamp, 0).Format("15:04:05"))
+				attempt = fmt.Sprintf("%s (%s)", node.OsStatus.LastAttempt.Result, time.Unix(int64(node.OsStatus.LastAttempt.Timestamp), 0).Format("15:04:05"))
 			}
 		}
 		fmt.Printf("%-38s %-12s %-12s %-20s %s\n", id, phase, version, digest, attempt)

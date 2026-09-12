@@ -19,6 +19,7 @@ import (
 	place "github.com/c12s/cockpit/cmd/place"
 	put "github.com/c12s/cockpit/cmd/put"
 	validate "github.com/c12s/cockpit/cmd/validate"
+	vm "github.com/c12s/cockpit/cmd/vm"
 )
 
 const (
@@ -86,6 +87,9 @@ func init() {
 
 	// Image Commands
 	RootCmd.AddCommand(image.ImageCmd)
+
+	// VM Commands
+	RootCmd.AddCommand(vm.VmsCmd)
 
 	// Create Commands
 	CreateCmd.AddCommand(create.CreateSchemaCmd)

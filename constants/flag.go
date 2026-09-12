@@ -25,4 +25,6 @@ const (
 	ImageRefFlag     = "image-ref"
 	DigestFlag       = "digest"
 	RebootPolicyFlag = "reboot-policy"
+	HostFlag         = "host"
+	SpecFlag         = "spec"
 )

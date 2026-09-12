@@ -26,4 +26,6 @@ const (
 	ImageRefDescription           = "OS image reference, e.g. singularity:5000/os/edge-base:v2.0 (required for update)"
 	DigestDescription             = "OS image digest, e.g. sha256:... (required for update)"
 	RebootPolicyDescription       = "Reboot policy: immediate (default)"
+	HostDescription               = "Host node ID (required)"
+	SpecDescription               = "Desired VM spec: path to a YAML/JSON file or an inline JSON document (required)"
 )

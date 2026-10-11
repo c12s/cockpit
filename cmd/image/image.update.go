@@ -47,8 +47,8 @@ func executeImageUpdate(cmd *cobra.Command, args []string) {
 		fmt.Printf("Node %s accepted the update to %s@%s.\n", imageNodeId, imageRef, digest)
 		fmt.Println("Track progress with: cockpit image status")
 	} else {
-		fmt.Printf("Node %s did NOT acknowledge the update command (node offline?).\n", imageNodeId)
-		os.Exit(1)
+		// gravity records the desired image before notifying the node
+		fmt.Printf("Node %s did not acknowledge the update (offline?). The desired image is recorded; the node applies it when it reconnects.\n", imageNodeId)
 	}
 }
 

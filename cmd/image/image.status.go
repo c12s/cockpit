@@ -49,13 +49,18 @@ func executeImageStatus(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-38s %-12s %-12s %-20s %s\n", "NODE ID", "PHASE", "VERSION", "DIGEST", "LAST ATTEMPT")
+	fmt.Printf("%-38s %-12s %-12s %-20s %-20s %s\n", "NODE ID", "PHASE", "VERSION", "DIGEST", "DESIRED", "LAST ATTEMPT")
 	for _, node := range imageStatusNodes.Nodes {
 		id := node.ID
 		phase := "-"
 		version := "-"
 		digest := "-"
 		attempt := "-"
+		// desired = declared in the control plane; "-" means unmanaged
+		desired := "-"
+		if node.DesiredOs != nil && node.DesiredOs.Digest != "" {
+			desired = shortDigest(node.DesiredOs.Digest)
+		}
 		if node.OsStatus != nil {
 			if node.OsStatus.Phase != "" {
 				phase = node.OsStatus.Phase
@@ -63,15 +68,22 @@ func executeImageStatus(cmd *cobra.Command, args []string) {
 			if node.OsStatus.BootedVersion != "" {
 				version = node.OsStatus.BootedVersion
 			}
-			if len(node.OsStatus.BootedDigest) > 19 {
-				digest = node.OsStatus.BootedDigest[:19] + "..."
+			if node.OsStatus.BootedDigest != "" {
+				digest = shortDigest(node.OsStatus.BootedDigest)
 			}
 			if node.OsStatus.LastAttempt != nil {
 				attempt = fmt.Sprintf("%s (%s)", node.OsStatus.LastAttempt.Result, time.Unix(int64(node.OsStatus.LastAttempt.Timestamp), 0).Format("15:04:05"))
 			}
 		}
-		fmt.Printf("%-38s %-12s %-12s %-20s %s\n", id, phase, version, digest, attempt)
+		fmt.Printf("%-38s %-12s %-12s %-20s %-20s %s\n", id, phase, version, digest, desired, attempt)
 	}
+}
+
+func shortDigest(digest string) string {
+	if len(digest) > 19 {
+		return digest[:19] + "..."
+	}
+	return digest
 }
 
 func init() {

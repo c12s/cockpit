@@ -36,12 +36,19 @@ type NodeQuery struct {
 }
 
 type Node struct {
-	ID           string    `json:"id"`
-	Org          string    `json:"org"`
-	Labels       []Label   `json:"labels"`
+	ID           string             `json:"id"`
+	Org          string             `json:"org"`
+	Labels       []Label            `json:"labels"`
 	Resources    map[string]float64 `json:"resources,omitempty"`
-	Capabilities []string  `json:"capabilities,omitempty"`
-	OsStatus     *OsStatus `json:"osStatus,omitempty"`
+	Capabilities []string           `json:"capabilities,omitempty"`
+	OsStatus     *OsStatus          `json:"osStatus,omitempty"`
+	DesiredOs    *DesiredOsImage    `json:"desiredOsImage,omitempty"`
+}
+
+type DesiredOsImage struct {
+	ImageRef     string `json:"imageRef,omitempty"`
+	Digest       string `json:"digest,omitempty"`
+	RebootPolicy string `json:"rebootPolicy,omitempty"`
 }
 
 type OsStatus struct {

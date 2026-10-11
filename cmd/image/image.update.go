@@ -13,11 +13,10 @@ import (
 )
 
 var (
-	imageNodeId     string
-	imageRef        string
-	digest          string
-	rebootPolicy    string
-	imageUpdateResp model.OSImageUpdateResponse
+	imageNodeId  string
+	imageRef     string
+	digest       string
+	rebootPolicy string
 )
 
 var ImageCmd = &cobra.Command{
@@ -39,43 +38,48 @@ var ImageUpdateCmd = &cobra.Command{
 }
 
 func executeImageUpdate(cmd *cobra.Command, args []string) {
-	request := model.OSImageUpdateRequest{
-		NodeID:       imageNodeId,
-		ImageRef:     imageRef,
-		Digest:       digest,
-		RebootPolicy: rebootPolicy,
-	}
-	if rebootPolicy == "" {
-		request.RebootPolicy = "immediate"
-	}
-
-	url := clients.BuildURL("core", "v1", "DisseminateOSImage")
-	token, err := utils.ReadTokenFromFile()
-	if err != nil {
-		fmt.Println("Error reading token:", err)
-		os.Exit(1)
-	}
-
-	err = utils.SendHTTPRequest(model.HTTPRequestConfig{
-		URL:         url,
-		Method:      "POST",
-		Token:       token,
-		RequestBody: request,
-		Response:    &imageUpdateResp,
-		Timeout:     30 * time.Second,
-	})
+	accepted, err := requestImageUpdate(imageNodeId, imageRef, digest, rebootPolicy)
 	if err != nil {
 		fmt.Println("Error sending image update request:", err)
 		os.Exit(1)
 	}
-
-	if imageUpdateResp.Accepted {
+	if accepted {
 		fmt.Printf("Node %s accepted the update to %s@%s.\n", imageNodeId, imageRef, digest)
 		fmt.Println("Track progress with: cockpit image status")
 	} else {
 		fmt.Printf("Node %s did NOT acknowledge the update command (node offline?).\n", imageNodeId)
 		os.Exit(1)
 	}
+}
+
+// requestImageUpdate sends a digest-pinned update to one node and reports
+// whether the node acknowledged it.
+func requestImageUpdate(nodeID, ref, digest, policy string) (bool, error) {
+	if policy == "" {
+		policy = "immediate"
+	}
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return false, fmt.Errorf("reading token: %w", err)
+	}
+	var resp model.OSImageUpdateResponse
+	err = utils.SendHTTPRequest(model.HTTPRequestConfig{
+		URL:    clients.BuildURL("core", "v1", "DisseminateOSImage"),
+		Method: "POST",
+		Token:  token,
+		RequestBody: model.OSImageUpdateRequest{
+			NodeID:       nodeID,
+			ImageRef:     ref,
+			Digest:       digest,
+			RebootPolicy: policy,
+		},
+		Response: &resp,
+		Timeout:  30 * time.Second,
+	})
+	if err != nil {
+		return false, err
+	}
+	return resp.Accepted, nil
 }
 
 func init() {

@@ -174,8 +174,11 @@ permissions are baked into the token at `login`.
 ```bash
 cockpit image update --node-id <id> --image-ref 192.168.122.1:5001/os/edge-base:v3.10 --digest sha256:...
 ```
+The desired image is recorded in Magnetar first, then the node is notified.
 The node stages the image, reboots, and greenboot health-gates it; a failing
-image is rolled back automatically and reported as `rolled_back`.
+image is rolled back automatically and reported as `rolled_back`. A node that
+is offline does not acknowledge, but the update is still recorded and the node
+applies it when it next pulls (every 30 s once it is back).
 
 #### Canary rollout
 ```bash
@@ -193,7 +196,9 @@ target is touched.
 ```bash
 cockpit image status --org c12s
 ```
-Phase per node: `healthy`, `switching`, `degraded`, `rolled_back`.
+Per node: phase (`healthy`, `switching`, `degraded`, `rolled_back`), booted
+version and digest, DESIRED (the digest recorded in Magnetar; `-` = no image
+declared, e.g. after `image rollback`) and the last attempt.
 
 ### Relationship Management
 

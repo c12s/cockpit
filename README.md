@@ -15,6 +15,7 @@ Cockpit CLI is a command-line interface (CLI) tool designed for managing various
 - [Command Reference](#command-reference)
   - [User Management](#user-management)
   - [Node Management](#node-management)
+  - [OS Image Management (bootc)](#os-image-management-bootc)
   - [Relationship Management](#relationship-management)
   - [Label Management](#label-management)
   - [Schema Management](#schema-management)
@@ -115,10 +116,13 @@ Login with an existing user.
 - **Command**: cockpit login
 - **Options**:
   - --username: Username of the user.
+  - --password, -p: Password (optional; also read from `C12S_PASSWORD`,
+    otherwise prompted).
 - **Example**:
 
     ```sh
     cockpit login --username 'user'
+    C12S_PASSWORD=secret cockpit login --username 'user'
     ```
 
 ### Node Management
@@ -159,6 +163,37 @@ List nodes allocated to an organization.
     cockpit list nodes allocated --org 'c12s'
     cockpit list nodes allocated --org 'c12s' --query 'memory-totalGB > 2'
     ```
+
+### OS Image Management (bootc)
+
+Nodes with the `os_update` capability run bootc; images are pinned by digest.
+Each node needs an `os.update` policy for the caller (`create policies`), and
+permissions are baked into the token at `login`.
+
+#### Update one node
+```bash
+cockpit image update --node-id <id> --image-ref 192.168.122.1:5001/os/edge-base:v3.10 --digest sha256:...
+```
+The node stages the image, reboots, and greenboot health-gates it; a failing
+image is rolled back automatically and reported as `rolled_back`.
+
+#### Canary rollout
+```bash
+cockpit image rollout --org c12s --canary <node-id> \
+  --nodes <id1,id2> | --query 'labelKey = value' \
+  --image-ref <ref> --digest sha256:... [--soak 2m] [--timeout 15m] [--poll 10s] [--no-wait]
+```
+Updates the canary first; it must boot the digest, report `healthy`, and stay
+healthy for `--soak`. Only then are the targets (os_update-capable org nodes,
+canary excluded) updated and awaited. A canary rollback, leaving healthy
+during the soak, or a timeout stops the rollout with exit code 1 before any
+target is touched.
+
+#### Status
+```bash
+cockpit image status --org c12s
+```
+Phase per node: `healthy`, `switching`, `degraded`, `rolled_back`.
 
 ### Relationship Management
 

@@ -310,7 +310,7 @@ func sendRolloutUpdate(nodeID string) error {
 			return err
 		}
 		if !accepted {
-			return errors.New("node did not acknowledge the update (offline, or this digest already rolled back on it)")
+			return errors.New("node did not acknowledge the update (offline or not running star)")
 		}
 		return nil
 	}

@@ -74,6 +74,14 @@ This command allows the user to remove a label from a node by specifying the nod
 Example:
 - cockpit delete label --node-id 'nodeID' --org 'org' --key 'labelKey'`
 
+	DeleteNodeLongDesc = `Delete a node record from the registry.
+This removes the node's record, labels, liveness state and desired OS image.
+Org-owned nodes are never removed automatically, so this is the explicit path
+for them. Requires the node.delete permission on the node.
+
+Example:
+- cockpit delete node --node-id 'nodeID'`
+
 	DeleteSchemaLongDesc = `This command deletes a schema version from the specified organization.
 The user must provide the organization name, schema name, and version to delete the schema. This ensures that the specified schema version is removed from the system.
 

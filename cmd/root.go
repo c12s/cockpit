@@ -54,6 +54,7 @@ func init() {
 
 	// Delete Commands
 	DeleteCmd.AddCommand(deleteCmd.DeleteNodeLabelsCmd)
+	DeleteCmd.AddCommand(deleteCmd.DeleteNodeCmd)
 	DeleteCmd.AddCommand(deleteCmd.DeleteSchemaCmd)
 	DeleteCmd.AddCommand(DeleteStandaloneConfigCmd)
 	DeleteCmd.AddCommand(DeleteConfigCmd)

@@ -43,6 +43,10 @@ type Node struct {
 	Capabilities []string           `json:"capabilities,omitempty"`
 	OsStatus     *OsStatus          `json:"osStatus,omitempty"`
 	DesiredOs    *DesiredOsImage    `json:"desiredOsImage,omitempty"`
+	// Liveness view filled by Magnetar from the last heartbeat:
+	// online | stale | offline | unknown.
+	LastSeen FlexInt64 `json:"lastSeen,omitempty"`
+	Liveness string    `json:"liveness,omitempty"`
 }
 
 type DesiredOsImage struct {
@@ -69,6 +73,12 @@ type OsAttempt struct {
 type NodeResponse struct {
 	Node Node `json:"node"`
 }
+
+type DeleteNodeInput struct {
+	NodeID string `json:"nodeId"`
+}
+
+type DeleteNodeResponse struct{}
 
 type NodesResponse struct {
 	Nodes []Node `json:"nodes"`

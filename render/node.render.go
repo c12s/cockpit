@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"text/tabwriter"
+	"time"
 )
 
 func RenderNodes(nodes []model.Node) {
@@ -16,6 +17,9 @@ func RenderNodes(nodes []model.Node) {
 		for _, node := range nodes {
 			fmt.Printf("Node ID: %s\n", node.ID)
 			fmt.Println(strings.Repeat("-", 45))
+			if node.Liveness != "" {
+				fmt.Printf("  liveness: %s (%s)\n", node.Liveness, formatLastSeen(node.LastSeen))
+			}
 			for _, label := range node.Labels {
 				fmt.Printf("  - %s: %s\n", label.Key, label.Value)
 			}
@@ -27,6 +31,9 @@ func RenderNodes(nodes []model.Node) {
 func RenderNode(node model.Node) {
 	fmt.Printf("Node ID: %s\n", node.ID)
 	fmt.Println(strings.Repeat("-", 45))
+	if node.Liveness != "" {
+		fmt.Printf("  liveness: %s (%s)\n", node.Liveness, formatLastSeen(node.LastSeen))
+	}
 	for _, label := range node.Labels {
 		fmt.Printf("  - %s: %s\n", label.Key, label.Value)
 	}
@@ -42,7 +49,7 @@ func RenderNodesTabWriter(nodes []model.Node) {
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', tabwriter.TabIndent)
 	defer w.Flush()
 
-	fmt.Fprintf(w, "Node ID\tCPU Cores\tAvg Clock Speed (MHz)\tAvg Cache (KB)\tMemory (GB)\tDisk Total (GB)\tDisk Free (GB)\n")
+	fmt.Fprintf(w, "Node ID\tLiveness\tCPU Cores\tAvg Clock Speed (MHz)\tAvg Cache (KB)\tMemory (GB)\tDisk Total (GB)\tDisk Free (GB)\n")
 
 	for _, node := range nodes {
 		var cpuCores, totalMhz, totalCache, memoryTotalGB, diskTotalGB, diskFreeGB float64
@@ -79,6 +86,23 @@ func RenderNodesTabWriter(nodes []model.Node) {
 		avgMhz := totalMhz / float64(coreCount)
 		avgCache := totalCache / float64(coreCount)
 
-		fmt.Fprintf(w, "%s\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", node.ID, cpuCores, avgMhz, avgCache, memoryTotalGB, diskTotalGB, diskFreeGB)
+		liveness := node.Liveness
+		if liveness == "" {
+			liveness = "-"
+		}
+		fmt.Fprintf(w, "%s\t%s\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", node.ID, liveness, cpuCores, avgMhz, avgCache, memoryTotalGB, diskTotalGB, diskFreeGB)
 	}
+}
+
+// formatLastSeen renders a unix timestamp as "just now", a relative age, or
+// "-" when the node has never been seen.
+func formatLastSeen(lastSeen model.FlexInt64) string {
+	if lastSeen <= 0 {
+		return "never seen"
+	}
+	age := time.Since(time.Unix(int64(lastSeen), 0))
+	if age < time.Second {
+		return "just now"
+	}
+	return age.Round(time.Second).String() + " ago"
 }

@@ -10,7 +10,7 @@ binary via the lunar-gateway HTTP API.
 | Command group | Backend service |
 |---|---|
 | `register`, `login` | Apollo (identity; token stored in `token.txt`) |
-| `list/claim nodes`, labels, metrics | Magnetar |
+| `list/claim/delete nodes`, labels, metrics | Magnetar |
 | `create/put/delete schema`, `validate` | Quasar |
 | config groups and standalone configs (`put`, `list`, `place`, `diff`) | Kuiper (+ Gravity for delivery) |
 | `image update/rollout/rollback/status` | Gravity (`DisseminateOSImage`), Magnetar (desired image, status) |
@@ -44,7 +44,7 @@ binary via the lunar-gateway HTTP API.
 ## Features
 
 - **User Management**: Register and login to the system.
-- **Node Management**: List, query, and claim nodes based on specific criteria.
+- **Node Management**: List, query, and claim nodes; delete records (with the `node.delete` permission). Lists show each node's liveness (`online`/`stale`/`offline`/`unknown`) from its last heartbeat.
 - **Label Management**: Add, update, and delete labels for nodes.
 - **Schema Management**: Create, retrieve, validate, and delete schemas.
 - **Configuration Management**: Manage both config groups and standalone configs, including placing, listing, and diffing configurations.
@@ -130,14 +130,19 @@ Login with an existing user.
 ### Node Management
 
 #### List Nodes
-List all nodes.
+List all nodes. The table shows a `Liveness` column derived from the node's
+last heartbeat (`online` within 90 s, `stale` within 5 min, `offline` after
+that, `unknown` for records that never heartbeated; thresholds are Magnetar's
+`NODE_STALE_AFTER`/`NODE_OFFLINE_AFTER`).
 - **Command**: cockpit list nodes
 - **Options**:
   - --query: Query to filter nodes.
+  - --details: show liveness age and every label per node.
 - **Example**:
 
     ```sh
     cockpit list nodes
+    cockpit list nodes --details
     cockpit list nodes --query 'memory-totalGB > 2'
     ```
 
@@ -152,6 +157,31 @@ Claim nodes based on specific criteria.
     ```sh
     cockpit claim nodes --org 'c12s' --query 'memory-totalGB > 2'
     ```
+
+#### Delete a Node
+Remove a node record completely: the record, its label index, liveness state
+and desired OS image. Org-owned nodes are never removed automatically (the
+control-plane GC only reaps stale *pool* records), so this is the explicit
+path for them. Requires the `node.delete` permission on the node — create a
+policy first, like for `os.update`:
+
+```yaml
+objectScope: { id: "<node-id>", kind: "node" }
+permission:  { condition: { expression: "" }, kind: "ALLOW", name: "node.delete" }
+subjectScope: { id: "e2e", kind: "user" }
+```
+
+- **Command**: cockpit delete node
+- **Options**:
+  - --node-id: Node ID (required).
+- **Example**:
+
+    ```sh
+    cockpit delete node --node-id <id>
+    ```
+
+Deleting a host does not stop the VMs it declared: they keep running and keep
+their own node records.
 
 #### List Allocated Nodes
 List nodes allocated to an organization.

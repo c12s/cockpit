@@ -1,6 +1,45 @@
-# Cockpit CLI Documentation
+# cockpit — c12s operator CLI
 
-Cockpit CLI is a command-line interface (CLI) tool designed for managing various resources within the Cockpit project. This CLI facilitates user registration, node management, labeling, schema validation, configuration management, and more. The goal of this tool is to provide an easy-to-use and maintainable interface for interacting with the Cockpit project's resources.
+Cobra-based command-line client for the c12s control plane. Everything an
+operator does — register/login, claim nodes, manage labels/schemas/configs,
+declare OS image updates and rollouts, manage VM fleets — goes through this
+binary via the lunar-gateway HTTP API.
+
+## Role in c12s
+
+| Command group | Backend service |
+|---|---|
+| `register`, `login` | Apollo (identity; token stored in `token.txt`) |
+| `list/claim nodes`, labels, metrics | Magnetar |
+| `create/put/delete schema`, `validate` | Quasar |
+| config groups and standalone configs (`put`, `list`, `place`, `diff`) | Kuiper (+ Gravity for delivery) |
+| `image update/rollout/rollback/status` | Gravity (`DisseminateOSImage`), Magnetar (desired image, status) |
+| `vms set/list/status` | Magnetar (VM desired state / status on the host's node record) |
+
+## Building and running
+
+1. The control plane must be up (`cd tools && ./start.sh` in the c12s
+   workspace; gateway on `localhost:5555`).
+
+2. Build the CLI:
+
+    ```sh
+    go build -o ~/.cache/c12s/cockpit .
+    ```
+
+3. Run it **from the repository directory** — it reads two local files:
+
+    | File | Purpose |
+    |---|---|
+    | `.env` | `CONFIG_PATH=../lunar-gateway/config/config.yml` — the gateway routes and ports |
+    | `token.txt` | bearer token written by `cockpit login` (mode 0600) |
+
+4. Log in (the lab user is `e2e` / `testpass123`):
+
+    ```sh
+    cockpit login --username 'e2e' --password 'testpass123'
+    # or: C12S_PASSWORD=testpass123 cockpit login --username 'e2e'
+    ```
 
 ## Features
 
@@ -9,6 +48,8 @@ Cockpit CLI is a command-line interface (CLI) tool designed for managing various
 - **Label Management**: Add, update, and delete labels for nodes.
 - **Schema Management**: Create, retrieve, validate, and delete schemas.
 - **Configuration Management**: Manage both config groups and standalone configs, including placing, listing, and diffing configurations.
+- **OS Image Management**: Digest-pinned updates, canary-gated rollouts, and rollback for `os_update`-capable nodes.
+- **VM Management**: Declare the desired VM fleet on a `run_vms` host and inspect observed status.
 
 ## Table of Contents
 - [Getting Started](#getting-started)
@@ -16,81 +57,42 @@ Cockpit CLI is a command-line interface (CLI) tool designed for managing various
   - [User Management](#user-management)
   - [Node Management](#node-management)
   - [OS Image Management (bootc)](#os-image-management-bootc)
+  - [VM Management](#vm-management)
   - [Relationship Management](#relationship-management)
   - [Label Management](#label-management)
   - [Schema Management](#schema-management)
   - [Config Group Management](#config-group-management)
   - [Standalone Config Management](#standalone-config-management)
   - [Node Metrics Management](#node-metrics-management)
+- [Bugs, disabled and unfinished features](#bugs-disabled-and-unfinished-features)
 - [Contributing](#contributing)
 - [License](#license)
 
+## Getting Started
+
 ### Prerequisites
 Ensure you have the following installed:
-- [Go](https://golang.org/doc/install) (version 1.16 or higher)
-- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Docker](https://docs.docker.com/get-docker/) (for running the complete environment)
-
-Additionally, you need to clone and set up the tools repository from [https://github.com/c12s/tools](https://github.com/c12s/tools), which includes scripts to pull all other repositories and start Docker containers.
+- [Go](https://golang.org/doc/install) (version 1.22 or higher)
+- A running control plane (the [c12s/tools](https://github.com/c12s/tools) repository provides `./install.sh` + `./start.sh` for the full compose stack)
 
 ### Installation
-1. Clone the tools repository:
 
-    ```sh
-    git clone https://github.com/c12s/tools.git
-    ```
+Clone this repository next to the other c12s repos (the workspace layout is
+`c12s/tools`, `c12s/cockpit`, `c12s/lunar-gateway`, ... — cockpit reads the
+gateway route config via a relative path):
 
-2. Navigate to the tools directory and follow the setup instructions in the README.md file of the tools repository to pull all necessary repositories and start Docker containers:
+```sh
+git clone https://github.com/c12s/cockpit.git
+cd cockpit
+go build -o ~/.cache/c12s/cockpit .
+```
 
-    ```sh
-    cd tools
-    ./install.sh
-    ./start.sh
-    ```
+Run the binary from the cockpit directory (it needs `.env` and writes
+`token.txt` there), or use the helper from the lab experiments:
 
-   or for Windows:
-
-    ```sh
-    ./start-windows.sh
-    ```
-
-3. Clone the cockpit repository in the same parent directory where the tools repository is located:
-
-    ```sh
-    cd ..
-    git clone https://github.com/bunjo01/cockpit.git
-    ```
-
-4. Navigate to the cockpit project directory:
-
-    ```sh
-    cd cockpit
-    ```
-
-5. Build the CLI:
-
-    ```sh
-    go build -o cockpit
-    ```
-
-6. Add the executable to your PATH:
-  - On Linux/macOS:
-
-    ```sh
-    export PATH=$PATH:$(pwd)
-    ```
-
-  - On Windows (Command Prompt):
-
-    ```sh
-    set PATH=%PATH%;%cd%
-    ```
-
-  - On Windows (PowerShell):
-
-    ```sh
-    $env:PATH += ";$PWD"
-    ```
+```sh
+cd /path/to/c12s/cockpit && ~/.cache/c12s/cockpit login --username e2e --password testpass123
+```
 
 ## Command Reference
 
@@ -199,6 +201,35 @@ cockpit image status --org c12s
 Per node: phase (`healthy`, `switching`, `degraded`, `rolled_back`), booted
 version and digest, DESIRED (the digest recorded in Magnetar; `-` = no image
 declared, e.g. after `image rollback`) and the last attempt.
+
+#### Rollback
+```bash
+cockpit image rollback --node-id <id>
+```
+Imperative escape hatch: orders the node to `bootc rollback` and **clears its
+desired image** — afterwards the node is unmanaged (no drift reconcile) until
+the next `image update`/`rollout` declares a new intent.
+
+### VM Management
+
+Host nodes with the `run_vms` capability run the VM reconciler: the desired
+VM set is a standing declaration stored in Magnetar, and the host's Star
+creates, restarts and destroys libvirt VMs to match it.
+
+#### Declare the desired VM set
+```bash
+cockpit vms set --host <host-node-id> --spec '{"vms":[{"name":"vm-01","qcow2Url":"http://192.168.122.1:8081/artifacts/edge-base-v3.17.qcow2","digest":"sha256:...","vcpus":2,"memoryMb":2048}]}'
+```
+`--spec` accepts inline JSON or a path to a YAML/JSON file. Each VM needs
+`name`, `qcow2Url` and a `sha256:<64 hex>` digest; `vcpus`/`memoryMb` are
+optional. New VMs boot from the downloaded disk, enroll as c12s nodes, and
+get their own OS management.
+
+#### Inspect
+```bash
+cockpit vms list --host <host-node-id>     # desired set (in Magnetar)
+cockpit vms status --host <host-node-id>   # observed state (running/shut off, ...)
+```
 
 ### Relationship Management
 
@@ -527,6 +558,37 @@ Retrieve metrics for a specific node.
     cockpit get node metrics --node-id 'nodeID'
     cockpit get node metrics --node-id 'nodeID' --all-services --sort 'memory'
     ```
+
+## Status
+
+Stable for all documented commands; the `image` and `vms` command groups
+were added in Phases 3–4 and are exercised end-to-end by the lab
+experiments (`tools/experiments/`).
+
+## Bugs, disabled and unfinished features
+
+### Confirmed bugs
+
+| Where | Effect |
+|---|---|
+| `cmd/image/image.status.go`, `cmd/vm/vm.list.go`, `cmd/vm/vm.status.go` | These read commands send a JSON **body on a GET request**. It works through the current gateway (which forwards bodies), but it violates HTTP semantics and some proxies strip GET bodies (review BUG-3, deferred; a query-param or POST rework is the fix). |
+| `image update`/`rollback` accepted:false | "did not acknowledge (node offline?)" is printed for *any* no-ack — including a node that rejected an invalid command silently (review R4). The real state is visible via `image status`. |
+
+### Disabled / unfinished features
+
+- `image rollback` deliberately leaves the node **unmanaged** (desired image
+  cleared): no drift reconcile until the next declared image (review R9).
+- HTTP + token boilerplate is duplicated across commands; only
+  `update`/`rollout` share `requestImageUpdate` (review M1).
+- `vms` commands do not validate that the host actually has the `run_vms`
+  capability — the declaration is stored regardless.
+
+### PoC boundaries (by design, not bugs)
+
+- The CLI talks plain HTTP to the gateway and runs from the repository
+  directory (`.env`, `token.txt` are local files).
+- `--password` on the command line is visible in the shell history/process
+  list; prefer `C12S_PASSWORD`.
 
 ## Contributing
 

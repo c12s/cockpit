@@ -206,7 +206,8 @@ permissions are baked into the token at `login`.
 #### Build an image
 ```bash
 cockpit image build --name os/edge-base --tag v3.18 \
-  --context tools/bootc --build-arg OS_VERSION=v3.18 [--wait] [--timeout 30m]
+  --context tools/bootc --containerfile Containerfile.bootc \
+  --build-arg OS_VERSION=v3.18 [--wait] [--timeout 30m]
 ```
 Sends the build context to Supernova through the gateway, which builds, pushes
 and signs the image in Singularity and returns the digest. Without `--wait` it

@@ -14,6 +14,7 @@ binary via the lunar-gateway HTTP API.
 | `create/put/delete schema`, `validate` | Quasar |
 | config groups and standalone configs (`put`, `list`, `place`, `diff`) | Kuiper (+ Gravity for delivery) |
 | `image update/rollout/rollback/status` | Gravity (`DisseminateOSImage`), Magnetar (desired image, status) |
+| `image build`, `image build qcow2`, `image build status/list` | Supernova (`BuildImage`, `BuildQCOW2`, `GetJob`, `ListJobs`) |
 | `vms set/list/status` | Magnetar (VM desired state / status on the host's node record) |
 
 ## Building and running
@@ -48,7 +49,7 @@ binary via the lunar-gateway HTTP API.
 - **Label Management**: Add, update, and delete labels for nodes.
 - **Schema Management**: Create, retrieve, validate, and delete schemas.
 - **Configuration Management**: Manage both config groups and standalone configs, including placing, listing, and diffing configurations.
-- **OS Image Management**: Digest-pinned updates, canary-gated rollouts, and rollback for `os_update`-capable nodes.
+- **OS Image Management**: Build images and qcow2 disks through Supernova, then apply digest-pinned updates, canary-gated rollouts, and rollback for `os_update`-capable nodes.
 - **VM Management**: Declare the desired VM fleet on a `run_vms` host and inspect observed status.
 
 ## Table of Contents
@@ -201,6 +202,27 @@ List nodes allocated to an organization.
 Nodes with the `os_update` capability run bootc; images are pinned by digest.
 Each node needs an `os.update` policy for the caller (`create policies`), and
 permissions are baked into the token at `login`.
+
+#### Build an image
+```bash
+cockpit image build --name os/edge-base --tag v3.18 \
+  --context tools/bootc --build-arg OS_VERSION=v3.18 [--wait] [--timeout 30m]
+```
+Sends the build context to Supernova through the gateway, which builds, pushes
+and signs the image in Singularity and returns the digest. Without `--wait` it
+prints the job id; `cockpit image build status <job-id>` shows progress and
+`cockpit image build list` shows all jobs. The build needs an `image.build`
+policy on the image repo (`image.build|image|os/edge-base`), created with
+`create policies` and baked into the token at the next `login`.
+
+#### Build a qcow2 provisioning disk
+```bash
+cockpit image build qcow2 --name edge-base-v3.18 \
+  --image-ref 192.168.122.1:5001/os/edge-base:v3.18 [--target-arch x86_64] [--rootfs ext4]
+```
+Turns an already-built bootc image into a qcow2 disk, uploads it to the
+Singularity artifact server and prints the artifact name and checksum. Use the
+artifact URL + checksum in `cockpit vms set`.
 
 #### Update one node
 ```bash

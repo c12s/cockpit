@@ -28,4 +28,13 @@ const (
 	RebootPolicyDescription       = "Reboot policy: immediate (default)"
 	HostDescription               = "Host node ID (required)"
 	SpecDescription               = "Desired VM spec: path to a YAML/JSON file or an inline JSON document (required)"
+	TagDescription                = "Image tag (default latest)"
+	ContextDescription            = "Build context directory containing the Containerfile and payloads (default .)"
+	ContainerfileDescription      = "Containerfile name inside the context (default Containerfile)"
+	RegistryDescription           = "Node-visible registry reference for the built image (default 192.168.122.1:5001)"
+	BuildArgDescription           = "Extra build argument key=value (repeatable)"
+	WaitDescription               = "Poll until the build finishes"
+	TimeoutDescription            = "Deadline for --wait (default 30m)"
+	TargetArchDescription         = "Target architecture for the qcow2 disk (default x86_64)"
+	RootFSDescription             = "Root filesystem for the qcow2 disk (default ext4)"
 )

@@ -1,10 +1,8 @@
 package cmd
 
 import (
-	"encoding/hex"
 	"fmt"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/c12s/cockpit/clients"
@@ -104,22 +102,11 @@ func validateVMSpec(vms []model.VMDesired) ([]model.VMDesired, error) {
 		if vm.Qcow2URL == "" {
 			return nil, fmt.Errorf("vm %s: qcow2Url is required", vm.Name)
 		}
-		if err := validateQcow2Digest(vm.Digest); err != nil {
+		if err := utils.ValidateDigest(vm.Digest); err != nil {
 			return nil, fmt.Errorf("vm %s: %w", vm.Name, err)
 		}
 	}
 	return vms, nil
-}
-
-func validateQcow2Digest(digest string) error {
-	const prefix = "sha256:"
-	if !strings.HasPrefix(digest, prefix) || len(digest) != len(prefix)+64 {
-		return fmt.Errorf("digest %q must be sha256:<64 hex>", digest)
-	}
-	if _, err := hex.DecodeString(digest[len(prefix):]); err != nil {
-		return fmt.Errorf("digest %q is not valid hex", digest)
-	}
-	return nil
 }
 
 func init() {

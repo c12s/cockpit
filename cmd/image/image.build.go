@@ -145,29 +145,43 @@ func executeImageBuildList(cmd *cobra.Command, args []string) {
 	printBuildJobs(resp.Jobs)
 }
 
-// waitAndPrintBuild polls the job until it reaches a terminal state.
-func waitAndPrintBuild(jobID string) {
-	deadline := time.Now().Add(buildTimeout)
+// waitForBuild polls a build job until it reaches a terminal state. The
+// last observed job is returned on timeout so callers can print it.
+func waitForBuild(jobID string, timeout time.Duration) (model.BuildJobStatus, error) {
+	deadline := time.Now().Add(timeout)
+	var last model.BuildJobStatus
 	for {
 		job, err := getBuildJob(jobID)
 		if err != nil {
-			buildFail(1, "polling job %s: %v", jobID, err)
+			return last, err
 		}
+		last = job
 		if job.Status == "succeeded" || job.Status == "failed" {
-			printBuildJob(job)
-			if job.Status == "failed" {
-				os.Exit(1)
-			}
-			if job.Type == "image" && job.ImageRef != "" && job.Digest != "" {
-				fmt.Printf("\nNext: cockpit image update --node-id <node-id> --image-ref %s --digest %s\n", job.ImageRef, job.Digest)
-			}
-			return
+			return job, nil
 		}
 		if time.Now().After(deadline) {
-			printBuildJob(job)
-			buildFail(3, "%v (job %s still %s)", errBuildTimeout, jobID, job.Status)
+			return job, fmt.Errorf("%w (job %s still %s)", errBuildTimeout, jobID, job.Status)
 		}
 		time.Sleep(2 * time.Second)
+	}
+}
+
+// waitAndPrintBuild polls the job until it reaches a terminal state.
+func waitAndPrintBuild(jobID string) {
+	job, err := waitForBuild(jobID, buildTimeout)
+	if err != nil {
+		printBuildJob(job)
+		if errors.Is(err, errBuildTimeout) {
+			buildFail(3, "%v", err)
+		}
+		buildFail(1, "polling job %s: %v", jobID, err)
+	}
+	printBuildJob(job)
+	if job.Status == "failed" {
+		os.Exit(1)
+	}
+	if job.Type == "image" && job.ImageRef != "" && job.Digest != "" {
+		fmt.Printf("\nNext: cockpit image update --node-id <node-id> --image-ref %s --digest %s\n", job.ImageRef, job.Digest)
 	}
 }
 

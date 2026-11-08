@@ -35,6 +35,23 @@ var (
 	rolloutNoWait  bool
 )
 
+// rolloutConfig is the parameterised rollout used by both `image rollout`
+// and `image apply`. The command flags map onto it; the apply spec maps its
+// target/rollout blocks onto it.
+type rolloutConfig struct {
+	org     string
+	canary  string
+	query   string
+	nodes   string
+	ref     string
+	digest  string
+	timeout time.Duration
+	poll    time.Duration
+	soak    time.Duration
+	noWait  bool
+	force   bool
+}
+
 var ImageRolloutCmd = &cobra.Command{
 	Use:   "rollout",
 	Short: "Roll an OS image out behind a canary health gate",
@@ -59,7 +76,27 @@ no target is touched.
 }
 
 func executeImageRollout(cmd *cobra.Command, args []string) {
-	targets, err := rolloutTargets()
+	runRollout(rolloutConfig{
+		org:     rolloutOrg,
+		canary:  rolloutCanary,
+		query:   rolloutQuery,
+		nodes:   rolloutNodes,
+		ref:     rolloutRef,
+		digest:  rolloutDigest,
+		timeout: rolloutTimeout,
+		poll:    rolloutPoll,
+		soak:    rolloutSoak,
+		noWait:  rolloutNoWait,
+		// The standalone rollout command always sends the update; it is not
+		// an idempotent apply. The apply command controls this via --force.
+		force: true,
+	})
+}
+
+// runRollout drives the canary gate and then the targets. It is shared by
+// the standalone rollout command and the declarative apply command.
+func runRollout(cfg rolloutConfig) {
+	targets, err := rolloutTargets(cfg)
 	if err != nil {
 		rolloutFail("resolving targets: %v", err)
 	}
@@ -68,36 +105,56 @@ func executeImageRollout(cmd *cobra.Command, args []string) {
 	}
 	rolloutLog("targets after canary: %s", strings.Join(targets, ", "))
 
-	rolloutLog("canary %s: sending %s@%s", rolloutCanary, rolloutRef, rolloutDigest)
-	if err := sendRolloutUpdate(rolloutCanary); err != nil {
-		rolloutFail("canary: %v", err)
+	nodes, err := orgNodesFor(cfg.org)
+	if err != nil {
+		rolloutFail("fetching nodes: %v", err)
 	}
 
-	verdicts, err := waitForGate([]string{rolloutCanary})
+	if cfg.force {
+		rolloutLog("canary %s: sending %s@%s", cfg.canary, cfg.ref, cfg.digest)
+		if err := sendRolloutUpdate(cfg, cfg.canary); err != nil {
+			rolloutFail("canary: %v", err)
+		}
+	} else if node, ok := nodes[cfg.canary]; ok && desiredMatches(node.DesiredOs, model.HostImageSource{Ref: cfg.ref, Digest: cfg.digest}) {
+		rolloutLog("canary %s already on %s; skipping update and checking health", cfg.canary, shortDigest(cfg.digest))
+	} else {
+		rolloutLog("canary %s: sending %s@%s", cfg.canary, cfg.ref, cfg.digest)
+		if err := sendRolloutUpdate(cfg, cfg.canary); err != nil {
+			rolloutFail("canary: %v", err)
+		}
+	}
+
+	verdicts, err := waitForGate(cfg, []string{cfg.canary})
 	if err != nil {
 		rolloutFail("canary: %v", err)
 	}
-	if v := verdicts[rolloutCanary]; v != gateHealthy {
-		rolloutFail("canary %s %s: rollout stopped, no target was updated", rolloutCanary, v)
+	if v := verdicts[cfg.canary]; v != gateHealthy {
+		rolloutFail("canary %s %s: rollout stopped, no target was updated", cfg.canary, v)
 	}
-	rolloutLog("canary %s healthy on %s, soaking for %s", rolloutCanary, rolloutDigest, rolloutSoak)
-	if err := soak(rolloutCanary); err != nil {
-		rolloutFail("canary %s: %v: rollout stopped, no target was updated", rolloutCanary, err)
+	rolloutLog("canary %s healthy on %s, soaking for %s", cfg.canary, shortDigest(cfg.digest), cfg.soak)
+	if err := soak(cfg, cfg.canary); err != nil {
+		rolloutFail("canary %s: %v: rollout stopped, no target was updated", cfg.canary, err)
 	}
-	rolloutLog("canary %s stayed healthy: proceeding", rolloutCanary)
+	rolloutLog("canary %s stayed healthy: proceeding", cfg.canary)
 
 	for _, id := range targets {
-		if err := sendRolloutUpdate(id); err != nil {
+		if !cfg.force {
+			if node, ok := nodes[id]; ok && desiredMatches(node.DesiredOs, model.HostImageSource{Ref: cfg.ref, Digest: cfg.digest}) {
+				rolloutLog("target %s: already on %s, skipping", id, shortDigest(cfg.digest))
+				continue
+			}
+		}
+		if err := sendRolloutUpdate(cfg, id); err != nil {
 			rolloutFail("target %s: %v (targets before it were already updated)", id, err)
 		}
 		rolloutLog("target %s: update accepted", id)
 	}
-	if rolloutNoWait {
-		rolloutLog("not waiting for targets; track with: cockpit image status --org %s", rolloutOrg)
+	if cfg.noWait {
+		rolloutLog("not waiting for targets; track with: cockpit image status --org %s", cfg.org)
 		return
 	}
 
-	verdicts, err = waitForGate(targets)
+	verdicts, err = waitForGate(cfg, targets)
 	if err != nil {
 		rolloutFail("targets: %v", err)
 	}
@@ -111,7 +168,7 @@ func executeImageRollout(cmd *cobra.Command, args []string) {
 	if failed > 0 {
 		rolloutFail("%d of %d targets did not become healthy", failed, len(targets))
 	}
-	rolloutLog("rollout complete: canary + %d targets healthy on %s", len(targets), rolloutDigest)
+	rolloutLog("rollout complete: canary + %d targets healthy on %s", len(targets), shortDigest(cfg.digest))
 }
 
 type gateVerdict string
@@ -144,12 +201,12 @@ func evaluateGate(node model.Node, digest string) gateVerdict {
 
 // waitForGate polls the org's nodes until every id has a final verdict or
 // the timeout passes (remaining nodes are then reported as timed out).
-func waitForGate(ids []string) (map[string]gateVerdict, error) {
+func waitForGate(cfg rolloutConfig, ids []string) (map[string]gateVerdict, error) {
 	verdicts := make(map[string]gateVerdict, len(ids))
 	last := make(map[string]string, len(ids))
-	deadline := time.Now().Add(rolloutTimeout)
+	deadline := time.Now().Add(cfg.timeout)
 	for {
-		nodes, err := orgNodes()
+		nodes, err := orgNodesFor(cfg.org)
 		if err != nil {
 			return nil, err
 		}
@@ -159,13 +216,13 @@ func waitForGate(ids []string) (map[string]gateVerdict, error) {
 			}
 			node, ok := nodes[id]
 			if !ok {
-				return nil, fmt.Errorf("node %s is not in org %s", id, rolloutOrg)
+				return nil, fmt.Errorf("node %s is not in org %s", id, cfg.org)
 			}
 			if phase := phaseOf(node); phase != last[id] {
 				rolloutLog("%s: phase %s", id, phase)
 				last[id] = phase
 			}
-			if v := evaluateGate(node, rolloutDigest); v != gatePending {
+			if v := evaluateGate(node, cfg.digest); v != gatePending {
 				verdicts[id] = v
 			}
 		}
@@ -180,26 +237,26 @@ func waitForGate(ids []string) (map[string]gateVerdict, error) {
 			}
 			return verdicts, nil
 		}
-		time.Sleep(rolloutPoll)
+		time.Sleep(cfg.poll)
 	}
 }
 
-// soak requires the node to stay healthy on the digest for rolloutSoak: a
+// soak requires the node to stay healthy on the digest for cfg.soak: a
 // single healthy report is not enough, a deployment can still be rejected
 // (greenboot reboot, rollback) after it first looks fine.
-func soak(id string) error {
-	deadline := time.Now().Add(rolloutSoak)
+func soak(cfg rolloutConfig, id string) error {
+	deadline := time.Now().Add(cfg.soak)
 	for time.Now().Before(deadline) {
-		time.Sleep(rolloutPoll)
-		nodes, err := orgNodes()
+		time.Sleep(cfg.poll)
+		nodes, err := orgNodesFor(cfg.org)
 		if err != nil {
 			return err
 		}
 		node, ok := nodes[id]
 		if !ok {
-			return fmt.Errorf("node left org %s", rolloutOrg)
+			return fmt.Errorf("node left org %s", cfg.org)
 		}
-		if v := evaluateGate(node, rolloutDigest); v != gateHealthy {
+		if v := evaluateGate(node, cfg.digest); v != gateHealthy {
 			return fmt.Errorf("left healthy during soak (phase %s)", phaseOf(node))
 		}
 	}
@@ -213,35 +270,35 @@ func phaseOf(node model.Node) string {
 	return node.OsStatus.Phase
 }
 
-func rolloutTargets() ([]string, error) {
+func rolloutTargets(cfg rolloutConfig) ([]string, error) {
 	var candidates []model.Node
-	if rolloutNodes != "" {
-		all, err := orgNodes()
+	if cfg.nodes != "" {
+		all, err := orgNodesFor(cfg.org)
 		if err != nil {
 			return nil, err
 		}
-		for _, id := range strings.Split(rolloutNodes, ",") {
+		for _, id := range strings.Split(cfg.nodes, ",") {
 			id = strings.TrimSpace(id)
 			node, ok := all[id]
 			if !ok {
-				return nil, fmt.Errorf("node %s is not in org %s", id, rolloutOrg)
+				return nil, fmt.Errorf("node %s is not in org %s", id, cfg.org)
 			}
 			candidates = append(candidates, node)
 		}
 	} else {
-		queries, err := utils.CreateNodeQuery(rolloutQuery)
+		queries, err := utils.CreateNodeQuery(cfg.query)
 		if err != nil {
 			return nil, err
 		}
 		var resp model.NodesResponse
-		if err := gatewayGet("QueryOrgOwnedNodes", model.ClaimNodesRequest{Org: rolloutOrg, Query: queries}, &resp); err != nil {
+		if err := gatewayGet("QueryOrgOwnedNodes", model.ClaimNodesRequest{Org: cfg.org, Query: queries}, &resp); err != nil {
 			return nil, err
 		}
 		candidates = resp.Nodes
 	}
 	var ids []string
 	for _, node := range candidates {
-		if node.ID == rolloutCanary {
+		if node.ID == cfg.canary {
 			continue
 		}
 		if !hasCapability(node, osUpdateCapability) {
@@ -262,9 +319,9 @@ func hasCapability(node model.Node, capability string) bool {
 	return false
 }
 
-func orgNodes() (map[string]model.Node, error) {
+func orgNodesFor(org string) (map[string]model.Node, error) {
 	var resp model.NodesResponse
-	if err := gatewayGet("ListOrgOwnedNodes", model.ClaimNodesRequest{Org: rolloutOrg}, &resp); err != nil {
+	if err := gatewayGet("ListOrgOwnedNodes", model.ClaimNodesRequest{Org: org}, &resp); err != nil {
 		return nil, err
 	}
 	nodes := make(map[string]model.Node, len(resp.Nodes))
@@ -299,9 +356,9 @@ func gatewayGet(method string, body, response interface{}) error {
 }
 
 // sendRolloutUpdate retries while the gateway rate-limits the caller.
-func sendRolloutUpdate(nodeID string) error {
+func sendRolloutUpdate(cfg rolloutConfig, nodeID string) error {
 	for attempt := 0; ; attempt++ {
-		accepted, err := requestImageUpdate(nodeID, rolloutRef, rolloutDigest, "")
+		accepted, err := requestImageUpdate(nodeID, cfg.ref, cfg.digest, "")
 		if isRateLimited(err) && attempt < rateLimitRetries {
 			time.Sleep(rateLimitBackoff)
 			continue

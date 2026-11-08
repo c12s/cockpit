@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -125,16 +126,36 @@ func executeImageApply(cmd *cobra.Command, args []string) {
 func loadHostImageSpec(raw string) (model.HostImageSpec, error) {
 	var spec model.HostImageSpec
 	data := []byte(raw)
-	if info, err := os.Stat(raw); err == nil && !info.IsDir() {
+	if info, err := os.Stat(raw); err == nil {
+		if info.IsDir() {
+			return spec, fmt.Errorf("spec path is a directory: %s", raw)
+		}
 		var readErr error
 		if data, readErr = os.ReadFile(raw); readErr != nil {
 			return spec, readErr
 		}
+	} else if looksLikeSpecPath(raw) {
+		return spec, fmt.Errorf("spec file not found: %s", raw)
 	}
 	if err := yaml.Unmarshal(data, &spec); err != nil {
 		return spec, fmt.Errorf("unmarshal YAML/JSON: %w", err)
 	}
 	return spec, nil
+}
+
+// looksLikeSpecPath distinguishes a path that was not found from inline
+// YAML/JSON. Inline documents start with '{' or contain a newline or a
+// ':' (key separator); a bare path is a single token with a file extension.
+func looksLikeSpecPath(raw string) bool {
+	s := strings.TrimSpace(raw)
+	if s == "" || strings.ContainsAny(s, "\n\r") || strings.HasPrefix(s, "{") {
+		return false
+	}
+	if strings.Contains(s, ":") {
+		return false
+	}
+	ext := strings.ToLower(filepath.Ext(s))
+	return ext == ".yaml" || ext == ".yml" || ext == ".json"
 }
 
 // normalizeImageSource validates the pinned-image or build source. A build

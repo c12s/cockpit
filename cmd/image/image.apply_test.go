@@ -45,6 +45,10 @@ func TestLoadHostImageSpec(t *testing.T) {
 	if _, err := loadHostImageSpec("not: [valid"); err == nil {
 		t.Fatal("expected an error for malformed YAML")
 	}
+
+	if _, err := loadHostImageSpec("missing-spec.yaml"); err == nil || !strings.Contains(err.Error(), "not found") {
+		t.Fatalf("missing file: expected not found, got %v", err)
+	}
 }
 
 func TestNormalizeHostImageSpec(t *testing.T) {

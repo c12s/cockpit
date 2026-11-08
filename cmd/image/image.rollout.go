@@ -105,9 +105,12 @@ func runRollout(cfg rolloutConfig) {
 	}
 	rolloutLog("targets after canary: %s", strings.Join(targets, ", "))
 
-	nodes, err := orgNodesFor(cfg.org)
-	if err != nil {
-		rolloutFail("fetching nodes: %v", err)
+	var nodes map[string]model.Node
+	if !cfg.force {
+		nodes, err = orgNodesFor(cfg.org)
+		if err != nil {
+			rolloutFail("fetching nodes: %v", err)
+		}
 	}
 
 	if cfg.force {

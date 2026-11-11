@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
+	"text/tabwriter"
 	"time"
 
 	"github.com/c12s/cockpit/clients"
@@ -13,6 +15,7 @@ import (
 )
 
 var (
+	imageStatusWide  bool
 	imageStatusOrg   string
 	imageStatusNodes model.NodesResponse
 )
@@ -49,34 +52,68 @@ func executeImageStatus(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-38s %-12s %-12s %-20s %-20s %s\n", "NODE ID", "PHASE", "VERSION", "DIGEST", "DESIRED", "LAST ATTEMPT")
-	for _, node := range imageStatusNodes.Nodes {
-		id := node.ID
-		phase := "-"
-		version := "-"
-		digest := "-"
-		attempt := "-"
+	fmt.Print(renderStatusTable(imageStatusNodes.Nodes, imageTags(), imageStatusWide))
+}
+
+// imageTags maps each registry digest to its tags, so a digest can be shown
+// as the version it is. A failed lookup only leaves the tags out.
+func imageTags() map[string][]string {
+	var resp model.ImageListResponse
+	if err := gatewayGet("ListImages", nil, &resp); err != nil {
+		return nil
+	}
+	tags := map[string][]string{}
+	for _, img := range resp.Images {
+		tags[img.Digest] = append(tags[img.Digest], tagFromRef(img.Ref))
+	}
+	return tags
+}
+
+// describeImage shows a digest as "v4.1 (sha256:b4e5e68be4ec)": the tag(s)
+// pointing at it plus the digest, short unless wide.
+func describeImage(digest string, tags map[string][]string, wide bool) string {
+	if digest == "" {
+		return "-"
+	}
+	d := digest
+	if !wide && len(d) > len("sha256:")+12 {
+		d = d[:len("sha256:")+12]
+	}
+	if t := tags[digest]; len(t) > 0 {
+		return strings.Join(t, ",") + " (" + d + ")"
+	}
+	return d
+}
+
+// renderStatusTable lays the nodes out with tabwriter, so columns line up
+// whatever the value lengths are.
+func renderStatusTable(nodes []model.Node, tags map[string][]string, wide bool) string {
+	var b strings.Builder
+	w := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
+	fmt.Fprintln(w, "NODE ID\tPHASE\tVERSION\tBOOTED\tDESIRED\tLAST ATTEMPT")
+	for _, node := range nodes {
+		phase, version, booted, attempt := "-", "-", "-", "-"
 		// desired = declared in the control plane; "-" means unmanaged
 		desired := "-"
 		if node.DesiredOs != nil && node.DesiredOs.Digest != "" {
-			desired = shortDigest(node.DesiredOs.Digest)
+			desired = describeImage(node.DesiredOs.Digest, tags, wide)
 		}
-		if node.OsStatus != nil {
-			if node.OsStatus.Phase != "" {
-				phase = node.OsStatus.Phase
+		if st := node.OsStatus; st != nil {
+			if st.Phase != "" {
+				phase = st.Phase
 			}
-			if node.OsStatus.BootedVersion != "" {
-				version = node.OsStatus.BootedVersion
+			if st.BootedVersion != "" {
+				version = st.BootedVersion
 			}
-			if node.OsStatus.BootedDigest != "" {
-				digest = shortDigest(node.OsStatus.BootedDigest)
-			}
-			if node.OsStatus.LastAttempt != nil {
-				attempt = fmt.Sprintf("%s (%s)", node.OsStatus.LastAttempt.Result, time.Unix(int64(node.OsStatus.LastAttempt.Timestamp), 0).Format("15:04:05"))
+			booted = describeImage(st.BootedDigest, tags, wide)
+			if st.LastAttempt != nil {
+				attempt = fmt.Sprintf("%s (%s)", st.LastAttempt.Result, time.Unix(int64(st.LastAttempt.Timestamp), 0).Format("15:04:05"))
 			}
 		}
-		fmt.Printf("%-38s %-12s %-12s %-20s %-20s %s\n", id, phase, version, digest, desired, attempt)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", node.ID, phase, version, booted, desired, attempt)
 	}
+	w.Flush()
+	return b.String()
 }
 
 func shortDigest(digest string) string {
@@ -89,5 +126,6 @@ func shortDigest(digest string) string {
 func init() {
 	ImageCmd.AddCommand(ImageStatusCmd)
 	ImageStatusCmd.Flags().StringVarP(&imageStatusOrg, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", constants.OrganizationDescription)
+	ImageStatusCmd.Flags().BoolVarP(&imageStatusWide, "wide", "w", false, "Show full digests")
 	ImageStatusCmd.MarkFlagRequired(constants.OrganizationFlag)
 }

@@ -248,6 +248,41 @@ canary excluded) updated and awaited. A canary rollback, leaving healthy
 during the soak, or a timeout stops the rollout with exit code 1 before any
 target is touched.
 
+#### Apply a fleet spec (declarative)
+```bash
+cockpit image apply --spec fleet.yaml --dry-run   # the plan
+cockpit image apply --spec fleet.yaml             # make it so
+```
+```yaml
+apiVersion: c12s/os.v1
+kind: HostImageSpec
+metadata: {org: c12s}
+spec:
+  images:
+    stable: {ref: 192.168.122.1:5001/os/edge-base:v4.1}   # digest optional: tag resolved
+  nodes:
+    - {id: <node-id>, name: host-1, image: stable}
+    - id: <vm-host-id>
+      name: node-1
+      image: stable
+      vms:                                  # the host's complete VM set
+        - {name: vm-01, disk: edge-base-v4.0.qcow2, vcpus: 1, memoryMb: 1024, image: stable}
+  rollout: {soak: 2m, timeout: 15m}
+```
+Only the listed nodes are managed; removing a node from the file stops
+managing it (nothing is changed on it). `image` is optional on nodes and VMs
+(absent: OS not managed). `vms:` absent leaves a host's VMs alone, `vms: []`
+deletes them. A VM's `disk` (an artifact name, or a URL with `digest`) is used
+only to create it; its node id is derived from the host id and the VM name
+(UUIDv5), so it is known before the VM exists.
+
+Order: VM sets → wait for new VMs to enroll and claim them (label
+`vm-host = <host-id>`) → OS for plain nodes and VMs → OS for VM hosts. Per
+image group the first node is the canary (gate + soak, as in `rollout`). A
+rollback or timeout stops the run (exit 1); re-running continues. `--force`
+re-sends updates whose desired image already matches. Every node and VM with
+an `image` needs an `os.update` policy; `--dry-run` lists their ids.
+
 #### Status
 ```bash
 cockpit image status --org c12s
@@ -282,12 +317,15 @@ creates, restarts and destroys libvirt VMs to match it.
 
 #### Declare the desired VM set
 ```bash
-cockpit vms set --host <host-node-id> --spec '{"vms":[{"name":"vm-01","qcow2Url":"http://192.168.122.1:8081/artifacts/edge-base-v3.17.qcow2","digest":"sha256:...","vcpus":2,"memoryMb":2048}]}'
+cockpit vms set --host <host-node-id> --spec '{"vms":[{"name":"vm-01","qcow2Url":"edge-base-v4.0.qcow2","digest":"sha256:...","vcpus":2,"memoryMb":2048}]}'
 ```
 `--spec` accepts inline JSON or a path to a YAML/JSON file. Each VM needs
 `name`, `qcow2Url` and a `sha256:<64 hex>` digest; `vcpus`/`memoryMb` are
-optional. New VMs boot from the downloaded disk, enroll as c12s nodes, and
-get their own OS management.
+optional. `qcow2Url` may be a bare artifact name: the host downloads it from
+`DISK_REGISTRY_URL` (image default `http://192.168.122.1:8081`). New VMs boot
+from the downloaded disk and enroll as c12s nodes with id
+UUIDv5(host id, VM name) and labels `vm-host`/`vm-name`. `image apply` does
+the same declaratively, together with the OS.
 
 #### Inspect
 ```bash

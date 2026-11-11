@@ -201,8 +201,11 @@ List nodes allocated to an organization.
 ### OS Image Management (bootc)
 
 Nodes with the `os_update` capability run bootc; images are pinned by digest.
-Each node needs an `os.update` policy for the caller (`create policies`), and
-permissions are baked into the token at `login`.
+Updating a node needs `os.update` for the caller (`create policies`): on the
+node's org (`objectScope: {kind: org, id: <org>}`, covers every node claimed
+into it) or on the node itself (`{kind: node, id: <node-id>}`, also works for
+pool nodes). Apollo mints the permissions on every request, so a new policy
+applies immediately.
 
 #### Build an image
 ```bash
@@ -281,7 +284,8 @@ Order: VM sets → wait for new VMs to enroll and claim them (label
 image group the first node is the canary (gate + soak, as in `rollout`). A
 rollback or timeout stops the run (exit 1); re-running continues. `--force`
 re-sends updates whose desired image already matches. Every node and VM with
-an `image` needs an `os.update` policy; `--dry-run` lists their ids.
+an `image` needs `os.update`: one policy on the org (`kind: org`) covers all
+its nodes, or one per node (`--dry-run` lists the ids).
 
 #### Status
 ```bash

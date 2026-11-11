@@ -373,7 +373,7 @@ func printApplyPlan(spec model.HostImageSpec, plan applyPlan) {
 		list = append(list, id)
 	}
 	sort.Strings(list)
-	fmt.Printf("\nNeeds os.update policies (then cockpit login) for: %s\n", strings.Join(list, ", "))
+	fmt.Printf("\nNeeds os.update on org %s (one policy covers all its nodes), or on each node: %s\n", spec.Metadata.Org, strings.Join(list, ", "))
 	if applyDryRun {
 		fmt.Println("Dry run: nothing was changed.")
 	}

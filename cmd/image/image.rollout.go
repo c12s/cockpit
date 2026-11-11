@@ -381,7 +381,7 @@ func sendRolloutUpdate(cfg rolloutConfig, nodeID string) error {
 		}
 		if err != nil {
 			if strings.Contains(err.Error(), "permission") {
-				return fmt.Errorf("%w (create an os.update policy for %s, then cockpit login again)", err, nodeID)
+				return fmt.Errorf("%w (grant os.update on the node's org, or on node %s)", err, nodeID)
 			}
 			return err
 		}

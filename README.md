@@ -261,7 +261,8 @@ declared, e.g. after `image rollback`) and the last attempt.
 cockpit image list
 ```
 Read-only view of the registry and the artifact server, through the gateway's
-`ListImages` route: every image tag and every qcow2 artifact with its sha256.
+`ListImages` route: every image tag with the digest it points to (the
+value `image update --digest` takes) and every qcow2 artifact with its sha256.
 It uses the same token as the other commands; `--output json` prints the raw
 response.
 

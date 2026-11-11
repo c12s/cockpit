@@ -19,8 +19,8 @@ import (
 var ImageListCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
-	Short:   "List images available in the registry and artifact server",
-	Long: "List the images in the registry and the qcow2 artifacts in the artifact " +
+	Short:   "List images (with digests) in the registry and artifact server",
+	Long: "List the images in the registry with the digest each tag points to, and the qcow2 artifacts in the artifact " +
 		"server. The command is read-only and goes through the gateway's " +
 		"ListImages route, so it uses the same token as the other commands.",
 	Run: executeImageList,
@@ -58,8 +58,12 @@ func executeImageList(cmd *cobra.Command, args []string) {
 	if len(resp.Images) == 0 {
 		fmt.Println("  (none)")
 	} else {
+		width := 0
 		for _, img := range resp.Images {
-			fmt.Printf("  %s\n", img)
+			width = max(width, len(img.Ref))
+		}
+		for _, img := range resp.Images {
+			fmt.Printf("  %-*s  %s\n", width, img.Ref, img.Digest)
 		}
 	}
 

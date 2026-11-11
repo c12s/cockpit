@@ -18,7 +18,7 @@ func RenderNodes(nodes []model.Node) {
 			fmt.Printf("Node ID: %s\n", node.ID)
 			fmt.Println(strings.Repeat("-", 45))
 			if node.Liveness != "" {
-				fmt.Printf("  liveness: %s (%s)\n", node.Liveness, formatLastSeen(node.LastSeen))
+				fmt.Printf("  liveness: %s (%s)\n", node.Liveness, FormatLastSeen(node.LastSeen))
 			}
 			for _, label := range node.Labels {
 				fmt.Printf("  - %s: %s\n", label.Key, label.Value)
@@ -32,7 +32,7 @@ func RenderNode(node model.Node) {
 	fmt.Printf("Node ID: %s\n", node.ID)
 	fmt.Println(strings.Repeat("-", 45))
 	if node.Liveness != "" {
-		fmt.Printf("  liveness: %s (%s)\n", node.Liveness, formatLastSeen(node.LastSeen))
+		fmt.Printf("  liveness: %s (%s)\n", node.Liveness, FormatLastSeen(node.LastSeen))
 	}
 	for _, label := range node.Labels {
 		fmt.Printf("  - %s: %s\n", label.Key, label.Value)
@@ -94,9 +94,9 @@ func RenderNodesTabWriter(nodes []model.Node) {
 	}
 }
 
-// formatLastSeen renders a unix timestamp as "just now", a relative age, or
+// FormatLastSeen renders a unix timestamp as "just now", a relative age, or
 // "-" when the node has never been seen.
-func formatLastSeen(lastSeen model.FlexInt64) string {
+func FormatLastSeen(lastSeen model.FlexInt64) string {
 	if lastSeen <= 0 {
 		return "never seen"
 	}

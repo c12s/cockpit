@@ -3,6 +3,7 @@ package cmd
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/c12s/cockpit/model"
 )
@@ -43,5 +44,23 @@ func TestRenderStatusTableAligns(t *testing.T) {
 		if len(l) < col || (l[col-1] != ' ') || l[col] == ' ' {
 			t.Fatalf("PHASE column not aligned at %d:\n%s", col, out)
 		}
+	}
+}
+
+// Stale and offline nodes show how old their report is; online ones just say so.
+func TestStatusLiveness(t *testing.T) {
+	old := model.FlexInt64(time.Now().Add(-59 * time.Minute).Unix())
+	if got := livenessCell(model.Node{Liveness: "offline", LastSeen: old}); !strings.HasPrefix(got, "offline (59m") || !strings.HasSuffix(got, " ago)") {
+		t.Errorf("offline: %q", got)
+	}
+	if got := livenessCell(model.Node{Liveness: "online", LastSeen: old}); got != "online" {
+		t.Errorf("online: %q", got)
+	}
+	if got := livenessCell(model.Node{}); got != "-" {
+		t.Errorf("unknown: %q", got)
+	}
+	out := renderStatusTable([]model.Node{{ID: "a", Liveness: "online"}}, nil, false)
+	if !strings.Contains(strings.Split(out, "\n")[0], "LIVENESS") {
+		t.Fatalf("no LIVENESS column:\n%s", out)
 	}
 }

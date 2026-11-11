@@ -10,6 +10,7 @@ import (
 	"github.com/c12s/cockpit/clients"
 	"github.com/c12s/cockpit/constants"
 	"github.com/c12s/cockpit/model"
+	"github.com/c12s/cockpit/render"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
 )
@@ -85,12 +86,25 @@ func describeImage(digest string, tags map[string][]string, wide bool) string {
 	return d
 }
 
+// livenessCell shows whether the row is current: the OS columns are the
+// node's last report, which is old for a stale or offline node.
+func livenessCell(node model.Node) string {
+	switch node.Liveness {
+	case "":
+		return "-"
+	case "online":
+		return "online"
+	default:
+		return node.Liveness + " (" + render.FormatLastSeen(node.LastSeen) + ")"
+	}
+}
+
 // renderStatusTable lays the nodes out with tabwriter, so columns line up
 // whatever the value lengths are.
 func renderStatusTable(nodes []model.Node, tags map[string][]string, wide bool) string {
 	var b strings.Builder
 	w := tabwriter.NewWriter(&b, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "NODE ID\tPHASE\tVERSION\tBOOTED\tDESIRED\tLAST ATTEMPT")
+	fmt.Fprintln(w, "NODE ID\tLIVENESS\tPHASE\tVERSION\tBOOTED\tDESIRED\tLAST ATTEMPT")
 	for _, node := range nodes {
 		phase, version, booted, attempt := "-", "-", "-", "-"
 		// desired = declared in the control plane; "-" means unmanaged
@@ -110,7 +124,7 @@ func renderStatusTable(nodes []model.Node, tags map[string][]string, wide bool) 
 				attempt = fmt.Sprintf("%s (%s)", st.LastAttempt.Result, time.Unix(int64(st.LastAttempt.Timestamp), 0).Format("15:04:05"))
 			}
 		}
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\n", node.ID, phase, version, booted, desired, attempt)
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\t%s\t%s\n", node.ID, livenessCell(node), phase, version, booted, desired, attempt)
 	}
 	w.Flush()
 	return b.String()

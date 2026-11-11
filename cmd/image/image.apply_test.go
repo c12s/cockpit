@@ -49,17 +49,6 @@ spec:
     soak: 1m
 `
 
-// Same vector as star's TestVMNodeID and Python's uuid.uuid5.
-func TestVMNodeID(t *testing.T) {
-	got, err := vmNodeID(hostID, "vm-01")
-	if err != nil || got != vm01ID {
-		t.Fatalf("vmNodeID = %q, %v; want %s", got, err, vm01ID)
-	}
-	if _, err := vmNodeID("nope", "vm-01"); err == nil {
-		t.Fatal("malformed host id must fail")
-	}
-}
-
 func TestLoadHostImageSpec(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "fleet.yaml")
 	if err := os.WriteFile(path, []byte(fleetYAML), 0o644); err != nil {

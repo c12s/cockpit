@@ -20,17 +20,6 @@ import (
 
 const runVmsCapability = "run_vms"
 
-// vmNodeID is a VM's node id: UUIDv5(host id, VM name). star derives the same
-// id when it creates the VM (star internal/vm VMNodeID), so VM ids are known
-// before the VMs exist.
-func vmNodeID(hostID, vmName string) (string, error) {
-	ns, err := uuid.Parse(hostID)
-	if err != nil {
-		return "", fmt.Errorf("host id %q is not a UUID: %w", hostID, err)
-	}
-	return uuid.NewSHA1(ns, []byte(vmName)).String(), nil
-}
-
 // loadHostImageSpec reads a path or an inline JSON document (JSON is valid
 // YAML). Unknown fields are errors, so a misspelled key — or the removed
 // single-image form — fails instead of being ignored.
@@ -112,7 +101,7 @@ func validateHostImageSpec(spec model.HostImageSpec) error {
 			if vm.Image != "" && !imageKnown(vm.Image) {
 				return fmt.Errorf("VM %s on %s: image %q is not in spec.images", vm.Name, label, vm.Image)
 			}
-			id, _ := vmNodeID(n.ID, vm.Name)
+			id, _ := utils.VMNodeID(n.ID, vm.Name)
 			if seen[id] {
 				return fmt.Errorf("VM %s on %s: its id %s is also listed as a node", vm.Name, label, id)
 			}
@@ -268,7 +257,7 @@ func buildApplyPlan(spec model.HostImageSpec, images map[string]model.HostImageS
 			if vm.Image == "" {
 				continue
 			}
-			id, err := vmNodeID(n.ID, vm.Name)
+			id, err := utils.VMNodeID(n.ID, vm.Name)
 			if err != nil {
 				return plan, err
 			}

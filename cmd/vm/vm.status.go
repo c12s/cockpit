@@ -49,7 +49,7 @@ func executeVmsStatus(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-20s %-12s %s\n", "NAME", "STATE", "BOOTED OS")
+	fmt.Printf("%-12s %-36s  %-12s %s\n", "NAME", "NODE ID", "STATE", "BOOTED OS")
 	for _, status := range vmStatusResp.Statuses {
 		state := status.State
 		if state == "" {
@@ -59,7 +59,7 @@ func executeVmsStatus(cmd *cobra.Command, args []string) {
 		if bootedOs == "" {
 			bootedOs = "-"
 		}
-		fmt.Printf("%-20s %-12s %s\n", status.Name, state, bootedOs)
+		fmt.Printf("%-12s %-36s  %-12s %s\n", status.Name, vmID(vmStatusHost, status.Name), state, bootedOs)
 	}
 }
 

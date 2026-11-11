@@ -48,10 +48,20 @@ func executeVmsList(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	fmt.Printf("%-20s %-48s %-20s %-6s %s\n", "NAME", "QCOW2", "DIGEST", "VCPUS", "MEMORY (MB)")
+	// NODE ID is derived (host id + VM name), the id the VM registers with:
+	// grant os.update for it before the VM exists.
+	fmt.Printf("%-12s %-36s  %-28s %-20s %-6s %s\n", "NAME", "NODE ID", "QCOW2", "DIGEST", "VCPUS", "MEMORY (MB)")
 	for _, vm := range vmListResp.VMs {
-		fmt.Printf("%-20s %-48s %-20s %-6d %d\n", vm.Name, vm.Qcow2URL, shortDigest(vm.Digest), vm.VCPUs, vm.MemoryMB)
+		fmt.Printf("%-12s %-36s  %-28s %-20s %-6d %d\n", vm.Name, vmID(vmListHost, vm.Name), vm.Qcow2URL, shortDigest(vm.Digest), vm.VCPUs, vm.MemoryMB)
 	}
+}
+
+func vmID(hostID, name string) string {
+	id, err := utils.VMNodeID(hostID, name)
+	if err != nil {
+		return "-"
+	}
+	return id
 }
 
 func shortDigest(digest string) string {

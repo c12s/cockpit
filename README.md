@@ -329,7 +329,7 @@ the same declaratively, together with the OS.
 
 #### Inspect
 ```bash
-cockpit vms list --host <host-node-id>     # desired set (in Magnetar)
+cockpit vms list --host <host-node-id>     # desired set (in Magnetar) + each VM's node id
 cockpit vms status --host <host-node-id>   # observed state (running/shut off, ...)
 ```
 

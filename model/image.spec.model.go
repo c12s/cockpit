@@ -41,6 +41,9 @@ type HostImageNode struct {
 	Name  string         `json:"name,omitempty" yaml:"name,omitempty"`
 	Image string         `json:"image,omitempty" yaml:"image,omitempty"`
 	VMs   *[]HostImageVM `json:"vms,omitempty" yaml:"vms,omitempty"`
+	// Canary: this node is updated first in its image group and must stay
+	// healthy for rollout.soak before the others; no canary = all at once
+	Canary bool `json:"canary,omitempty" yaml:"canary,omitempty"`
 }
 
 // HostImageVM is one VM on a host. Disk is used only to create the VM; Image
@@ -53,9 +56,11 @@ type HostImageVM struct {
 	VCPUs    uint32 `json:"vcpus,omitempty" yaml:"vcpus,omitempty"`
 	MemoryMB uint32 `json:"memoryMb,omitempty" yaml:"memoryMb,omitempty"`
 	Image    string `json:"image,omitempty" yaml:"image,omitempty"`
+	Canary   bool   `json:"canary,omitempty" yaml:"canary,omitempty"`
 }
 
-// HostImageRollout tunes the per-group canary gate.
+// HostImageRollout tunes the canary gate (groups with a canary) and the
+// health wait (all groups).
 type HostImageRollout struct {
 	Soak    string `json:"soak,omitempty" yaml:"soak,omitempty"`
 	Timeout string `json:"timeout,omitempty" yaml:"timeout,omitempty"`

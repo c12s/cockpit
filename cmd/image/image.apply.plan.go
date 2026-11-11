@@ -189,10 +189,15 @@ type osTarget struct {
 	status   *model.OsStatus
 }
 
+// osGroup is the nodes of one wave that get one image. canary is the id
+// of the node updated first (targets[0]); empty means all at once.
+// canaryUpToDate names a declared canary that needs no update.
 type osGroup struct {
-	imageName string
-	image     model.HostImageSource
-	targets   []osTarget
+	imageName      string
+	image          model.HostImageSource
+	targets        []osTarget
+	canary         string
+	canaryUpToDate string
 }
 
 // applyPlan is what apply will do, in order: VM sets, claims, OS wave 1
@@ -238,8 +243,9 @@ func buildApplyPlan(spec model.HostImageSpec, images map[string]model.HostImageS
 				wave = 1
 			}
 			img := images[n.Image]
-			if force || !desiredMatches(node.DesiredOs, img) {
-				waves[wave].add(n.Image, img, osTarget{id: n.ID, name: n.Name, current: node.DesiredOs, status: node.OsStatus})
+			target := osTarget{id: n.ID, name: n.Name, current: node.DesiredOs, status: node.OsStatus}
+			if err := waves[wave].place(n.Image, img, target, force || !desiredMatches(node.DesiredOs, img), n.Canary); err != nil {
+				return plan, err
 			}
 		}
 		if !isHost {
@@ -267,31 +273,66 @@ func buildApplyPlan(spec model.HostImageSpec, images map[string]model.HostImageS
 				claim.vmNames = append(claim.vmNames, vm.Name)
 			}
 			img := images[vm.Image]
-			if force || !inOrg || !desiredMatches(vmNode.DesiredOs, img) {
-				waves[0].add(vm.Image, img, osTarget{id: id, name: vm.Name, current: vmNode.DesiredOs, status: vmNode.OsStatus})
+			target := osTarget{id: id, name: vm.Name, current: vmNode.DesiredOs, status: vmNode.OsStatus}
+			if err := waves[0].place(vm.Image, img, target, force || !inOrg || !desiredMatches(vmNode.DesiredOs, img), vm.Canary); err != nil {
+				return plan, err
 			}
 		}
 		if len(claim.vmIDs) > 0 {
 			plan.claims = append(plan.claims, claim)
 		}
 	}
-	plan.waves[0], plan.waves[1] = waves[0].groups, waves[1].groups
+	plan.waves[0], plan.waves[1] = waves[0].result(), waves[1].result()
 	return plan, nil
 }
 
-// groupBuilder collects targets per image, in order of first appearance.
+// groupBuilder collects one wave's targets per image, in order of first
+// appearance, and the canary each group declares.
 type groupBuilder struct {
 	groups []osGroup
 }
 
-func (b *groupBuilder) add(name string, img model.HostImageSource, target osTarget) {
+func (b *groupBuilder) group(name string, img model.HostImageSource) *osGroup {
 	for i := range b.groups {
 		if b.groups[i].imageName == name {
-			b.groups[i].targets = append(b.groups[i].targets, target)
-			return
+			return &b.groups[i]
 		}
 	}
-	b.groups = append(b.groups, osGroup{imageName: name, image: img, targets: []osTarget{target}})
+	b.groups = append(b.groups, osGroup{imageName: name, image: img})
+	return &b.groups[len(b.groups)-1]
+}
+
+// place adds a node to its image group. A canary goes first; a canary that
+// needs no update is only noted (the rest then go without a canary gate).
+func (b *groupBuilder) place(name string, img model.HostImageSource, target osTarget, needsUpdate, canary bool) error {
+	g := b.group(name, img)
+	if canary {
+		if g.canary != "" || g.canaryUpToDate != "" {
+			return fmt.Errorf("image %s: more than one canary in the same wave (%s and %s)", name, orDash(g.canary+g.canaryUpToDate), nodeLabel(target.name, target.id))
+		}
+		if !needsUpdate {
+			g.canaryUpToDate = orDash(target.name)
+			return nil
+		}
+		g.canary = target.id
+		g.targets = append([]osTarget{target}, g.targets...)
+		return nil
+	}
+	if needsUpdate {
+		g.targets = append(g.targets, target)
+	}
+	return nil
+}
+
+// result drops groups with nothing to update.
+func (b *groupBuilder) result() []osGroup {
+	var out []osGroup
+	for _, g := range b.groups {
+		if len(g.targets) > 0 {
+			out = append(out, g)
+		}
+	}
+	return out
 }
 
 // diffVMSet compares a host's stored VM set with the declared one by name.

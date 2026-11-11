@@ -267,7 +267,7 @@ spec:
   images:
     stable: {ref: os/edge-base:v4.1}   # short ref: nodes pull from their IMAGE_REGISTRY; digest optional
   nodes:
-    - {id: <node-id>, name: host-1, image: stable}
+    - {id: <node-id>, name: host-1, image: stable, canary: true}   # first; the rest wait for it
     - id: <vm-host-id>
       name: node-1
       image: stable
@@ -284,8 +284,10 @@ only to create it; its node id is derived from the host id and the VM name
 
 Order: VM sets → wait for new VMs to enroll and claim them (label
 `vm-host = <host-id>`) → OS for plain nodes and VMs → OS for VM hosts. Per
-image group the first node is the canary (gate + soak, as in `rollout`). A
-rollback or timeout stops the run (exit 1); re-running continues. `--force`
+image group, the node marked `canary: true` goes first and must stay healthy
+for `rollout.soak` (as in `rollout`); a group without a canary is updated all
+at once. At most one canary per group. A rollback or timeout stops the run
+(exit 1); re-running continues. `--force`
 re-sends updates whose desired image already matches. Every node and VM with
 an `image` needs `os.update`: one policy on the org (`kind: org`) covers all
 its nodes, or one per node (`--dry-run` lists the ids).

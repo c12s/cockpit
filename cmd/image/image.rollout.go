@@ -187,6 +187,32 @@ func rolloutGroup(cfg rolloutConfig, canary string, targets []string) error {
 	return nil
 }
 
+// rolloutAll updates every node at once (no canary) and waits until all of
+// them are healthy; any rollback or timeout fails the group.
+func rolloutAll(cfg rolloutConfig, ids []string) error {
+	for _, id := range ids {
+		if err := sendRolloutUpdate(cfg, id); err != nil {
+			return fmt.Errorf("node %s: %w (nodes before it were already updated)", id, err)
+		}
+		rolloutLog("%s: update accepted", id)
+	}
+	verdicts, err := waitForGate(cfg, ids)
+	if err != nil {
+		return err
+	}
+	failed := 0
+	for _, id := range ids {
+		rolloutLog("%s: %s", id, verdicts[id])
+		if verdicts[id] != gateHealthy {
+			failed++
+		}
+	}
+	if failed > 0 {
+		return fmt.Errorf("%d of %d nodes did not become healthy", failed, len(ids))
+	}
+	return nil
+}
+
 type gateVerdict string
 
 const (

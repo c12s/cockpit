@@ -34,8 +34,9 @@ are never touched; removing a node from the spec stops managing it.
 
 Order: VM sets on hosts; claim newly enrolled VMs (their ids are derived
 from host id + VM name); OS for plain nodes and VMs; OS for VM hosts last.
-Per image group the first node is the canary. A rollback or timeout stops
-the run; re-running continues. --dry-run prints the plan; --force re-sends
+A node or VM marked canary: true goes first in its image group and must stay
+healthy for rollout.soak; a group without a canary is updated all at once.
+A rollback or timeout stops the run; re-running continues. --dry-run prints the plan; --force re-sends
 OS updates whose desired image already matches.`,
 	Run: executeImageApply,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -174,10 +175,17 @@ func executeApplyPlan(cfg rolloutConfig, plan applyPlan) error {
 			for j, t := range g.targets {
 				ids[j] = t.id
 			}
-			rolloutLog("wave %d, image %s (%s): canary %s, then %d more", i+1, g.imageName, shortDigest(g.image.Digest), ids[0], len(ids)-1)
 			c := cfg
 			c.ref, c.digest = g.image.Ref, g.image.Digest
-			if err := rolloutGroup(c, ids[0], ids[1:]); err != nil {
+			var err error
+			if g.canary != "" {
+				rolloutLog("wave %d, image %s (%s): canary %s, then %d more", i+1, g.imageName, shortDigest(g.image.Digest), ids[0], len(ids)-1)
+				err = rolloutGroup(c, ids[0], ids[1:])
+			} else {
+				rolloutLog("wave %d, image %s (%s): %d node(s) at once, no canary", i+1, g.imageName, shortDigest(g.image.Digest), len(ids))
+				err = rolloutAll(c, ids)
+			}
+			if err != nil {
 				return fmt.Errorf("wave %d, image %s: %w", i+1, g.imageName, err)
 			}
 		}
@@ -266,7 +274,9 @@ func desiredMatches(desired *model.DesiredOsImage, source model.HostImageSource)
 	if desired == nil || desired.Digest != source.Digest {
 		return false
 	}
-	if source.Ref != "" && desired.ImageRef != "" && desired.ImageRef != source.Ref {
+	// a short ref (node completes it from IMAGE_REGISTRY) and a full ref to
+	// the same repo:tag name the same image
+	if source.Ref != "" && desired.ImageRef != "" && refName(desired.ImageRef) != refName(source.Ref) {
 		return false
 	}
 	if source.RebootPolicy != "" && desired.RebootPolicy != "" && desired.RebootPolicy != source.RebootPolicy {
@@ -285,6 +295,14 @@ func applyImageUpdate(nodeID, ref, digest, policy string) (bool, error) {
 		}
 		return accepted, err
 	}
+}
+
+// refName is a ref without its registry host: repo[:tag].
+func refName(ref string) string {
+	if host := registryFromRef(ref); host != "" {
+		return strings.TrimPrefix(ref, host+"/")
+	}
+	return ref
 }
 
 // registryFromRef extracts the registry from an image reference when the
@@ -355,9 +373,17 @@ func printApplyPlan(spec model.HostImageSpec, plan applyPlan) {
 		fmt.Printf("\n%s:\n", titles[i])
 		for _, g := range wave {
 			fmt.Printf("  image %s = %s@%s\n", g.imageName, g.image.Ref, shortDigest(g.image.Digest))
-			for j, t := range g.targets {
+			switch {
+			case g.canary != "":
+				fmt.Println("    canary first, then the rest after the soak")
+			case g.canaryUpToDate != "":
+				fmt.Printf("    canary %s is already on this image: the rest go directly\n", g.canaryUpToDate)
+			default:
+				fmt.Println("    no canary: all at once")
+			}
+			for _, t := range g.targets {
 				role := ""
-				if j == 0 {
+				if t.id == g.canary {
 					role = "  [canary]"
 				}
 				fmt.Printf("    %-10s %s  %s -> %s  %s%s\n", orDash(t.name), t.id, describeDesired(t.current), shortDigest(g.image.Digest), describeBooted(t.status), role)

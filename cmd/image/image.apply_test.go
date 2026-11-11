@@ -314,8 +314,98 @@ func TestDesiredMatches(t *testing.T) {
 	if desiredMatches(&model.DesiredOsImage{ImageRef: source.Ref, Digest: "sha256:other", RebootPolicy: source.RebootPolicy}, source) {
 		t.Fatal("a different digest should not match")
 	}
+	if !desiredMatches(&model.DesiredOsImage{ImageRef: "192.168.122.1:5001/os/edge-base:demo-2", Digest: source.Digest}, model.HostImageSource{Ref: "os/edge-base:demo-2", Digest: source.Digest}) {
+		t.Fatal("a full and a short ref to the same repo:tag must match")
+	}
 	emptyPolicy := model.HostImageSource{Ref: source.Ref, Digest: source.Digest}
 	if !desiredMatches(&model.DesiredOsImage{ImageRef: source.Ref, Digest: source.Digest, RebootPolicy: "manual"}, emptyPolicy) {
 		t.Fatal("an empty source policy should not constrain the desired policy")
+	}
+}
+
+const canaryYAML = `
+apiVersion: c12s/os.v1
+kind: HostImageSpec
+metadata: {org: c12s}
+spec:
+  images:
+    stable: {ref: os/edge-base:v4.1}
+  nodes:
+    - {id: ` + plainID + `, name: host-1, image: stable}
+    - id: ` + hostID + `
+      name: node-1
+      image: stable
+      vms:
+        - {name: vm-01, disk: edge-base-v4.0.qcow2, image: stable, canary: true}
+`
+
+func canaryPlan(t *testing.T, yamlDoc string, state applyState) (applyPlan, error) {
+	t.Helper()
+	spec, err := loadHostImageSpec(yamlDoc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cat := testCatalog()
+	cat.images["os/edge-base:v4.1"] = digestB
+	images, vms, err := resolveHostImageSpec(spec, cat)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return buildApplyPlan(spec, images, vms, state, false)
+}
+
+func freshState() applyState {
+	return applyState{
+		orgNodes: map[string]model.Node{plainID: osNode(plainID, digestA), hostID: osNode(hostID, digestA)},
+		vms:      map[string][]model.VMDesired{},
+	}
+}
+
+// The marked node goes first and is the group's canary, wherever it is in
+// the file.
+func TestApplyCanaryIsExplicit(t *testing.T) {
+	plan, err := canaryPlan(t, canaryYAML, freshState())
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := plan.waves[0][0]
+	if g.canary != vm01ID || g.targets[0].id != vm01ID || targetIDs(plan.waves[0]) != vm01ID+","+plainID {
+		t.Fatalf("canary must be vm-01 and first: canary=%q targets=%s", g.canary, targetIDs(plan.waves[0]))
+	}
+	if plan.waves[1][0].canary != "" {
+		t.Fatalf("hosts wave has no canary marked: %+v", plan.waves[1][0])
+	}
+}
+
+// Without a canary: in the group, no canary mode.
+func TestApplyNoCanary(t *testing.T) {
+	plan, err := canaryPlan(t, strings.ReplaceAll(canaryYAML, ", canary: true", ""), freshState())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if plan.waves[0][0].canary != "" {
+		t.Fatalf("no canary declared, got %q", plan.waves[0][0].canary)
+	}
+}
+
+func TestApplyTwoCanariesInOneGroup(t *testing.T) {
+	doc := strings.Replace(canaryYAML, "name: host-1, image: stable}", "name: host-1, image: stable, canary: true}", 1)
+	if _, err := canaryPlan(t, doc, freshState()); err == nil || !strings.Contains(err.Error(), "canary") {
+		t.Fatalf("two canaries in one group must fail, got %v", err)
+	}
+}
+
+// A canary already on the image has nothing to prove: the rest go directly.
+func TestApplyCanaryAlreadyUpToDate(t *testing.T) {
+	state := freshState()
+	state.orgNodes[vm01ID] = osNode(vm01ID, digestB)
+	state.vms[hostID] = []model.VMDesired{{Name: "vm-01", Qcow2URL: "edge-base-v4.0.qcow2", Digest: diskSum}}
+	plan, err := canaryPlan(t, canaryYAML, state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := plan.waves[0][0]
+	if g.canary != "" || g.canaryUpToDate != "vm-01" || targetIDs(plan.waves[0]) != plainID {
+		t.Fatalf("up-to-date canary: %+v", g)
 	}
 }

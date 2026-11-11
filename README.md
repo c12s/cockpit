@@ -294,9 +294,10 @@ its nodes, or one per node (`--dry-run` lists the ids).
 ```bash
 cockpit image status --org c12s
 ```
-Per node: phase (`healthy`, `switching`, `degraded`, `rolled_back`), booted
-version and digest, DESIRED (the digest recorded in Magnetar; `-` = no image
-declared, e.g. after `image rollback`) and the last attempt.
+Per node: phase (`healthy`, `switching`, `degraded`, `rolled_back`,
+`unmanaged`), version, BOOTED and DESIRED as `tag (short digest)` (DESIRED is
+the image recorded in Magnetar; `-` = none declared yet) and the last
+attempt. `--wide` prints full digests.
 
 #### List images
 ```bash
@@ -681,8 +682,6 @@ experiments (`tools/experiments/`).
 
 ### Disabled / unfinished features
 
-- `image rollback` deliberately leaves the node **unmanaged** (desired image
-  cleared): no drift reconcile until the next declared image (review R9).
 - HTTP + token boilerplate is duplicated across commands; only
   `update`/`rollout` share `requestImageUpdate` (review M1).
 - `vms` commands do not validate that the host actually has the `run_vms`

@@ -296,7 +296,8 @@ its nodes, or one per node (`--dry-run` lists the ids).
 ```bash
 cockpit image status --org c12s
 ```
-Per node: phase (`healthy`, `switching`, `degraded`, `rolled_back`,
+Per node: liveness (`online`, or `stale`/`offline` with the age of the last
+report), phase (`healthy`, `switching`, `degraded`, `rolled_back`,
 `unmanaged`), version, BOOTED and DESIRED as `tag (short digest)` (DESIRED is
 the image recorded in Magnetar; `-` = none declared yet) and the last
 attempt. `--wide` prints full digests.

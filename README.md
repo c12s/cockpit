@@ -310,17 +310,13 @@ response.
 
 #### Rollback
 ```bash
-cockpit image rollback --node-id <id>
+cockpit image rollback --org <org> --node-id <id>
 ```
-Imperative escape hatch: orders the node to `bootc rollback` and **clears its
-desired image** — afterwards the node is unmanaged (no drift reconcile) until
-the next `image update`/`rollout` declares a new intent.
-
-### VM Management
-
-Host nodes with the `run_vms` capability run the VM reconciler: the desired
-VM set is a standing declaration stored in Magnetar, and the host's Star
-creates, restarts and destroys libvirt VMs to match it.
+Declares the node's previous deployment (the bootc rollback entry it
+reports) as its desired image: the node switches back through the normal
+update path (greenboot gate, attempt record) and stays managed. Refused when
+that deployment is the image greenboot rejected, during an update, or when
+the node reports no previous deployment.
 
 #### Declare the desired VM set
 ```bash

@@ -61,6 +61,9 @@ type OsStatus struct {
 	BootedVersion string     `json:"bootedVersion,omitempty"`
 	Phase         string     `json:"phase,omitempty"`
 	LastAttempt   *OsAttempt `json:"lastAttempt,omitempty"`
+	// the other deployment on disk, target of `image rollback`
+	RollbackImage  string `json:"rollbackImage,omitempty"`
+	RollbackDigest string `json:"rollbackDigest,omitempty"`
 }
 
 type OsAttempt struct {

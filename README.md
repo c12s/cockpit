@@ -15,6 +15,7 @@ binary via the lunar-gateway HTTP API.
 | config groups and standalone configs (`put`, `list`, `place`, `diff`) | Kuiper (+ Gravity for delivery) |
 | `image update/rollout/rollback/status` | Gravity (`DisseminateOSImage`), Magnetar (desired image, status) |
 | `image build`, `image build qcow2`, `image build status/list` | Supernova (`BuildImage`, `BuildQCOW2`, `GetJob`, `ListJobs`) |
+| `image list` | Supernova (`ListImages`; registry + artifact server) |
 | `vms set/list/status` | Magnetar (VM desired state / status on the host's node record) |
 
 ## Building and running
@@ -254,6 +255,15 @@ cockpit image status --org c12s
 Per node: phase (`healthy`, `switching`, `degraded`, `rolled_back`), booted
 version and digest, DESIRED (the digest recorded in Magnetar; `-` = no image
 declared, e.g. after `image rollback`) and the last attempt.
+
+#### List images
+```bash
+cockpit image list
+```
+Read-only view of the registry and the artifact server, through the gateway's
+`ListImages` route: every image tag and every qcow2 artifact with its sha256.
+It uses the same token as the other commands; `--output json` prints the raw
+response.
 
 #### Rollback
 ```bash

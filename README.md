@@ -201,6 +201,9 @@ List nodes allocated to an organization.
 ### OS Image Management (bootc)
 
 Nodes with the `os_update` capability run bootc; images are pinned by digest.
+Image refs may be short (`os/edge-base:v4.1`): the node completes them with
+`IMAGE_REGISTRY` from its image's `node.env`, so the control plane stores no
+registry address. A ref that names a host (`host:port/…`) overrides it.
 Updating a node needs `os.update` for the caller (`create policies`): on the
 node's org (`objectScope: {kind: org, id: <org>}`, covers every node claimed
 into it) or on the node itself (`{kind: node, id: <node-id>}`, also works for
@@ -262,7 +265,7 @@ kind: HostImageSpec
 metadata: {org: c12s}
 spec:
   images:
-    stable: {ref: 192.168.122.1:5001/os/edge-base:v4.1}   # digest optional: tag resolved
+    stable: {ref: os/edge-base:v4.1}   # short ref: nodes pull from their IMAGE_REGISTRY; digest optional
   nodes:
     - {id: <node-id>, name: host-1, image: stable}
     - id: <vm-host-id>

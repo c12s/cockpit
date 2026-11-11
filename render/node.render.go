@@ -15,7 +15,7 @@ func RenderNodes(nodes []model.Node) {
 		fmt.Println("No nodes were found.")
 	} else {
 		for _, node := range nodes {
-			fmt.Printf("Node ID: %s\n", node.ID)
+			fmt.Printf("Node ID: %s\n", NodeLabel(node))
 			fmt.Println(strings.Repeat("-", 45))
 			if node.Liveness != "" {
 				fmt.Printf("  liveness: %s (%s)\n", node.Liveness, FormatLastSeen(node.LastSeen))
@@ -29,7 +29,7 @@ func RenderNodes(nodes []model.Node) {
 }
 
 func RenderNode(node model.Node) {
-	fmt.Printf("Node ID: %s\n", node.ID)
+	fmt.Printf("Node ID: %s\n", NodeLabel(node))
 	fmt.Println(strings.Repeat("-", 45))
 	if node.Liveness != "" {
 		fmt.Printf("  liveness: %s (%s)\n", node.Liveness, FormatLastSeen(node.LastSeen))
@@ -90,8 +90,20 @@ func RenderNodesTabWriter(nodes []model.Node) {
 		if liveness == "" {
 			liveness = "-"
 		}
-		fmt.Fprintf(w, "%s\t%s\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", node.ID, liveness, cpuCores, avgMhz, avgCache, memoryTotalGB, diskTotalGB, diskFreeGB)
+		fmt.Fprintf(w, "%s\t%s\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\t%.2f\n", NodeLabel(node), liveness, cpuCores, avgMhz, avgCache, memoryTotalGB, diskTotalGB, diskFreeGB)
 	}
+}
+
+// NodeLabel is the node id, followed by "(nested VM)" when a c12s host
+// created the node as a VM: the host's seed gives every such VM the vm-host
+// label.
+func NodeLabel(node model.Node) string {
+	for _, label := range node.Labels {
+		if label.Key == "vm-host" {
+			return node.ID + " (nested VM)"
+		}
+	}
+	return node.ID
 }
 
 // FormatLastSeen renders a unix timestamp as "just now", a relative age, or

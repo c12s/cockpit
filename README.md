@@ -334,7 +334,7 @@ the same declaratively, together with the OS.
 #### Inspect
 ```bash
 cockpit vms list --host <host-node-id>     # desired set (in Magnetar) + each VM's node id
-cockpit vms status --host <host-node-id>   # observed state (running/shut off, ...)
+cockpit vms status --host <host-node-id> [--org <org>]   # observed state; with --org also each VM's booted OS
 ```
 
 ### Relationship Management

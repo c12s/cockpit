@@ -104,62 +104,74 @@ func runRollout(cfg rolloutConfig) {
 		rolloutFail("no target nodes matched (the canary is never a target)")
 	}
 	rolloutLog("targets after canary: %s", strings.Join(targets, ", "))
+	if err := rolloutGroup(cfg, cfg.canary, targets); err != nil {
+		rolloutFail("%v", err)
+	}
+}
 
+// rolloutGroup updates the canary, waits for its health gate and soaks it,
+// then updates the targets and waits for them. Nodes whose desired image
+// already matches are not re-sent (unless cfg.force). With no targets the
+// soak is skipped: it only protects targets. Shared by `image rollout` and
+// `image apply`.
+func rolloutGroup(cfg rolloutConfig, canary string, targets []string) error {
 	var nodes map[string]model.Node
+	var err error
 	if !cfg.force {
 		nodes, err = orgNodesFor(cfg.org)
 		if err != nil {
-			rolloutFail("fetching nodes: %v", err)
+			return fmt.Errorf("fetching nodes: %w", err)
 		}
 	}
+	matches := func(id string) bool {
+		node, ok := nodes[id]
+		return !cfg.force && ok && desiredMatches(node.DesiredOs, model.HostImageSource{Ref: cfg.ref, Digest: cfg.digest})
+	}
 
-	if cfg.force {
-		rolloutLog("canary %s: sending %s@%s", cfg.canary, cfg.ref, cfg.digest)
-		if err := sendRolloutUpdate(cfg, cfg.canary); err != nil {
-			rolloutFail("canary: %v", err)
-		}
-	} else if node, ok := nodes[cfg.canary]; ok && desiredMatches(node.DesiredOs, model.HostImageSource{Ref: cfg.ref, Digest: cfg.digest}) {
-		rolloutLog("canary %s already on %s; skipping update and checking health", cfg.canary, shortDigest(cfg.digest))
+	if matches(canary) {
+		rolloutLog("canary %s already on %s; skipping update and checking health", canary, shortDigest(cfg.digest))
 	} else {
-		rolloutLog("canary %s: sending %s@%s", cfg.canary, cfg.ref, cfg.digest)
-		if err := sendRolloutUpdate(cfg, cfg.canary); err != nil {
-			rolloutFail("canary: %v", err)
+		rolloutLog("canary %s: sending %s@%s", canary, cfg.ref, cfg.digest)
+		if err := sendRolloutUpdate(cfg, canary); err != nil {
+			return fmt.Errorf("canary %s: %w", canary, err)
 		}
 	}
 
-	verdicts, err := waitForGate(cfg, []string{cfg.canary})
+	verdicts, err := waitForGate(cfg, []string{canary})
 	if err != nil {
-		rolloutFail("canary: %v", err)
+		return fmt.Errorf("canary %s: %w", canary, err)
 	}
-	if v := verdicts[cfg.canary]; v != gateHealthy {
-		rolloutFail("canary %s %s: rollout stopped, no target was updated", cfg.canary, v)
+	if v := verdicts[canary]; v != gateHealthy {
+		return fmt.Errorf("canary %s %s: rollout stopped, no target was updated", canary, v)
 	}
-	rolloutLog("canary %s healthy on %s, soaking for %s", cfg.canary, shortDigest(cfg.digest), cfg.soak)
-	if err := soak(cfg, cfg.canary); err != nil {
-		rolloutFail("canary %s: %v: rollout stopped, no target was updated", cfg.canary, err)
+	if len(targets) == 0 {
+		rolloutLog("%s healthy on %s", canary, shortDigest(cfg.digest))
+		return nil
 	}
-	rolloutLog("canary %s stayed healthy: proceeding", cfg.canary)
+	rolloutLog("canary %s healthy on %s, soaking for %s", canary, shortDigest(cfg.digest), cfg.soak)
+	if err := soak(cfg, canary); err != nil {
+		return fmt.Errorf("canary %s: %w: rollout stopped, no target was updated", canary, err)
+	}
+	rolloutLog("canary %s stayed healthy: proceeding", canary)
 
 	for _, id := range targets {
-		if !cfg.force {
-			if node, ok := nodes[id]; ok && desiredMatches(node.DesiredOs, model.HostImageSource{Ref: cfg.ref, Digest: cfg.digest}) {
-				rolloutLog("target %s: already on %s, skipping", id, shortDigest(cfg.digest))
-				continue
-			}
+		if matches(id) {
+			rolloutLog("target %s: already on %s, skipping", id, shortDigest(cfg.digest))
+			continue
 		}
 		if err := sendRolloutUpdate(cfg, id); err != nil {
-			rolloutFail("target %s: %v (targets before it were already updated)", id, err)
+			return fmt.Errorf("target %s: %w (targets before it were already updated)", id, err)
 		}
 		rolloutLog("target %s: update accepted", id)
 	}
 	if cfg.noWait {
 		rolloutLog("not waiting for targets; track with: cockpit image status --org %s", cfg.org)
-		return
+		return nil
 	}
 
 	verdicts, err = waitForGate(cfg, targets)
 	if err != nil {
-		rolloutFail("targets: %v", err)
+		return fmt.Errorf("targets: %w", err)
 	}
 	failed := 0
 	for _, id := range targets {
@@ -169,9 +181,10 @@ func runRollout(cfg rolloutConfig) {
 		}
 	}
 	if failed > 0 {
-		rolloutFail("%d of %d targets did not become healthy", failed, len(targets))
+		return fmt.Errorf("%d of %d targets did not become healthy", failed, len(targets))
 	}
 	rolloutLog("rollout complete: canary + %d targets healthy on %s", len(targets), shortDigest(cfg.digest))
+	return nil
 }
 
 type gateVerdict string
@@ -367,6 +380,9 @@ func sendRolloutUpdate(cfg rolloutConfig, nodeID string) error {
 			continue
 		}
 		if err != nil {
+			if strings.Contains(err.Error(), "permission") {
+				return fmt.Errorf("%w (create an os.update policy for %s, then cockpit login again)", err, nodeID)
+			}
 			return err
 		}
 		if !accepted {

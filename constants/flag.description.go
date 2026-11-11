@@ -28,7 +28,7 @@ const (
 	RebootPolicyDescription       = "Reboot policy: immediate (default)"
 	HostDescription               = "Host node ID (required)"
 	SpecDescription               = "Desired VM spec: path to a YAML/JSON file or an inline JSON document (required)"
-	HostImageSpecDescription      = "Desired host image spec: path to a YAML/JSON file or an inline JSON document (required)"
+	HostImageSpecDescription      = "Fleet spec (HostImageSpec): path to a YAML/JSON file or an inline JSON document (required)"
 	TagDescription                = "Image tag (default latest)"
 	ContextDescription            = "Build context directory containing the Containerfile and payloads (default .)"
 	ContainerfileDescription      = "Containerfile name inside the context (default Containerfile)"

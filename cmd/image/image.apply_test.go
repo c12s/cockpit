@@ -5,218 +5,280 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/c12s/cockpit/model"
 )
 
 var validDigest = "sha256:" + strings.Repeat("a", 64)
 
+const (
+	hostID  = "5c1e7d2a-1b3c-4d5e-8f90-123456789abc" // VM host
+	plainID = "7f3c0000-0000-4000-8000-000000000001" // plain node
+	vm01ID  = "f210cdd5-ce6a-561e-a06a-29929fc319bd" // UUIDv5(hostID, "vm-01")
+)
+
+var (
+	digestA = "sha256:" + strings.Repeat("a", 64)
+	digestB = "sha256:" + strings.Repeat("b", 64)
+	diskSum = "sha256:" + strings.Repeat("d", 64)
+)
+
+const fleetYAML = `
+apiVersion: c12s/os.v1
+kind: HostImageSpec
+metadata:
+  org: c12s
+spec:
+  images:
+    stable:
+      ref: 192.168.122.1:5001/os/edge-base:v4.1
+  nodes:
+    - id: ` + plainID + `
+      name: host-1
+      image: stable
+    - id: ` + hostID + `
+      name: node-1
+      image: stable
+      vms:
+        - name: vm-01
+          disk: edge-base-v4.0.qcow2
+          vcpus: 1
+          memoryMb: 1024
+          image: stable
+  rollout:
+    soak: 1m
+`
+
+// Same vector as star's TestVMNodeID and Python's uuid.uuid5.
+func TestVMNodeID(t *testing.T) {
+	got, err := vmNodeID(hostID, "vm-01")
+	if err != nil || got != vm01ID {
+		t.Fatalf("vmNodeID = %q, %v; want %s", got, err, vm01ID)
+	}
+	if _, err := vmNodeID("nope", "vm-01"); err == nil {
+		t.Fatal("malformed host id must fail")
+	}
+}
+
 func TestLoadHostImageSpec(t *testing.T) {
-	inline := `{"apiVersion":"c12s/os.v1","kind":"HostImageSpec","metadata":{"org":"c12s","name":"edge-base","version":"v1"},"spec":{"image":{"ref":"192.168.122.1:5001/os/edge-base","digest":"` + validDigest + `","rebootPolicy":"immediate"},"target":{"org":"c12s","nodes":["node-1"]}}}`
-	spec, err := loadHostImageSpec(inline)
+	path := filepath.Join(t.TempDir(), "fleet.yaml")
+	if err := os.WriteFile(path, []byte(fleetYAML), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	spec, err := loadHostImageSpec(path)
 	if err != nil {
-		t.Fatalf("loadHostImageSpec(inline): %v", err)
+		t.Fatal(err)
 	}
-	if spec.Metadata.Org != "c12s" || spec.Metadata.Name != "edge-base" || spec.Metadata.Version != "v1" {
-		t.Fatalf("unexpected metadata: %+v", spec.Metadata)
+	if spec.Metadata.Org != "c12s" || len(spec.Spec.Nodes) != 2 || spec.Spec.Images["stable"].Ref == "" {
+		t.Fatalf("unexpected spec %+v", spec)
 	}
-	body := spec.Normalize()
-	if body.Image == nil || body.Image.Ref != "192.168.122.1:5001/os/edge-base" || body.Image.Digest != validDigest {
-		t.Fatalf("unexpected image: %+v", body.Image)
+	if spec.Spec.Nodes[0].VMs != nil {
+		t.Fatal("a node without vms: must leave VMs untouched (nil)")
 	}
-	if body.Target == nil || len(body.Target.Nodes) != 1 || body.Target.Nodes[0] != "node-1" {
-		t.Fatalf("unexpected target: %+v", body.Target)
+	if vms := spec.Spec.Nodes[1].VMs; vms == nil || len(*vms) != 1 {
+		t.Fatal("vms list not parsed")
 	}
 
-	path := filepath.Join(t.TempDir(), "host-image-spec.yaml")
-	yamlDoc := "apiVersion: c12s/os.v1\nkind: HostImageSpec\nmetadata:\n  org: c12s\nspec:\n  image:\n    ref: reg/os/edge-base\n    digest: " + validDigest + "\n  target:\n    nodes: [n1]\n"
-	if err := os.WriteFile(path, []byte(yamlDoc), 0o644); err != nil {
-		t.Fatalf("write temp spec: %v", err)
-	}
-	spec, err = loadHostImageSpec(path)
+	empty, err := loadHostImageSpec(`{"kind":"HostImageSpec","metadata":{"org":"c12s"},"spec":{"nodes":[{"id":"` + hostID + `","vms":[]}]}}`)
 	if err != nil {
-		t.Fatalf("loadHostImageSpec(file): %v", err)
+		t.Fatal(err)
 	}
-	if spec.Normalize().Image == nil || spec.Normalize().Image.Ref != "reg/os/edge-base" {
-		t.Fatalf("file spec did not load: %+v", spec.Normalize())
-	}
-
-	if _, err := loadHostImageSpec("not: [valid"); err == nil {
-		t.Fatal("expected an error for malformed YAML")
+	if vms := empty.Spec.Nodes[0].VMs; vms == nil || len(*vms) != 0 {
+		t.Fatal("vms: [] must mean an empty set, not absent")
 	}
 
-	if _, err := loadHostImageSpec("missing-spec.yaml"); err == nil || !strings.Contains(err.Error(), "not found") {
-		t.Fatalf("missing file: expected not found, got %v", err)
+	_, err = loadHostImageSpec(`{"kind":"HostImageSpec","metadata":{"org":"c12s"},"spec":{"image":{"ref":"x","digest":"` + digestA + `"}}}`)
+	if err == nil || !strings.Contains(err.Error(), "images") {
+		t.Fatalf("old single-image form must be rejected with a hint, got %v", err)
 	}
 }
 
-func TestNormalizeHostImageSpec(t *testing.T) {
-	flat := model.HostImageSpec{
-		Org:    "c12s",
-		Image:  &model.HostImageSource{Ref: "reg/os/edge-base", Digest: validDigest},
-		Target: &model.HostImageTarget{Nodes: []string{"n1"}},
+func TestValidateHostImageSpec(t *testing.T) {
+	base := func() model.HostImageSpec {
+		spec, err := loadHostImageSpec(fleetYAML)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return spec
 	}
-	body := flat.Normalize()
-	if body.Image == nil || body.Target == nil {
-		t.Fatalf("flat form did not merge: %+v", body)
+	cases := []struct {
+		name   string
+		mutate func(*model.HostImageSpec)
+		want   string
+	}{
+		{"valid", func(*model.HostImageSpec) {}, ""},
+		{"no org", func(s *model.HostImageSpec) { s.Metadata.Org = "" }, "metadata.org"},
+		{"duplicate node", func(s *model.HostImageSpec) { s.Spec.Nodes[1].ID = plainID }, "duplicate"},
+		{"unknown image", func(s *model.HostImageSpec) { s.Spec.Nodes[0].Image = "nope" }, "nope"},
+		{"bad digest", func(s *model.HostImageSpec) {
+			s.Spec.Images["stable"] = model.HostImageSource{Ref: "r:t", Digest: "sha256:abc"}
+		}, "digest"},
+		{"duplicate vm", func(s *model.HostImageSpec) {
+			vms := append(*s.Spec.Nodes[1].VMs, (*s.Spec.Nodes[1].VMs)[0])
+			s.Spec.Nodes[1].VMs = &vms
+		}, "vm-01"},
+		{"vm without disk", func(s *model.HostImageSpec) { (*s.Spec.Nodes[1].VMs)[0].Disk = "" }, "disk"},
+		{"vm unknown image", func(s *model.HostImageSpec) { (*s.Spec.Nodes[1].VMs)[0].Image = "nope" }, "nope"},
+		{"malformed id", func(s *model.HostImageSpec) { s.Spec.Nodes[1].ID = "node-1" }, "node-1"},
 	}
-
-	canonical := model.HostImageSpec{
-		Metadata: model.HostImageMetadata{Org: "c12s"},
-		Spec: model.HostImageSpecBody{
-			Image: &model.HostImageSource{Ref: "canonical", Digest: validDigest},
-		},
-		Image: &model.HostImageSource{Ref: "flat", Digest: validDigest},
-	}
-	body = canonical.Normalize()
-	if body.Image == nil || body.Image.Ref != "canonical" {
-		t.Fatalf("canonical form should win: %+v", body.Image)
-	}
-}
-
-func TestNormalizeImageSource(t *testing.T) {
-	if _, err := normalizeImageSource(nil, nil); err == nil {
-		t.Fatal("expected an error when neither image nor build is set")
-	}
-
-	image := &model.HostImageSource{Ref: "reg/os/edge-base", Digest: validDigest}
-	src, err := normalizeImageSource(image, nil)
-	if err != nil {
-		t.Fatalf("normalizeImageSource(image): %v", err)
-	}
-	if src.Ref != image.Ref || src.Digest != validDigest || src.RebootPolicy != "immediate" {
-		t.Fatalf("unexpected source: %+v", src)
-	}
-
-	build := &model.HostImageBuild{Name: "os/edge-base"}
-	src, err = normalizeImageSource(nil, build)
-	if err != nil {
-		t.Fatalf("normalizeImageSource(build): %v", err)
-	}
-	if src.Ref != "" || src.Digest != "" {
-		t.Fatalf("build-only source should be empty: %+v", src)
-	}
-
-	src, err = normalizeImageSource(image, build)
-	if err != nil {
-		t.Fatalf("normalizeImageSource(image+build): %v", err)
-	}
-	if src.Ref != image.Ref || src.Digest != validDigest {
-		t.Fatalf("image fallback not kept: %+v", src)
-	}
-
-	if _, err := normalizeImageSource(&model.HostImageSource{Ref: "reg", Digest: "sha256:abc"}, nil); err == nil {
-		t.Fatal("expected an error for a malformed digest")
-	}
-	if _, err := normalizeImageSource(&model.HostImageSource{Digest: validDigest}, nil); err == nil {
-		t.Fatal("expected an error for a missing ref")
-	}
-	if _, err := normalizeImageSource(&model.HostImageSource{Ref: "reg"}, nil); err == nil {
-		t.Fatal("expected an error for a missing digest")
+	for _, c := range cases {
+		spec := base()
+		c.mutate(&spec)
+		err := validateHostImageSpec(spec)
+		if c.want == "" && err != nil {
+			t.Errorf("%s: unexpected error %v", c.name, err)
+		}
+		if c.want != "" && (err == nil || !strings.Contains(err.Error(), c.want)) {
+			t.Errorf("%s: want error containing %q, got %v", c.name, c.want, err)
+		}
 	}
 }
 
-func TestNormalizeBuild(t *testing.T) {
-	meta := model.HostImageMetadata{Org: "c12s", Name: "edge-base", Version: "v1"}
-	image := model.HostImageSource{Ref: "192.168.122.1:5001/os/edge-base:demo-2", Digest: validDigest, RebootPolicy: "immediate"}
-
-	build := &model.HostImageBuild{Context: "tools/bootc", BuildArgs: map[string]string{"OS_VERSION": "v1"}}
-	got, err := normalizeBuild(build, meta, image, 30*time.Minute)
-	if err != nil {
-		t.Fatalf("normalizeBuild: %v", err)
-	}
-	if got.Name != "os/edge-base" || got.Tag != "demo-2" || got.Registry != "192.168.122.1:5001" {
-		t.Fatalf("unexpected build name/tag/registry: %+v", got)
-	}
-	if got.Containerfile != "Containerfile" || got.Timeout != "30m0s" {
-		t.Fatalf("unexpected build defaults: %+v", got)
-	}
-	if got.BuildArgs["OS_VERSION"] != "v1" {
-		t.Fatalf("build args not preserved: %+v", got.BuildArgs)
-	}
-
-	got, err = normalizeBuild(&model.HostImageBuild{}, meta, model.HostImageSource{}, time.Minute)
-	if err != nil {
-		t.Fatalf("normalizeBuild(metadata): %v", err)
-	}
-	if got.Name != "edge-base" || got.Tag != "v1" || got.Registry != "192.168.122.1:5001" || got.Timeout != "1m0s" {
-		t.Fatalf("unexpected metadata defaults: %+v", got)
-	}
-
-	if _, err := normalizeBuild(&model.HostImageBuild{Timeout: "nope"}, meta, model.HostImageSource{}, time.Minute); err == nil {
-		t.Fatal("expected an error for an invalid build timeout")
-	}
-	if _, err := normalizeBuild(&model.HostImageBuild{}, model.HostImageMetadata{}, model.HostImageSource{}, time.Minute); err == nil {
-		t.Fatal("expected an error when the build name cannot be resolved")
+func testCatalog() applyCatalog {
+	return applyCatalog{
+		images:    map[string]string{"os/edge-base:v4.1": digestB},
+		artifacts: map[string]string{"edge-base-v4.0.qcow2": diskSum},
 	}
 }
 
-func TestNormalizeTarget(t *testing.T) {
-	meta := model.HostImageMetadata{Org: "c12s"}
-	if _, err := normalizeTarget(nil, meta); err == nil {
-		t.Fatal("expected an error for a missing target")
-	}
-
-	target := &model.HostImageTarget{Nodes: []string{"n1", " n1 ", "", "n2"}}
-	got, err := normalizeTarget(target, meta)
+func TestResolveHostImageSpec(t *testing.T) {
+	spec, _ := loadHostImageSpec(fleetYAML)
+	images, vms, err := resolveHostImageSpec(spec, testCatalog())
 	if err != nil {
-		t.Fatalf("normalizeTarget(nodes): %v", err)
+		t.Fatal(err)
 	}
-	if got.Org != "c12s" || len(got.Nodes) != 2 || got.Nodes[0] != "n1" || got.Nodes[1] != "n2" {
-		t.Fatalf("unexpected target: %+v", got)
+	if images["stable"].Digest != digestB {
+		t.Fatalf("tag not resolved: %+v", images["stable"])
 	}
-
-	target = &model.HostImageTarget{Query: "role = prod", Org: "other"}
-	got, err = normalizeTarget(target, meta)
-	if err != nil {
-		t.Fatalf("normalizeTarget(query): %v", err)
-	}
-	if got.Org != "other" {
-		t.Fatalf("target org should win: %+v", got)
+	if got := vms[hostID][0]; got.Digest != diskSum || got.Qcow2URL != "edge-base-v4.0.qcow2" {
+		t.Fatalf("disk not resolved: %+v", got)
 	}
 
-	if _, err := normalizeTarget(&model.HostImageTarget{Nodes: []string{"n1"}, Query: "role = prod"}, meta); err == nil {
-		t.Fatal("expected an error when both nodes and query are set")
+	missing := testCatalog()
+	delete(missing.images, "os/edge-base:v4.1")
+	if _, _, err := resolveHostImageSpec(spec, missing); err == nil || !strings.Contains(err.Error(), "v4.1") {
+		t.Fatalf("unknown tag must fail, got %v", err)
 	}
-	if _, err := normalizeTarget(&model.HostImageTarget{}, meta); err == nil {
-		t.Fatal("expected an error when neither nodes nor query is set")
-	}
-	if _, err := normalizeTarget(&model.HostImageTarget{Nodes: []string{" "}}, meta); err == nil {
-		t.Fatal("expected an error for an empty nodes list")
-	}
-	if _, err := normalizeTarget(&model.HostImageTarget{Nodes: []string{"n1"}}, model.HostImageMetadata{}); err == nil {
-		t.Fatal("expected an error when the org cannot be resolved")
+	noDisk := testCatalog()
+	delete(noDisk.artifacts, "edge-base-v4.0.qcow2")
+	if _, _, err := resolveHostImageSpec(spec, noDisk); err == nil || !strings.Contains(err.Error(), "edge-base-v4.0.qcow2") {
+		t.Fatalf("unknown disk must fail, got %v", err)
 	}
 }
 
-func TestNormalizeRollout(t *testing.T) {
-	got, err := normalizeRollout(nil)
-	if err != nil || got != nil {
-		t.Fatalf("nil rollout should return nil, nil; got %v, %v", got, err)
+func osNode(id, digest string) model.Node {
+	n := model.Node{ID: id, Capabilities: []string{osUpdateCapability, "run_vms"}}
+	if digest != "" {
+		n.DesiredOs = &model.DesiredOsImage{ImageRef: "192.168.122.1:5001/os/edge-base:v4.1", Digest: digest}
 	}
+	return n
+}
 
-	if _, err := normalizeRollout(&model.HostImageRollout{}); err == nil {
-		t.Fatal("expected an error for a missing canary")
-	}
-
-	got, err = normalizeRollout(&model.HostImageRollout{Canary: "n1"})
+func planFor(t *testing.T, state applyState) applyPlan {
+	t.Helper()
+	spec, _ := loadHostImageSpec(fleetYAML)
+	images, vms, err := resolveHostImageSpec(spec, testCatalog())
 	if err != nil {
-		t.Fatalf("normalizeRollout: %v", err)
+		t.Fatal(err)
 	}
-	if got.Soak != "2m" || got.Timeout != "15m" || got.Poll != "10s" {
-		t.Fatalf("unexpected rollout defaults: %+v", got)
+	plan, err := buildApplyPlan(spec, images, vms, state, false)
+	if err != nil {
+		t.Fatal(err)
 	}
+	return plan
+}
 
-	if _, err := normalizeRollout(&model.HostImageRollout{Canary: "n1", Soak: "nope"}); err == nil {
-		t.Fatal("expected an error for an invalid soak")
+func TestBuildApplyPlanFreshFleet(t *testing.T) {
+	plan := planFor(t, applyState{
+		orgNodes: map[string]model.Node{plainID: osNode(plainID, digestA), hostID: osNode(hostID, digestA)},
+		vms:      map[string][]model.VMDesired{},
+	})
+	if len(plan.vmSets) != 1 || plan.vmSets[0].hostID != hostID || strings.Join(plan.vmSets[0].added, ",") != "vm-01" {
+		t.Fatalf("vm set: %+v", plan.vmSets)
 	}
-	if _, err := normalizeRollout(&model.HostImageRollout{Canary: "n1", Timeout: "nope"}); err == nil {
-		t.Fatal("expected an error for an invalid timeout")
+	if len(plan.claims) != 1 || plan.claims[0].hostID != hostID || plan.claims[0].vmIDs[0] != vm01ID {
+		t.Fatalf("claims: %+v", plan.claims)
 	}
-	if _, err := normalizeRollout(&model.HostImageRollout{Canary: "n1", Poll: "nope"}); err == nil {
-		t.Fatal("expected an error for an invalid poll")
+	if ids := targetIDs(plan.waves[0]); ids != plainID+","+vm01ID {
+		t.Fatalf("wave 1 = %s", ids)
 	}
+	if ids := targetIDs(plan.waves[1]); ids != hostID {
+		t.Fatalf("wave 2 (hosts) = %s", ids)
+	}
+}
+
+func TestBuildApplyPlanConverged(t *testing.T) {
+	vm := osNode(vm01ID, digestB)
+	plan := planFor(t, applyState{
+		orgNodes: map[string]model.Node{plainID: osNode(plainID, digestB), hostID: osNode(hostID, digestB), vm01ID: vm},
+		vms: map[string][]model.VMDesired{hostID: {{
+			Name: "vm-01", Qcow2URL: "edge-base-v4.0.qcow2", Digest: diskSum, VCPUs: 1, MemoryMB: 1024,
+		}}},
+	})
+	if !plan.empty() {
+		t.Fatalf("converged fleet must plan nothing: %+v", plan)
+	}
+}
+
+func TestBuildApplyPlanVMChangesAndPool(t *testing.T) {
+	plan := planFor(t, applyState{
+		orgNodes:  map[string]model.Node{plainID: osNode(plainID, digestB), hostID: osNode(hostID, digestB)},
+		poolNodes: map[string]model.Node{vm01ID: {ID: vm01ID}},
+		vms: map[string][]model.VMDesired{hostID: {
+			{Name: "vm-01", Qcow2URL: "edge-base-v4.0.qcow2", Digest: diskSum, VCPUs: 2, MemoryMB: 1024},
+			{Name: "vm-03", Qcow2URL: "edge-base-v4.0.qcow2", Digest: diskSum},
+		}},
+	})
+	set := plan.vmSets[0]
+	if strings.Join(set.changed, ",") != "vm-01" || strings.Join(set.removed, ",") != "vm-03" || len(set.added) != 0 {
+		t.Fatalf("vm diff: %+v", set)
+	}
+	if len(plan.claims) != 1 {
+		t.Fatalf("pool VM must be claimed: %+v", plan.claims)
+	}
+	if ids := targetIDs(plan.waves[0]); ids != vm01ID {
+		t.Fatalf("only the VM needs an OS update: %s", ids)
+	}
+	if len(plan.waves[1]) != 0 {
+		t.Fatalf("host already on the image: %+v", plan.waves[1])
+	}
+}
+
+func TestBuildApplyPlanRejectsNodeOutsideOrg(t *testing.T) {
+	spec, _ := loadHostImageSpec(fleetYAML)
+	images, vms, _ := resolveHostImageSpec(spec, testCatalog())
+	_, err := buildApplyPlan(spec, images, vms, applyState{orgNodes: map[string]model.Node{hostID: osNode(hostID, "")}}, false)
+	if err == nil || !strings.Contains(err.Error(), plainID) {
+		t.Fatalf("node outside the org must fail, got %v", err)
+	}
+}
+
+func TestBuildApplyPlanForce(t *testing.T) {
+	spec, _ := loadHostImageSpec(fleetYAML)
+	images, vms, _ := resolveHostImageSpec(spec, testCatalog())
+	state := applyState{
+		orgNodes: map[string]model.Node{plainID: osNode(plainID, digestB), hostID: osNode(hostID, digestB), vm01ID: osNode(vm01ID, digestB)},
+		vms: map[string][]model.VMDesired{hostID: {{
+			Name: "vm-01", Qcow2URL: "edge-base-v4.0.qcow2", Digest: diskSum, VCPUs: 1, MemoryMB: 1024,
+		}}},
+	}
+	plan, err := buildApplyPlan(spec, images, vms, state, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ids := targetIDs(plan.waves[0]); ids != plainID+","+vm01ID {
+		t.Fatalf("--force must re-send matching nodes: %s", ids)
+	}
+}
+
+func targetIDs(groups []osGroup) string {
+	var ids []string
+	for _, g := range groups {
+		for _, target := range g.targets {
+			ids = append(ids, target.id)
+		}
+	}
+	return strings.Join(ids, ",")
 }
 
 func TestImageRefParts(t *testing.T) {

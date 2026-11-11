@@ -1,11 +1,9 @@
 package cmd
 
 import (
-	"encoding/base64"
-	"errors"
 	"fmt"
 	"os"
-	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -14,34 +12,31 @@ import (
 	"github.com/c12s/cockpit/model"
 	"github.com/c12s/cockpit/utils"
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 )
 
 var (
-	applySpec    string
-	applyDryRun  bool
-	applyForce   bool
-	applyTimeout time.Duration
+	applySpec   string
+	applyDryRun bool
+	applyForce  bool
 )
 
 var ImageApplyCmd = &cobra.Command{
 	Use:     "apply",
 	Aliases: []string{"declare"},
-	Short:   "Apply a declarative HostImageSpec (build or pinned image, targets, rollout)",
-	Long: `Apply a declarative host image spec. The spec is a client-side document:
-the control plane only stores the resulting per-node desired image.
+	Short:   "Apply a fleet spec: OS images per node, VMs per host",
+	Long: `Make the nodes listed in a HostImageSpec match it. Nodes not in the spec
+are never touched; removing a node from the spec stops managing it.
 
-  spec.image is a pinned digest; spec.build is a Containerfile context.
-  When both are present the build runs and its digest is used; spec.image
-  is the fallback. The build goes through the gateway and Supernova, so the
-  command waits for it to finish and returns the digest.
+  spec.images   named OS images (ref, optional digest: a tag is resolved)
+  spec.nodes    node id, optional image, and for VM hosts the complete VM
+                set (vms: name, disk, optional digest/vcpus/memoryMb/image)
+  spec.rollout  soak, timeout, poll for the per-group canary gate
 
-  spec.target selects the nodes by nodes or query (exactly one).
-  spec.rollout runs a canary first, soaks, then updates the targets. Without
-  spec.rollout, the targets are updated directly.
-
-  --dry-run prints the plan without building or updating; --force re-applies
-  even when the desired image already matches.`,
+Order: VM sets on hosts; claim newly enrolled VMs (their ids are derived
+from host id + VM name); OS for plain nodes and VMs; OS for VM hosts last.
+Per image group the first node is the canary. A rollback or timeout stops
+the run; re-running continues. --dry-run prints the plan; --force re-sends
+OS updates whose desired image already matches.`,
 	Run: executeImageApply,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		return utils.ValidateRequiredFlags(cmd, []string{constants.SpecFlag})
@@ -53,425 +48,215 @@ func executeImageApply(cmd *cobra.Command, args []string) {
 	if err != nil {
 		applyFail("parsing spec: %v", err)
 	}
-
-	meta := spec.Metadata
-	if meta.Org == "" {
-		meta.Org = spec.Org
+	if err := validateHostImageSpec(spec); err != nil {
+		applyFail("validating spec: %v", err)
 	}
-	body := spec.Normalize()
-
-	target, err := normalizeTarget(body.Target, meta)
-	if err != nil {
-		applyFail("validating target: %v", err)
-	}
-	rollout, err := normalizeRollout(body.Rollout)
+	cfg, err := applyRolloutConfig(spec)
 	if err != nil {
 		applyFail("validating rollout: %v", err)
 	}
-	source, err := normalizeImageSource(body.Image, body.Build)
+	cat, err := fetchCatalog()
 	if err != nil {
-		applyFail("validating image source: %v", err)
+		applyFail("listing images: %v", err)
 	}
-
-	var build *model.HostImageBuild
-	if body.Build != nil {
-		build, err = normalizeBuild(body.Build, meta, source, applyTimeout)
-		if err != nil {
-			applyFail("validating build: %v", err)
-		}
+	images, vms, err := resolveHostImageSpec(spec, cat)
+	if err != nil {
+		applyFail("resolving spec: %v", err)
 	}
-
-	if applyDryRun {
-		printApplyPlan(meta, target, rollout, source, build)
+	state, err := fetchApplyState(spec)
+	if err != nil {
+		applyFail("reading control-plane state: %v", err)
+	}
+	plan, err := buildApplyPlan(spec, images, vms, state, applyForce)
+	if err != nil {
+		applyFail("%v", err)
+	}
+	printApplyPlan(spec, plan)
+	if plan.empty() || applyDryRun {
 		return
 	}
-
-	if build != nil {
-		source, err = buildHostImage(build, source, applyTimeout)
-		if err != nil {
-			applyFail("building image: %v", err)
-		}
+	if err := executeApplyPlan(cfg, plan); err != nil {
+		rolloutFail("%v", err)
 	}
-	if err := utils.ValidateDigest(source.Digest); err != nil {
-		applyFail("invalid image digest: %v", err)
-	}
-
-	if rollout != nil {
-		soak, _ := time.ParseDuration(rollout.Soak)
-		timeout, _ := time.ParseDuration(rollout.Timeout)
-		poll, _ := time.ParseDuration(rollout.Poll)
-		runRollout(rolloutConfig{
-			org:     target.Org,
-			canary:  rollout.Canary,
-			query:   target.Query,
-			nodes:   strings.Join(target.Nodes, ","),
-			ref:     source.Ref,
-			digest:  source.Digest,
-			timeout: timeout,
-			poll:    poll,
-			soak:    soak,
-			noWait:  rollout.NoWait,
-			force:   applyForce,
-		})
-		return
-	}
-
-	if err := applyToTargets(source, target, applyForce); err != nil {
-		applyFail("applying image: %v", err)
-	}
+	rolloutLog("apply complete")
 }
 
-// loadHostImageSpec reads a path or an inline JSON document. JSON is valid
-// YAML, so one parser handles both.
-func loadHostImageSpec(raw string) (model.HostImageSpec, error) {
-	var spec model.HostImageSpec
-	data := []byte(raw)
-	if info, err := os.Stat(raw); err == nil {
-		if info.IsDir() {
-			return spec, fmt.Errorf("spec path is a directory: %s", raw)
-		}
-		var readErr error
-		if data, readErr = os.ReadFile(raw); readErr != nil {
-			return spec, readErr
-		}
-	} else if looksLikeSpecPath(raw) {
-		return spec, fmt.Errorf("spec file not found: %s", raw)
+func applyRolloutConfig(spec model.HostImageSpec) (rolloutConfig, error) {
+	cfg := rolloutConfig{org: spec.Metadata.Org, soak: 2 * time.Minute, timeout: 15 * time.Minute, poll: 10 * time.Second, force: applyForce}
+	r := spec.Spec.Rollout
+	if r == nil {
+		return cfg, nil
 	}
-	if err := yaml.Unmarshal(data, &spec); err != nil {
-		return spec, fmt.Errorf("unmarshal YAML/JSON: %w", err)
+	for _, f := range []struct {
+		name, value string
+		dst         *time.Duration
+	}{{"soak", r.Soak, &cfg.soak}, {"timeout", r.Timeout, &cfg.timeout}, {"poll", r.Poll, &cfg.poll}} {
+		if f.value == "" {
+			continue
+		}
+		d, err := time.ParseDuration(f.value)
+		if err != nil || d < 0 {
+			return cfg, fmt.Errorf("rollout.%s %q is not a duration", f.name, f.value)
+		}
+		*f.dst = d
 	}
-	return spec, nil
+	return cfg, nil
 }
 
-// looksLikeSpecPath distinguishes a path that was not found from inline
-// YAML/JSON. Inline documents start with '{' or contain a newline or a
-// ':' (key separator); a bare path is a single token with a file extension.
-func looksLikeSpecPath(raw string) bool {
-	s := strings.TrimSpace(raw)
-	if s == "" || strings.ContainsAny(s, "\n\r") || strings.HasPrefix(s, "{") {
-		return false
+func fetchCatalog() (applyCatalog, error) {
+	var resp model.ImageListResponse
+	if err := gatewayGet("ListImages", nil, &resp); err != nil {
+		return applyCatalog{}, err
 	}
-	if strings.Contains(s, ":") {
-		return false
+	cat := applyCatalog{images: map[string]string{}, artifacts: map[string]string{}}
+	for _, img := range resp.Images {
+		cat.images[img.Ref] = img.Digest
 	}
-	ext := strings.ToLower(filepath.Ext(s))
-	return ext == ".yaml" || ext == ".yml" || ext == ".json"
+	for _, a := range resp.Artifacts {
+		cat.artifacts[a.Name] = a.Checksum
+	}
+	return cat, nil
 }
 
-// normalizeImageSource validates the pinned-image or build source. A build
-// may be the only source; its image block is optional fallback.
-func normalizeImageSource(image *model.HostImageSource, build *model.HostImageBuild) (model.HostImageSource, error) {
-	if image == nil && build == nil {
-		return model.HostImageSource{}, errors.New("spec.image or spec.build is required")
+func fetchApplyState(spec model.HostImageSpec) (applyState, error) {
+	state := applyState{poolNodes: map[string]model.Node{}, vms: map[string][]model.VMDesired{}}
+	var err error
+	if state.orgNodes, err = orgNodesFor(spec.Metadata.Org); err != nil {
+		return state, err
 	}
-	src := model.HostImageSource{}
-	if image != nil {
-		src.Ref = image.Ref
-		src.Digest = image.Digest
-		src.RebootPolicy = image.RebootPolicy
-		if src.RebootPolicy == "" {
-			src.RebootPolicy = "immediate"
+	if state.poolNodes, err = poolNodes(); err != nil {
+		return state, err
+	}
+	for _, n := range spec.Spec.Nodes {
+		if n.VMs == nil {
+			continue
 		}
-		if src.Digest != "" {
-			if err := utils.ValidateDigest(src.Digest); err != nil {
-				return model.HostImageSource{}, err
+		if _, inOrg := state.orgNodes[n.ID]; !inOrg {
+			continue // buildApplyPlan reports it
+		}
+		var resp model.VMDesiredGetResponse
+		if err := gatewayGet("GetDesiredVms", model.VMDesiredGetRequest{HostID: n.ID}, &resp); err != nil {
+			return state, fmt.Errorf("VMs of %s: %w", n.ID, err)
+		}
+		state.vms[n.ID] = resp.VMs
+	}
+	return state, nil
+}
+
+func poolNodes() (map[string]model.Node, error) {
+	var resp model.NodesResponse
+	if err := gatewayGet("ListNodePool", nil, &resp); err != nil {
+		return nil, err
+	}
+	nodes := make(map[string]model.Node, len(resp.Nodes))
+	for _, node := range resp.Nodes {
+		nodes[node.ID] = node
+	}
+	return nodes, nil
+}
+
+func executeApplyPlan(cfg rolloutConfig, plan applyPlan) error {
+	for _, set := range plan.vmSets {
+		rolloutLog("VMs on %s: setting %d VM(s)", nodeLabel(set.hostName, set.hostID), len(set.vms))
+		var resp model.VMDesiredSetResponse
+		if err := gatewaySend("SetDesiredVms", "POST", model.VMDesiredSetRequest{HostID: set.hostID, VMs: set.vms}, &resp); err != nil {
+			return fmt.Errorf("VMs on %s: %w", set.hostID, err)
+		}
+	}
+	for _, claim := range plan.claims {
+		if err := claimHostVMs(cfg, claim); err != nil {
+			return err
+		}
+	}
+	for i, wave := range plan.waves {
+		for _, g := range wave {
+			ids := make([]string, len(g.targets))
+			for j, t := range g.targets {
+				ids[j] = t.id
+			}
+			rolloutLog("wave %d, image %s (%s): canary %s, then %d more", i+1, g.imageName, shortDigest(g.image.Digest), ids[0], len(ids)-1)
+			c := cfg
+			c.ref, c.digest = g.image.Ref, g.image.Digest
+			if err := rolloutGroup(c, ids[0], ids[1:]); err != nil {
+				return fmt.Errorf("wave %d, image %s: %w", i+1, g.imageName, err)
 			}
 		}
 	}
-	if build == nil {
-		if src.Ref == "" {
-			return model.HostImageSource{}, errors.New("spec.image.ref is required")
-		}
-		if src.Digest == "" {
-			return model.HostImageSource{}, errors.New("spec.image.digest is required")
-		}
-	}
-	return src, nil
-}
-
-// normalizeBuild applies the defaults and validates the build block. The
-// metadata name/version and the image ref fill in missing name/tag/registry.
-func normalizeBuild(build *model.HostImageBuild, meta model.HostImageMetadata, image model.HostImageSource, defaultTimeout time.Duration) (*model.HostImageBuild, error) {
-	if build == nil {
-		return nil, nil
-	}
-	out := *build
-	if out.Context == "" {
-		out.Context = "."
-	}
-	if out.Containerfile == "" {
-		out.Containerfile = "Containerfile"
-	}
-	if out.Registry == "" {
-		out.Registry = registryFromRef(image.Ref)
-		if out.Registry == "" {
-			out.Registry = "192.168.122.1:5001"
-		}
-	}
-	if out.Name == "" {
-		out.Name = repoFromRef(image.Ref)
-		if out.Name == "" {
-			out.Name = meta.Name
-		}
-	}
-	if out.Name == "" {
-		return nil, errors.New("spec.build.name is required (or metadata.name or spec.image.ref)")
-	}
-	if out.Tag == "" {
-		out.Tag = tagFromRef(image.Ref)
-		if out.Tag == "" {
-			out.Tag = meta.Version
-		}
-		if out.Tag == "" {
-			out.Tag = "latest"
-		}
-	}
-	if out.Timeout == "" {
-		out.Timeout = defaultTimeout.String()
-	}
-	if _, err := time.ParseDuration(out.Timeout); err != nil {
-		return nil, fmt.Errorf("spec.build.timeout: %w", err)
-	}
-	if out.BuildArgs == nil {
-		out.BuildArgs = map[string]string{}
-	}
-	return &out, nil
-}
-
-// normalizeTarget validates the target and defaults the org to metadata.org.
-func normalizeTarget(target *model.HostImageTarget, meta model.HostImageMetadata) (*model.HostImageTarget, error) {
-	if target == nil {
-		return nil, errors.New("spec.target is required")
-	}
-	org := target.Org
-	if org == "" {
-		org = meta.Org
-	}
-	if org == "" {
-		return nil, errors.New("spec.target.org is required (or metadata.org)")
-	}
-	hasNodes := len(target.Nodes) > 0
-	hasQuery := target.Query != ""
-	if hasNodes == hasQuery {
-		return nil, errors.New("spec.target.nodes and spec.target.query are mutually exclusive; set exactly one")
-	}
-	if hasNodes {
-		seen := make(map[string]bool, len(target.Nodes))
-		nodes := make([]string, 0, len(target.Nodes))
-		for _, id := range target.Nodes {
-			id = strings.TrimSpace(id)
-			if id == "" || seen[id] {
-				continue
-			}
-			seen[id] = true
-			nodes = append(nodes, id)
-		}
-		if len(nodes) == 0 {
-			return nil, errors.New("spec.target.nodes must not be empty")
-		}
-		target.Nodes = nodes
-	}
-	target.Org = org
-	return target, nil
-}
-
-// normalizeRollout validates the rollout block and fills in its defaults.
-func normalizeRollout(rollout *model.HostImageRollout) (*model.HostImageRollout, error) {
-	if rollout == nil {
-		return nil, nil
-	}
-	out := *rollout
-	if out.Canary == "" {
-		return nil, errors.New("spec.rollout.canary is required")
-	}
-	if out.Soak == "" {
-		out.Soak = "2m"
-	}
-	if out.Timeout == "" {
-		out.Timeout = "15m"
-	}
-	if out.Poll == "" {
-		out.Poll = "10s"
-	}
-	for _, d := range []struct {
-		name  string
-		value string
-	}{
-		{"soak", out.Soak},
-		{"timeout", out.Timeout},
-		{"poll", out.Poll},
-	} {
-		if _, err := time.ParseDuration(d.value); err != nil {
-			return nil, fmt.Errorf("spec.rollout.%s: %w", d.name, err)
-		}
-	}
-	return &out, nil
-}
-
-// buildHostImage runs the build and returns the resulting source. The build's
-// ref/digest win; the image block fills in anything the build omits.
-func buildHostImage(build *model.HostImageBuild, image model.HostImageSource, defaultTimeout time.Duration) (model.HostImageSource, error) {
-	timeout := defaultTimeout
-	if build.Timeout != "" {
-		d, err := time.ParseDuration(build.Timeout)
-		if err != nil {
-			return model.HostImageSource{}, fmt.Errorf("spec.build.timeout: %w", err)
-		}
-		timeout = d
-	}
-	tgz, err := utils.TarGzDir(build.Context)
-	if err != nil {
-		return model.HostImageSource{}, fmt.Errorf("packing context %s: %w", build.Context, err)
-	}
-	req := model.BuildImageRequest{
-		Spec: model.BuildSpec{
-			Name:          build.Name,
-			Tag:           build.Tag,
-			Containerfile: build.Containerfile,
-			Registry:      build.Registry,
-			BuildArgs:     build.BuildArgs,
-		},
-		Context: base64.StdEncoding.EncodeToString(tgz),
-	}
-	var job model.BuildJob
-	if err := sendBuildPost(clients.BuildURL("core", "v1", "BuildImage"), req, &job); err != nil {
-		return model.HostImageSource{}, fmt.Errorf("starting build: %w", err)
-	}
-	fmt.Printf("Build job %s started (%s:%s, %d bytes context).\n", job.JobID, build.Name, build.Tag, len(tgz))
-	status, err := waitForBuild(job.JobID, timeout)
-	if err != nil {
-		printBuildJob(status)
-		return model.HostImageSource{}, fmt.Errorf("waiting for build %s: %w", job.JobID, err)
-	}
-	printBuildJob(status)
-	if status.Status == "failed" {
-		return model.HostImageSource{}, fmt.Errorf("build %s failed: %s", job.JobID, status.Error)
-	}
-	ref := status.ImageRef
-	if ref == "" {
-		ref = image.Ref
-	}
-	digest := status.Digest
-	if digest == "" {
-		digest = image.Digest
-	}
-	if ref == "" {
-		return model.HostImageSource{}, errors.New("build did not return an image ref")
-	}
-	if digest == "" {
-		return model.HostImageSource{}, errors.New("build did not return a digest")
-	}
-	if image.Ref != "" && image.Ref != ref {
-		fmt.Printf("Note: build image ref %s differs from spec.image.ref %s; using the build's ref.\n", ref, image.Ref)
-	}
-	if image.Digest != "" && image.Digest != digest {
-		fmt.Printf("Note: build digest %s differs from spec.image.digest %s; using the build's digest.\n", shortDigest(digest), shortDigest(image.Digest))
-	}
-	policy := image.RebootPolicy
-	if policy == "" {
-		policy = "immediate"
-	}
-	return model.HostImageSource{Ref: ref, Digest: digest, RebootPolicy: policy}, nil
-}
-
-// applyToTargets updates every target directly, skipping nodes whose desired
-// image already matches unless force is set.
-func applyToTargets(source model.HostImageSource, target *model.HostImageTarget, force bool) error {
-	targets, err := resolveTargetNodes(target)
-	if err != nil {
-		return err
-	}
-	if len(targets) == 0 {
-		return errors.New("no target nodes matched")
-	}
-	nodes, err := orgNodesFor(target.Org)
-	if err != nil {
-		return err
-	}
-	var updated, skipped int
-	for _, id := range targets {
-		node, ok := nodes[id]
-		if !ok {
-			return fmt.Errorf("node %s is not in org %s", id, target.Org)
-		}
-		if !force && desiredMatches(node.DesiredOs, source) {
-			fmt.Printf("Node %s already on %s; skipping.\n", id, shortDigest(source.Digest))
-			skipped++
-			continue
-		}
-		accepted, err := applyImageUpdate(id, source.Ref, source.Digest, source.RebootPolicy)
-		if err != nil {
-			return fmt.Errorf("node %s: %w", id, err)
-		}
-		if !accepted {
-			fmt.Printf("Node %s did not acknowledge the update (offline?). The desired image is recorded; the node applies it when it reconnects.\n", id)
-			updated++
-			continue
-		}
-		fmt.Printf("Node %s accepted the update to %s@%s.\n", id, source.Ref, shortDigest(source.Digest))
-		updated++
-	}
-	fmt.Printf("Applied %s@%s: %d updated, %d skipped.\n", source.Ref, shortDigest(source.Digest), updated, skipped)
 	return nil
 }
 
-// resolveTargetNodes resolves the target selector to concrete node ids.
-func resolveTargetNodes(target *model.HostImageTarget) ([]string, error) {
-	if target == nil {
-		return nil, errors.New("target is required")
-	}
-	hasNodes := len(target.Nodes) > 0
-	hasQuery := target.Query != ""
-	if hasNodes == hasQuery {
-		return nil, errors.New("target.nodes and target.query are mutually exclusive; set exactly one")
-	}
-	if hasNodes {
-		nodes, err := orgNodesFor(target.Org)
+// claimHostVMs waits until a host's VMs enrolled (they register with their
+// derived ids), then claims them by the vm-host label their seed sets.
+func claimHostVMs(cfg rolloutConfig, claim claimStep) error {
+	host := nodeLabel(claim.hostName, claim.hostID)
+	rolloutLog("VMs on %s: waiting for %s to enroll", host, strings.Join(claim.vmNames, ", "))
+	deadline := time.Now().Add(cfg.timeout)
+	for {
+		org, err := orgNodesFor(cfg.org)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		seen := make(map[string]bool, len(target.Nodes))
-		var ids []string
-		for _, id := range target.Nodes {
-			id = strings.TrimSpace(id)
-			if id == "" || seen[id] {
+		pool, err := poolNodes()
+		if err != nil {
+			return err
+		}
+		var waiting []string
+		inPool := false
+		for i, id := range claim.vmIDs {
+			if _, ok := org[id]; ok {
 				continue
 			}
-			node, ok := nodes[id]
-			if !ok {
-				return nil, fmt.Errorf("node %s is not in org %s", id, target.Org)
-			}
-			if !hasCapability(node, osUpdateCapability) {
-				fmt.Printf("Skipping node %s: no %s capability.\n", id, osUpdateCapability)
+			if _, ok := pool[id]; ok {
+				inPool = true
 				continue
 			}
-			seen[id] = true
-			ids = append(ids, id)
+			waiting = append(waiting, claim.vmNames[i])
 		}
-		return ids, nil
+		if len(waiting) == 0 {
+			if !inPool {
+				return nil
+			}
+			break
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("VMs on %s did not enroll within %s: %s", host, cfg.timeout, strings.Join(waiting, ", "))
+		}
+		time.Sleep(cfg.poll)
 	}
-	queries, err := utils.CreateNodeQuery(target.Query)
+	queries, err := utils.CreateNodeQuery("vm-host = " + claim.hostID)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	var resp model.NodesResponse
-	if err := gatewayGet("QueryOrgOwnedNodes", model.ClaimNodesRequest{Org: target.Org, Query: queries}, &resp); err != nil {
-		return nil, err
+	var resp model.ClaimNodesResponse
+	if err := gatewaySend("ClaimOwnership", "PATCH", model.ClaimNodesRequest{Org: cfg.org, Query: queries}, &resp); err != nil {
+		return fmt.Errorf("claiming VMs of %s: %w", host, err)
 	}
-	seen := make(map[string]bool, len(resp.Nodes))
-	var ids []string
-	for _, node := range resp.Nodes {
-		if seen[node.ID] {
-			continue
+	rolloutLog("VMs on %s: claimed %d node(s) into %s", host, len(resp.Nodes), cfg.org)
+	return nil
+}
+
+// gatewaySend is gatewayGet for writes (POST/PATCH), with the same
+// rate-limit retry.
+func gatewaySend(method, verb string, body, response interface{}) error {
+	token, err := utils.ReadTokenFromFile()
+	if err != nil {
+		return fmt.Errorf("reading token: %w", err)
+	}
+	for attempt := 0; ; attempt++ {
+		err = utils.SendHTTPRequest(model.HTTPRequestConfig{
+			URL:         clients.BuildURL("core", "v1", method),
+			Method:      verb,
+			Token:       token,
+			Headers:     map[string]string{"Content-Type": "application/json"},
+			RequestBody: body,
+			Response:    response,
+			Timeout:     30 * time.Second,
+		})
+		if !isRateLimited(err) || attempt >= rateLimitRetries {
+			return err
 		}
-		if !hasCapability(node, osUpdateCapability) {
-			fmt.Printf("Skipping node %s: no %s capability.\n", node.ID, osUpdateCapability)
-			continue
-		}
-		seen[node.ID] = true
-		ids = append(ids, node.ID)
+		time.Sleep(rateLimitBackoff)
 	}
-	return ids, nil
 }
 
 // desiredMatches reports whether the node's declared desired image already
@@ -538,27 +323,81 @@ func tagFromRef(ref string) string {
 	return ""
 }
 
-func printApplyPlan(meta model.HostImageMetadata, target *model.HostImageTarget, rollout *model.HostImageRollout, source model.HostImageSource, build *model.HostImageBuild) {
-	fmt.Printf("HostImageSpec: org=%s name=%s version=%s\n", meta.Org, meta.Name, meta.Version)
-	if build != nil {
-		fmt.Printf("Build: %s:%s registry=%s context=%s containerfile=%s timeout=%s\n", build.Name, build.Tag, build.Registry, build.Context, build.Containerfile, build.Timeout)
-		if source.Ref != "" || source.Digest != "" {
-			fmt.Printf("Image fallback: %s@%s\n", source.Ref, source.Digest)
+func printApplyPlan(spec model.HostImageSpec, plan applyPlan) {
+	fmt.Printf("HostImageSpec org=%s: %d node(s) managed\n", spec.Metadata.Org, len(spec.Spec.Nodes))
+	if plan.empty() {
+		fmt.Println("Up to date: nothing to do.")
+		return
+	}
+	for _, set := range plan.vmSets {
+		fmt.Printf("\nVMs on %s:\n", nodeLabel(set.hostName, set.hostID))
+		for _, name := range set.added {
+			fmt.Printf("  + %s\n", name)
 		}
-	} else {
-		fmt.Printf("Image: %s@%s rebootPolicy=%s\n", source.Ref, source.Digest, source.RebootPolicy)
+		for _, name := range set.changed {
+			fmt.Printf("  ~ %s (changes apply when the VM is re-created)\n", name)
+		}
+		for _, name := range set.removed {
+			fmt.Printf("  - %s (deleted)\n", name)
+		}
 	}
-	if len(target.Nodes) > 0 {
-		fmt.Printf("Target: org=%s nodes=%s\n", target.Org, strings.Join(target.Nodes, ","))
-	} else {
-		fmt.Printf("Target: org=%s query=%q\n", target.Org, target.Query)
+	for _, claim := range plan.claims {
+		fmt.Printf("\nClaim into %s after they enroll (VMs of %s):\n", spec.Metadata.Org, nodeLabel(claim.hostName, claim.hostID))
+		for i, id := range claim.vmIDs {
+			fmt.Printf("  %s  %s\n", claim.vmNames[i], id)
+		}
 	}
-	if rollout != nil {
-		fmt.Printf("Rollout: canary=%s soak=%s timeout=%s poll=%s noWait=%t\n", rollout.Canary, rollout.Soak, rollout.Timeout, rollout.Poll, rollout.NoWait)
-	} else {
-		fmt.Println("Rollout: none (apply targets directly)")
+	titles := [2]string{"OS wave 1 (nodes and VMs)", "OS wave 2 (VM hosts)"}
+	for i, wave := range plan.waves {
+		if len(wave) == 0 {
+			continue
+		}
+		fmt.Printf("\n%s:\n", titles[i])
+		for _, g := range wave {
+			fmt.Printf("  image %s = %s@%s\n", g.imageName, g.image.Ref, shortDigest(g.image.Digest))
+			for j, t := range g.targets {
+				role := ""
+				if j == 0 {
+					role = "  [canary]"
+				}
+				fmt.Printf("    %-10s %s  %s -> %s  %s%s\n", orDash(t.name), t.id, describeDesired(t.current), shortDigest(g.image.Digest), describeBooted(t.status), role)
+			}
+		}
 	}
-	fmt.Println("Dry run: no build or update was performed.")
+	ids := map[string]bool{}
+	for _, t := range plan.targets() {
+		ids[t.id] = true
+	}
+	list := make([]string, 0, len(ids))
+	for id := range ids {
+		list = append(list, id)
+	}
+	sort.Strings(list)
+	fmt.Printf("\nNeeds os.update policies (then cockpit login) for: %s\n", strings.Join(list, ", "))
+	if applyDryRun {
+		fmt.Println("Dry run: nothing was changed.")
+	}
+}
+
+func describeDesired(d *model.DesiredOsImage) string {
+	if d == nil || d.Digest == "" {
+		return "(none)"
+	}
+	return shortDigest(d.Digest)
+}
+
+func describeBooted(st *model.OsStatus) string {
+	if st == nil {
+		return "booted: -"
+	}
+	return fmt.Sprintf("booted: %s %s", orDash(st.BootedVersion), orDash(st.Phase))
+}
+
+func orDash(s string) string {
+	if s == "" {
+		return "-"
+	}
+	return s
 }
 
 func applyFail(format string, args ...interface{}) {
@@ -570,8 +409,7 @@ func init() {
 	ImageCmd.AddCommand(ImageApplyCmd)
 	f := ImageApplyCmd.Flags()
 	f.StringVar(&applySpec, constants.SpecFlag, "", constants.HostImageSpecDescription)
-	f.BoolVar(&applyDryRun, "dry-run", false, "Print the plan and exit without building or updating")
-	f.BoolVar(&applyForce, "force", false, "Update nodes even when the desired image already matches the digest")
-	f.DurationVar(&applyTimeout, "timeout", 30*time.Minute, "Deadline for a build started by the spec")
+	f.BoolVar(&applyDryRun, "dry-run", false, "Print the plan and exit without changing anything")
+	f.BoolVar(&applyForce, "force", false, "Re-send OS updates even when the desired image already matches")
 	ImageApplyCmd.MarkFlagRequired(constants.SpecFlag)
 }

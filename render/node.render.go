@@ -94,13 +94,13 @@ func RenderNodesTabWriter(nodes []model.Node) {
 	}
 }
 
-// NodeLabel is the node id, followed by "(nested VM)" when a c12s host
+// NodeLabel is the node id, followed by "(vm)" when a c12s host
 // created the node as a VM: the host's seed gives every such VM the vm-host
 // label.
 func NodeLabel(node model.Node) string {
 	for _, label := range node.Labels {
 		if label.Key == "vm-host" {
-			return node.ID + " (nested VM)"
+			return node.ID + " (vm)"
 		}
 	}
 	return node.ID

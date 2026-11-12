@@ -27,3 +27,20 @@ func TestBootedOS(t *testing.T) {
 		t.Errorf("without --org: %q", got)
 	}
 }
+
+func TestCheckVMHost(t *testing.T) {
+	vmHost := model.Node{ID: "n1", Capabilities: []string{"os_update", "run_vms"}}
+	plain := model.Node{ID: "h1", Capabilities: []string{"os_update"}}
+	if err := checkVMHost(vmHost, true, 2); err != nil {
+		t.Errorf("VM host must pass: %v", err)
+	}
+	if err := checkVMHost(plain, true, 2); err == nil {
+		t.Error("a host without run_vms must be refused")
+	}
+	if err := checkVMHost(plain, true, 0); err != nil {
+		t.Errorf("clearing the VM list is always allowed: %v", err)
+	}
+	if err := checkVMHost(model.Node{}, false, 2); err == nil {
+		t.Error("an unknown host must be refused")
+	}
+}

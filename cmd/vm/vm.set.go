@@ -14,6 +14,7 @@ import (
 )
 
 var (
+	vmSetOrg  string
 	vmSetHost string
 	vmSetSpec string
 	vmSetResp model.VMDesiredSetResponse
@@ -26,7 +27,7 @@ var VmsSetCmd = &cobra.Command{
 	Long:    "Store the desired VM set on the host node's record. The host's Star reconciler creates, restarts and destroys VMs to match it.",
 	Run:     executeVmsSet,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.HostFlag, constants.SpecFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.HostFlag, constants.SpecFlag, constants.OrganizationFlag})
 	},
 }
 
@@ -42,6 +43,11 @@ func executeVmsSet(cmd *cobra.Command, args []string) {
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
 		fmt.Println("Error reading token:", err)
+		os.Exit(1)
+	}
+	host, found := nodesByID(token, "ListOrgOwnedNodes", model.ClaimNodesRequest{Org: vmSetOrg})[vmSetHost]
+	if err := checkVMHost(host, found, len(vms)); err != nil {
+		fmt.Println("Error:", err)
 		os.Exit(1)
 	}
 
@@ -62,6 +68,25 @@ func executeVmsSet(cmd *cobra.Command, args []string) {
 	for _, vm := range vmSetResp.VMs {
 		fmt.Printf("  %-20s %-40s %s\n", vm.Name, vm.Qcow2URL, vm.Digest)
 	}
+}
+
+// checkVMHost refuses a VM list for a node that cannot run VMs: only a host
+// reporting run_vms (libvirt + /dev/kvm) runs the VM reconciler, anywhere
+// else the list would be stored and silently ignored. Clearing the list is
+// always allowed.
+func checkVMHost(host model.Node, found bool, vmCount int) error {
+	if vmCount == 0 {
+		return nil
+	}
+	if !found {
+		return fmt.Errorf("host %s is not a node of org %s (claim it first, or check --org)", vmSetHost, vmSetOrg)
+	}
+	for _, c := range host.Capabilities {
+		if c == "run_vms" {
+			return nil
+		}
+	}
+	return fmt.Errorf("host %s cannot run VMs (no run_vms capability: needs libvirt and /dev/kvm)", host.ID)
 }
 
 // parseVMSpec accepts either a path to a YAML/JSON file or an inline JSON
@@ -113,6 +138,7 @@ func init() {
 	VmsCmd.AddCommand(VmsSetCmd)
 	VmsSetCmd.Flags().StringVar(&vmSetHost, constants.HostFlag, "", constants.HostDescription)
 	VmsSetCmd.Flags().StringVar(&vmSetSpec, constants.SpecFlag, "", constants.SpecDescription)
+	VmsSetCmd.Flags().StringVarP(&vmSetOrg, constants.OrganizationFlag, constants.OrganizationShorthandFlag, "", "Organization the host belongs to (required)")
 	VmsSetCmd.MarkFlagRequired(constants.HostFlag)
 	VmsSetCmd.MarkFlagRequired(constants.SpecFlag)
 }

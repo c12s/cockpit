@@ -30,14 +30,23 @@ var ImageUpdateCmd = &cobra.Command{
 	Use:     "update",
 	Aliases: []string{"switch"},
 	Short:   "Update the OS image of a node",
-	Long:    "Send a digest-pinned OS image update command to a node. The node will pull the image, switch via bootc, reboot, and health-gate the result.",
-	Run:     executeImageUpdate,
+	Long: "Send a digest-pinned OS image update command to a node. The node will pull the image, switch via bootc, reboot, and health-gate the result. " +
+		"Without --digest the tag is resolved to the digest it points to now, and that digest is sent.",
+	Run: executeImageUpdate,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return utils.ValidateRequiredFlags(cmd, []string{constants.NodeIdFlag, constants.ImageRefFlag, constants.DigestFlag})
+		return utils.ValidateRequiredFlags(cmd, []string{constants.NodeIdFlag, constants.ImageRefFlag})
 	},
 }
 
 func executeImageUpdate(cmd *cobra.Command, args []string) {
+	if digest == "" {
+		d, err := resolveDigest(imageRef)
+		if err != nil {
+			fmt.Println("Error:", err)
+			os.Exit(1)
+		}
+		digest = d
+	}
 	accepted, err := requestImageUpdate(imageNodeId, imageRef, digest, rebootPolicy)
 	if err != nil {
 		fmt.Println("Error sending image update request:", err)
@@ -50,6 +59,35 @@ func executeImageUpdate(cmd *cobra.Command, args []string) {
 		// gravity records the desired image before notifying the node
 		fmt.Printf("Node %s did not acknowledge the update (offline?). The desired image is recorded; the node applies it when it reconnects.\n", imageNodeId)
 	}
+}
+
+// resolveDigest pins a tag to the digest it points to now, once, at command
+// time: the node, the canary gate and rollback keep working with the digest.
+func resolveDigest(ref string) (string, error) {
+	cat, err := fetchCatalog()
+	if err != nil {
+		return "", fmt.Errorf("resolving %s: %w", ref, err)
+	}
+	d, err := lookupDigest(cat, ref)
+	if err != nil {
+		return "", err
+	}
+	fmt.Printf("Resolved %s -> %s\n", ref, d)
+	return d, nil
+}
+
+// lookupDigest finds repo:tag in the registry listing; a registry host in the
+// ref is ignored (the listing is per repo).
+func lookupDigest(cat applyCatalog, ref string) (string, error) {
+	tag := tagFromRef(ref)
+	if tag == "" {
+		return "", fmt.Errorf("%s has no tag: give a tag or --digest", ref)
+	}
+	d, ok := cat.images[repoFromRef(ref)+":"+tag]
+	if !ok {
+		return "", fmt.Errorf("%s is not in the registry (cockpit image list)", ref)
+	}
+	return d, nil
 }
 
 // requestImageUpdate sends a digest-pinned update to one node and reports
@@ -90,5 +128,4 @@ func init() {
 	ImageUpdateCmd.Flags().StringVarP(&rebootPolicy, constants.RebootPolicyFlag, "", "", constants.RebootPolicyDescription)
 	ImageUpdateCmd.MarkFlagRequired(constants.NodeIdFlag)
 	ImageUpdateCmd.MarkFlagRequired(constants.ImageRefFlag)
-	ImageUpdateCmd.MarkFlagRequired(constants.DigestFlag)
 }

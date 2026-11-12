@@ -64,3 +64,18 @@ func TestStatusLiveness(t *testing.T) {
 		t.Fatalf("no LIVENESS column:\n%s", out)
 	}
 }
+
+func TestLookupDigest(t *testing.T) {
+	cat := applyCatalog{images: map[string]string{"os/edge-base:v4.1": "sha256:aa"}}
+	for _, ref := range []string{"os/edge-base:v4.1", "192.168.122.1:5001/os/edge-base:v4.1"} {
+		if d, err := lookupDigest(cat, ref); err != nil || d != "sha256:aa" {
+			t.Errorf("lookupDigest(%q) = %q, %v", ref, d, err)
+		}
+	}
+	if _, err := lookupDigest(cat, "os/edge-base:v9"); err == nil {
+		t.Error("unknown tag must fail")
+	}
+	if _, err := lookupDigest(cat, "os/edge-base"); err == nil {
+		t.Error("a ref without a tag must fail")
+	}
+}

@@ -65,7 +65,7 @@ no target is touched.
       --image-ref 192.168.122.1:5001/os/edge-base:v3.9 --digest sha256:...`,
 	Run: executeImageRollout,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if err := utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, "canary", constants.ImageRefFlag, constants.DigestFlag}); err != nil {
+		if err := utils.ValidateRequiredFlags(cmd, []string{constants.OrganizationFlag, "canary", constants.ImageRefFlag}); err != nil {
 			return err
 		}
 		if (rolloutQuery == "") == (rolloutNodes == "") {
@@ -76,6 +76,13 @@ no target is touched.
 }
 
 func executeImageRollout(cmd *cobra.Command, args []string) {
+	if rolloutDigest == "" {
+		d, err := resolveDigest(rolloutRef)
+		if err != nil {
+			rolloutFail("%v", err)
+		}
+		rolloutDigest = d
+	}
 	runRollout(rolloutConfig{
 		org:     rolloutOrg,
 		canary:  rolloutCanary,
@@ -444,7 +451,7 @@ func init() {
 	f.DurationVar(&rolloutPoll, "poll", 10*time.Second, "Status poll interval")
 	f.DurationVar(&rolloutSoak, "soak", 2*time.Minute, "How long the canary must stay healthy before targets are updated")
 	f.BoolVar(&rolloutNoWait, "no-wait", false, "Return after the targets accepted the update")
-	for _, name := range []string{constants.OrganizationFlag, "canary", constants.ImageRefFlag, constants.DigestFlag} {
+	for _, name := range []string{constants.OrganizationFlag, "canary", constants.ImageRefFlag} {
 		ImageRolloutCmd.MarkFlagRequired(name)
 	}
 }

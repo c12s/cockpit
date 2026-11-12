@@ -234,8 +234,10 @@ artifact URL + checksum in `cockpit vms set`.
 
 #### Update one node
 ```bash
-cockpit image update --node-id <id> --image-ref 192.168.122.1:5001/os/edge-base:v3.10 --digest sha256:...
+cockpit image update --node-id <id> --image-ref os/edge-base:v4.1 [--digest sha256:...]
 ```
+Without `--digest` the tag is resolved to its current digest at command time
+(printed), and that digest is sent; the same holds for `image rollout`.
 The desired image is recorded in Magnetar first, then the node is notified.
 The node stages the image, reboots, and greenboot health-gates it; a failing
 image is rolled back automatically and reported as `rolled_back`. A node that
@@ -324,9 +326,10 @@ the node reports no previous deployment.
 
 #### Declare the desired VM set
 ```bash
-cockpit vms set --host <host-node-id> --spec '{"vms":[{"name":"vm-01","qcow2Url":"edge-base-v4.0.qcow2","digest":"sha256:...","vcpus":2,"memoryMb":2048}]}'
+cockpit vms set --org <org> --host <host-node-id> --spec '{"vms":[{"name":"vm-01","qcow2Url":"edge-base-v4.0.qcow2","digest":"sha256:...","vcpus":2,"memoryMb":2048}]}'
 ```
-`--spec` accepts inline JSON or a path to a YAML/JSON file. Each VM needs
+`--spec` accepts inline JSON or a path to a YAML/JSON file. The host must report
+`run_vms` (an empty list is always accepted, to clear a host). Each VM needs
 `name`, `qcow2Url` and a `sha256:<64 hex>` digest; `vcpus`/`memoryMb` are
 optional. `qcow2Url` may be a bare artifact name: the host downloads it from
 `DISK_REGISTRY_URL` (image default `http://192.168.122.1:8081`). New VMs boot

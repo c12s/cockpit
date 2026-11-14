@@ -25,14 +25,24 @@ const runVmsCapability = "run_vms"
 // single-image form — fails instead of being ignored.
 func loadHostImageSpec(raw string) (model.HostImageSpec, error) {
 	var spec model.HostImageSpec
-	data := []byte(raw)
-	if !strings.Contains(raw, "\n") && !strings.HasPrefix(strings.TrimSpace(raw), "{") {
-		b, err := os.ReadFile(raw)
-		if err != nil {
-			return spec, err
-		}
-		data = b
+	data, err := readSpecDocument(raw)
+	if err != nil {
+		return spec, err
 	}
+	return parseHostImageSpec(data)
+}
+
+// readSpecDocument returns the spec text: the file at raw, or raw itself when
+// it is an inline document.
+func readSpecDocument(raw string) ([]byte, error) {
+	if !strings.Contains(raw, "\n") && !strings.HasPrefix(strings.TrimSpace(raw), "{") {
+		return os.ReadFile(raw)
+	}
+	return []byte(raw), nil
+}
+
+func parseHostImageSpec(data []byte) (model.HostImageSpec, error) {
+	var spec model.HostImageSpec
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	dec.KnownFields(true)
 	if err := dec.Decode(&spec); err != nil {

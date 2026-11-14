@@ -15,10 +15,16 @@ import (
 )
 
 var (
-	applySpec   string
-	applyDryRun bool
-	applyForce  bool
+	applySpec            string
+	applyDryRun          bool
+	applyForce           bool
+	applySchemaNamespace string
+	applySchemaVersion   string
 )
+
+// hostImageSchemaName is the Quasar schema every fleet spec is validated
+// against (tools/bootc/specs/host-image-spec.schema.yaml).
+const hostImageSchemaName = "host-image-spec"
 
 var ImageApplyCmd = &cobra.Command{
 	Use:     "apply",
@@ -36,7 +42,9 @@ Order: VM sets on hosts; claim newly enrolled VMs (their ids are derived
 from host id + VM name); OS for plain nodes and VMs; OS for VM hosts last.
 A node or VM marked canary: true goes first in its image group and must stay
 healthy for rollout.soak; a group without a canary is updated all at once.
-A rollback or timeout stops the run; re-running continues. --dry-run prints the plan; --force re-sends
+The spec is first validated by Quasar against the org's host-image-spec
+schema (--schema-namespace, --schema-version); cockpit then checks the rules
+that span the file. A rollback or timeout stops the run; re-running continues. --dry-run prints the plan; --force re-sends
 OS updates whose desired image already matches.`,
 	Run: executeImageApply,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
@@ -45,7 +53,16 @@ OS updates whose desired image already matches.`,
 }
 
 func executeImageApply(cmd *cobra.Command, args []string) {
-	spec, err := loadHostImageSpec(applySpec)
+	doc, err := readSpecDocument(applySpec)
+	if err != nil {
+		applyFail("reading spec: %v", err)
+	}
+	// Quasar validates the document as written (shape: fields, types,
+	// formats) before cockpit parses it strictly and checks cross-references
+	if err := validateSpecWithQuasar(specOrg(doc), doc); err != nil {
+		applyFail("%v", err)
+	}
+	spec, err := parseHostImageSpec(doc)
 	if err != nil {
 		applyFail("parsing spec: %v", err)
 	}
@@ -437,5 +454,7 @@ func init() {
 	f.StringVar(&applySpec, constants.SpecFlag, "", constants.HostImageSpecDescription)
 	f.BoolVar(&applyDryRun, "dry-run", false, "Print the plan and exit without changing anything")
 	f.BoolVar(&applyForce, "force", false, "Re-send OS updates even when the desired image already matches")
+	f.StringVar(&applySchemaNamespace, "schema-namespace", "default", "Namespace of the host-image-spec schema in Quasar")
+	f.StringVar(&applySchemaVersion, "schema-version", "v1.0.0", "Version of the host-image-spec schema in Quasar")
 	ImageApplyCmd.MarkFlagRequired(constants.SpecFlag)
 }

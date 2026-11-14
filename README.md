@@ -14,6 +14,7 @@ binary via the lunar-gateway HTTP API.
 | `create/put/delete schema`, `validate` | Quasar |
 | config groups and standalone configs (`put`, `list`, `place`, `diff`) | Kuiper (+ Gravity for delivery) |
 | `image update/rollout/rollback/status` | Gravity (`DisseminateOSImage`), Magnetar (desired image, status) |
+| `image apply` | Quasar (spec schema), then Gravity/Magnetar as above |
 | `image build`, `image build qcow2`, `image build status/list` | Supernova (`BuildImage`, `BuildQCOW2`, `GetJob`, `ListJobs`) |
 | `image list` | Supernova (`ListImages`; registry + artifact server) |
 | `vms set/list/status` | Magnetar (VM desired state / status on the host's node record) |
@@ -277,6 +278,14 @@ spec:
         - {name: vm-01, disk: edge-base-v4.0.qcow2, vcpus: 1, memoryMb: 1024, image: stable}
   rollout: {soak: 2m, timeout: 15m}
 ```
+Before planning, the file is sent as written to Quasar and checked against
+the org's `host-image-spec` schema (`--schema-namespace default`,
+`--schema-version v1.0.0`; the schema is
+`tools/bootc/specs/host-image-spec.schema.yaml`, registered once with
+`cockpit create schema`). Every violation is listed and nothing is applied.
+cockpit then checks what the schema cannot (image names defined, one canary
+per group, unique ids, VMs only on `run_vms` hosts).
+
 Only the listed nodes are managed; removing a node from the file stops
 managing it (nothing is changed on it). `image` is optional on nodes and VMs
 (absent: OS not managed). `vms:` absent leaves a host's VMs alone, `vms: []`
@@ -436,9 +445,11 @@ Validate a schema.
 - **Options**:
   - --org: Organization.
   - --namespace: Namespace.
-  - --schema: Name of the schema.
+  - --schema-name: Name of the schema.
   - --version: Version of the schema.
-  - --path: Path to the validation file.
+  - --path: Path to the file to validate.
+- Prints every violation Quasar reports and exits 1 when the file is not
+  valid.
 - **Example**:
 
     ```sh
@@ -670,6 +681,9 @@ Retrieve metrics for a specific node.
     cockpit get node metrics --node-id 'nodeID'
     cockpit get node metrics --node-id 'nodeID' --all-services --sort 'memory'
     ```
+- Reads protostar's node-metrics API (`localhost:8086`), fed by starometry on
+  the node; bootc nodes report CPU, memory, disk and network (no per-service
+  rows: they have no cAdvisor).
 
 ## Status
 
@@ -690,8 +704,6 @@ experiments (`tools/experiments/`).
 
 - HTTP + token boilerplate is duplicated across commands; only
   `update`/`rollout` share `requestImageUpdate` (review M1).
-- `vms` commands do not validate that the host actually has the `run_vms`
-  capability — the declaration is stored regardless.
 
 ### PoC boundaries (by design, not bugs)
 

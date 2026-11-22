@@ -14,7 +14,7 @@ import (
 // form supernova's BuildImage RPC expects. VCS directories are skipped; file
 // modes are preserved so the star binary stays executable inside the image.
 //
-// The archive is deterministic enough for a lab: paths are relative to dir,
+// The archive is close to deterministic: paths are relative to dir,
 // with forward slashes and no uid/gid ownership.
 func TarGzDir(dir string) ([]byte, error) {
 	root, err := filepath.Abs(dir)

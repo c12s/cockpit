@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// VmsCmd groups the VM-management commands (Phase 4). They only apply to
+// VmsCmd groups the VM-management commands. They only apply to
 // nodes reporting the run_vms capability; the CP stores the desired VM set on
 // the host's node record and the host's Star reconciler converges to it.
 var VmsCmd = &cobra.Command{

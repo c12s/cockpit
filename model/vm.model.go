@@ -1,6 +1,6 @@
 package model
 
-// VM desired/observed models (Phase 4). JSON field names follow the protobuf
+// VM desired/observed models. JSON field names follow the protobuf
 // JSON mapping used by the gateway (grpcurl): camelCase, repeated DesiredVm
 // under "vms", repeated VmStatus under "statuses".
 

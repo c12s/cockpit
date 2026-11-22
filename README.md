@@ -37,11 +37,11 @@ binary via the lunar-gateway HTTP API.
     | `.env` | `CONFIG_PATH=../lunar-gateway/config/config.yml` — the gateway routes and ports |
     | `token.txt` | bearer token written by `cockpit login` (mode 0600) |
 
-4. Log in (the lab user is `e2e` / `testpass123`):
+4. Log in:
 
     ```sh
-    cockpit login --username 'e2e' --password 'testpass123'
-    # or: C12S_PASSWORD=testpass123 cockpit login --username 'e2e'
+    cockpit login --username '<user>' --password '<password>'
+    # or: C12S_PASSWORD=<password> cockpit login --username '<user>'
     ```
 
 ## Features
@@ -67,7 +67,6 @@ binary via the lunar-gateway HTTP API.
   - [Config Group Management](#config-group-management)
   - [Standalone Config Management](#standalone-config-management)
   - [Node Metrics Management](#node-metrics-management)
-- [Bugs, disabled and unfinished features](#bugs-disabled-and-unfinished-features)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -91,10 +90,10 @@ go build -o ~/.cache/c12s/cockpit .
 ```
 
 Run the binary from the cockpit directory (it needs `.env` and writes
-`token.txt` there), or use the helper from the lab experiments:
+`token.txt` there):
 
 ```sh
-cd /path/to/c12s/cockpit && ~/.cache/c12s/cockpit login --username e2e --password testpass123
+cd /path/to/c12s/cockpit && ~/.cache/c12s/cockpit login --username <user> --password <password>
 ```
 
 ## Command Reference
@@ -171,7 +170,7 @@ policy first, like for `os.update`:
 ```yaml
 objectScope: { id: "<node-id>", kind: "node" }
 permission:  { condition: { expression: "" }, kind: "ALLOW", name: "node.delete" }
-subjectScope: { id: "e2e", kind: "user" }
+subjectScope: { id: "<user>", kind: "user" }
 ```
 
 - **Command**: cockpit delete node
@@ -202,7 +201,7 @@ List nodes allocated to an organization.
 ### OS Image Management (bootc)
 
 Nodes with the `os_update` capability run bootc; images are pinned by digest.
-Image refs may be short (`os/edge-base:v4.1`): the node completes them with
+Image refs may be short (`os/edge-base:v1.1`): the node completes them with
 `IMAGE_REGISTRY` from its image's `node.env`, so the control plane stores no
 registry address. A ref that names a host (`host:port/…`) overrides it.
 Updating a node needs `os.update` for the caller (`create policies`): on the
@@ -213,29 +212,29 @@ applies immediately.
 
 #### Build an image
 ```bash
-cockpit image build --name os/edge-base --tag v3.18 \
+cockpit image build --name os/edge-base --tag v1.0 \
   --context tools/bootc --containerfile Containerfile.bootc \
-  --build-arg OS_VERSION=v3.18 [--wait] [--timeout 30m]
+  --build-arg OS_VERSION=v1.0 [--wait] [--timeout 30m]
 ```
 Sends the build context to Supernova through the gateway, which builds, pushes
 and signs the image in Singularity and returns the digest. Without `--wait` it
 prints the job id; `cockpit image build status <job-id>` shows progress and
 `cockpit image build list` shows all jobs. The build needs an `image.build`
 policy on the image repo (`image.build|image|os/edge-base`), created with
-`create policies` and baked into the token at the next `login`.
+`create policies`; it applies on the next command (no re-login).
 
 #### Build a qcow2 provisioning disk
 ```bash
-cockpit image build qcow2 --name edge-base-v3.18 \
-  --image-ref 192.168.122.1:5001/os/edge-base:v3.18 [--target-arch x86_64] [--rootfs ext4]
+cockpit image build qcow2 --name edge-base-v1.0 \
+  --image-ref <registry>/os/edge-base:v1.0 [--target-arch x86_64] [--rootfs ext4]
 ```
 Turns an already-built bootc image into a qcow2 disk, uploads it to the
 Singularity artifact server and prints the artifact name and checksum. Use the
-artifact URL + checksum in `cockpit vms set`.
+artifact name + checksum in `cockpit vms set`.
 
 #### Update one node
 ```bash
-cockpit image update --node-id <id> --image-ref os/edge-base:v4.1 [--digest sha256:...]
+cockpit image update --node-id <id> --image-ref os/edge-base:v1.1 [--digest sha256:...]
 ```
 Without `--digest` the tag is resolved to its current digest at command time
 (printed), and that digest is sent; the same holds for `image rollout`.
@@ -268,14 +267,14 @@ kind: HostImageSpec
 metadata: {org: c12s}
 spec:
   images:
-    stable: {ref: os/edge-base:v4.1}   # short ref: nodes pull from their IMAGE_REGISTRY; digest optional
+    stable: {ref: os/edge-base:v1.1}   # short ref: nodes pull from their IMAGE_REGISTRY; digest optional
   nodes:
-    - {id: <node-id>, name: host-1, image: stable, canary: true}   # first; the rest wait for it
+    - {id: <node-id>, name: edge-1, image: stable, canary: true}   # first; the rest wait for it
     - id: <vm-host-id>
-      name: node-1
+      name: vmhost-1
       image: stable
       vms:                                  # the host's complete VM set
-        - {name: vm-01, disk: edge-base-v4.0.qcow2, vcpus: 1, memoryMb: 1024, image: stable}
+        - {name: vm-1, disk: edge-base-v1.0.qcow2, vcpus: 1, memoryMb: 1024, image: stable}
   rollout: {soak: 2m, timeout: 15m}
 ```
 Before planning, the file is sent as written to Quasar and checked against
@@ -333,15 +332,17 @@ update path (greenboot gate, attempt record) and stays managed. Refused when
 that deployment is the image greenboot rejected, during an update, or when
 the node reports no previous deployment.
 
+### VM Management
+
 #### Declare the desired VM set
 ```bash
-cockpit vms set --org <org> --host <host-node-id> --spec '{"vms":[{"name":"vm-01","qcow2Url":"edge-base-v4.0.qcow2","digest":"sha256:...","vcpus":2,"memoryMb":2048}]}'
+cockpit vms set --org <org> --host <host-node-id> --spec '{"vms":[{"name":"vm-1","qcow2Url":"edge-base-v1.0.qcow2","digest":"sha256:...","vcpus":2,"memoryMb":2048}]}'
 ```
 `--spec` accepts inline JSON or a path to a YAML/JSON file. The host must report
 `run_vms` (an empty list is always accepted, to clear a host). Each VM needs
 `name`, `qcow2Url` and a `sha256:<64 hex>` digest; `vcpus`/`memoryMb` are
 optional. `qcow2Url` may be a bare artifact name: the host downloads it from
-`DISK_REGISTRY_URL` (image default `http://192.168.122.1:8081`). New VMs boot
+`DISK_REGISTRY_URL` (set in the node image's `node.env`). New VMs boot
 from the downloaded disk and enroll as c12s nodes with id
 UUIDv5(host id, VM name) and labels `vm-host`/`vm-name`. `image apply` does
 the same declaratively, together with the OS.
@@ -684,33 +685,6 @@ Retrieve metrics for a specific node.
 - Reads protostar's node-metrics API (`localhost:8086`), fed by starometry on
   the node; bootc nodes report CPU, memory, disk and network (no per-service
   rows: they have no cAdvisor).
-
-## Status
-
-Stable for all documented commands; the `image` and `vms` command groups
-were added in Phases 3–4 and are exercised end-to-end by the lab
-experiments (`tools/experiments/`).
-
-## Bugs, disabled and unfinished features
-
-### Confirmed bugs
-
-| Where | Effect |
-|---|---|
-| `cmd/image/image.status.go`, `cmd/vm/vm.list.go`, `cmd/vm/vm.status.go` | These read commands send a JSON **body on a GET request**. It works through the current gateway (which forwards bodies), but it violates HTTP semantics and some proxies strip GET bodies (review BUG-3, deferred; a query-param or POST rework is the fix). |
-| `image update`/`rollback` accepted:false | "did not acknowledge (node offline?)" is printed for *any* no-ack — including a node that rejected an invalid command silently (review R4). The real state is visible via `image status`. |
-
-### Disabled / unfinished features
-
-- HTTP + token boilerplate is duplicated across commands; only
-  `update`/`rollout` share `requestImageUpdate` (review M1).
-
-### PoC boundaries (by design, not bugs)
-
-- The CLI talks plain HTTP to the gateway and runs from the repository
-  directory (`.env`, `token.txt` are local files).
-- `--password` on the command line is visible in the shell history/process
-  list; prefer `C12S_PASSWORD`.
 
 ## Contributing
 

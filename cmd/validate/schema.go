@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/c12s/cockpit/aliases"
@@ -41,12 +42,25 @@ func executeValidateSchemaVersion(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	if err := sendValidateSchemaRequest(requestBody); err != nil {
+	resp, err := sendValidateSchemaRequest(requestBody)
+	if err != nil {
 		fmt.Println("Error sending validate schema request:", err)
 		os.Exit(1)
 	}
+	if !resp.IsValid {
+		fmt.Println("Configuration is not valid:")
+		for _, m := range strings.Split(resp.Message, "; ") {
+			fmt.Println("  -", m)
+		}
+		os.Exit(1)
+	}
+	fmt.Println("Configuration is valid against the schema.")
+}
 
-	fmt.Println("Schema validated successfully!")
+// validateSchemaResponse is Quasar's reply (proto JSON: false fields omitted).
+type validateSchemaResponse struct {
+	Message string `json:"message"`
+	IsValid bool   `json:"isValid"`
 }
 
 func prepareValidateSchemaRequestConfig() (interface{}, error) {
@@ -73,21 +87,24 @@ func prepareValidateSchemaRequestConfig() (interface{}, error) {
 	return requestBody, nil
 }
 
-func sendValidateSchemaRequest(requestBody interface{}) error {
+func sendValidateSchemaRequest(requestBody interface{}) (validateSchemaResponse, error) {
+	var resp validateSchemaResponse
 	token, err := utils.ReadTokenFromFile()
 	if err != nil {
-		return fmt.Errorf("error reading token: %v", err)
+		return resp, fmt.Errorf("error reading token: %v", err)
 	}
 
 	url := clients.BuildURL("core", "v1", "ValidateConfiguration")
 
-	return utils.SendHTTPRequest(model.HTTPRequestConfig{
+	err = utils.SendHTTPRequest(model.HTTPRequestConfig{
 		Method:      "GET",
 		URL:         url,
 		Token:       token,
 		Timeout:     30 * time.Second,
 		RequestBody: requestBody,
+		Response:    &resp,
 	})
+	return resp, err
 }
 
 func init() {

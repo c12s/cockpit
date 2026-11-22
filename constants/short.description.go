@@ -11,6 +11,7 @@ const (
 	CreateSchemaShortDesc                    = "Create a schema for an organization"
 	DeleteConfigGroupShortDesc               = "Delete a configuration group version"
 	DeleteNodeLabelsShortDesc                = "Delete a label from a node"
+	DeleteNodeShortDesc                      = "Delete a node record"
 	DeleteSchemaShortDesc                    = "Delete a schema"
 	DeleteAppShortDesc                       = "Delete an app"
 	DeleteNamespaceShortDesc                 = "Delete a namespace"

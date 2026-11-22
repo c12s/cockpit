@@ -14,10 +14,12 @@ import (
 	deleteCmd "github.com/c12s/cockpit/cmd/delete"
 	diff "github.com/c12s/cockpit/cmd/diff"
 	get "github.com/c12s/cockpit/cmd/get"
+	image "github.com/c12s/cockpit/cmd/image"
 	list "github.com/c12s/cockpit/cmd/list"
 	place "github.com/c12s/cockpit/cmd/place"
 	put "github.com/c12s/cockpit/cmd/put"
 	validate "github.com/c12s/cockpit/cmd/validate"
+	vm "github.com/c12s/cockpit/cmd/vm"
 )
 
 const (
@@ -52,6 +54,7 @@ func init() {
 
 	// Delete Commands
 	DeleteCmd.AddCommand(deleteCmd.DeleteNodeLabelsCmd)
+	DeleteCmd.AddCommand(deleteCmd.DeleteNodeCmd)
 	DeleteCmd.AddCommand(deleteCmd.DeleteSchemaCmd)
 	DeleteCmd.AddCommand(DeleteStandaloneConfigCmd)
 	DeleteCmd.AddCommand(DeleteConfigCmd)
@@ -82,6 +85,12 @@ func init() {
 	// Validate Commands
 	ValidateCmd.AddCommand(validate.ValidateSchemaVersionCmd)
 	RootCmd.AddCommand(ValidateCmd)
+
+	// Image Commands
+	RootCmd.AddCommand(image.ImageCmd)
+
+	// VM Commands
+	RootCmd.AddCommand(vm.VmsCmd)
 
 	// Create Commands
 	CreateCmd.AddCommand(create.CreateSchemaCmd)

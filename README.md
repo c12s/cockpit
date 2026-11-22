@@ -1,20 +1,66 @@
-# Cockpit CLI Documentation
+# cockpit — c12s operator CLI
 
-Cockpit CLI is a command-line interface (CLI) tool designed for managing various resources within the Cockpit project. This CLI facilitates user registration, node management, labeling, schema validation, configuration management, and more. The goal of this tool is to provide an easy-to-use and maintainable interface for interacting with the Cockpit project's resources.
+Cobra-based command-line client for the c12s control plane. Everything an
+operator does — register/login, claim nodes, manage labels/schemas/configs,
+declare OS image updates and rollouts, manage VM fleets — goes through this
+binary via the lunar-gateway HTTP API.
+
+## Role in c12s
+
+| Command group | Backend service |
+|---|---|
+| `register`, `login` | Apollo (identity; token stored in `token.txt`) |
+| `list/claim/delete nodes`, labels, metrics | Magnetar |
+| `create/put/delete schema`, `validate` | Quasar |
+| config groups and standalone configs (`put`, `list`, `place`, `diff`) | Kuiper (+ Gravity for delivery) |
+| `image update/rollout/rollback/status` | Gravity (`DisseminateOSImage`), Magnetar (desired image, status) |
+| `image apply` | Quasar (spec schema), then Gravity/Magnetar as above |
+| `image build`, `image build qcow2`, `image build status/list` | Supernova (`BuildImage`, `BuildQCOW2`, `GetJob`, `ListJobs`) |
+| `image list` | Supernova (`ListImages`; registry + artifact server) |
+| `vms set/list/status` | Magnetar (VM desired state / status on the host's node record) |
+
+## Building and running
+
+1. The control plane must be up (`cd tools && ./start.sh` in the c12s
+   workspace; gateway on `localhost:5555`).
+
+2. Build the CLI:
+
+    ```sh
+    go build -o ~/.cache/c12s/cockpit .
+    ```
+
+3. Run it **from the repository directory** — it reads two local files:
+
+    | File | Purpose |
+    |---|---|
+    | `.env` | `CONFIG_PATH=../lunar-gateway/config/config.yml` — the gateway routes and ports |
+    | `token.txt` | bearer token written by `cockpit login` (mode 0600) |
+
+4. Log in:
+
+    ```sh
+    cockpit login --username '<user>' --password '<password>'
+    # or: C12S_PASSWORD=<password> cockpit login --username '<user>'
+    ```
 
 ## Features
 
 - **User Management**: Register and login to the system.
-- **Node Management**: List, query, and claim nodes based on specific criteria.
+- **Node Management**: List, query, and claim nodes; delete records (with the `node.delete` permission). Lists show each node's liveness (`online`/`stale`/`offline`/`unknown`) from its last heartbeat.
 - **Label Management**: Add, update, and delete labels for nodes.
 - **Schema Management**: Create, retrieve, validate, and delete schemas.
 - **Configuration Management**: Manage both config groups and standalone configs, including placing, listing, and diffing configurations.
+- **OS Image Management**: Build images and qcow2 disks through Supernova, then apply digest-pinned updates, canary-gated rollouts, and rollback for `os_update`-capable nodes.
+- **VM Management**: Declare the desired VM fleet on a `run_vms` host and inspect observed status.
 
 ## Table of Contents
 - [Getting Started](#getting-started)
 - [Command Reference](#command-reference)
   - [User Management](#user-management)
   - [Node Management](#node-management)
+  - [OS Image Management (bootc)](#os-image-management-bootc)
+  - [VM Management](#vm-management)
   - [Relationship Management](#relationship-management)
   - [Label Management](#label-management)
   - [Schema Management](#schema-management)
@@ -24,72 +70,31 @@ Cockpit CLI is a command-line interface (CLI) tool designed for managing various
 - [Contributing](#contributing)
 - [License](#license)
 
+## Getting Started
+
 ### Prerequisites
 Ensure you have the following installed:
-- [Go](https://golang.org/doc/install) (version 1.16 or higher)
-- [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git)
-- [Docker](https://docs.docker.com/get-docker/) (for running the complete environment)
-
-Additionally, you need to clone and set up the tools repository from [https://github.com/c12s/tools](https://github.com/c12s/tools), which includes scripts to pull all other repositories and start Docker containers.
+- [Go](https://golang.org/doc/install) (version 1.22 or higher)
+- A running control plane (the [c12s/tools](https://github.com/c12s/tools) repository provides `./install.sh` + `./start.sh` for the full compose stack)
 
 ### Installation
-1. Clone the tools repository:
 
-    ```sh
-    git clone https://github.com/c12s/tools.git
-    ```
+Clone this repository next to the other c12s repos (the workspace layout is
+`c12s/tools`, `c12s/cockpit`, `c12s/lunar-gateway`, ... — cockpit reads the
+gateway route config via a relative path):
 
-2. Navigate to the tools directory and follow the setup instructions in the README.md file of the tools repository to pull all necessary repositories and start Docker containers:
+```sh
+git clone https://github.com/c12s/cockpit.git
+cd cockpit
+go build -o ~/.cache/c12s/cockpit .
+```
 
-    ```sh
-    cd tools
-    ./install.sh
-    ./start.sh
-    ```
+Run the binary from the cockpit directory (it needs `.env` and writes
+`token.txt` there):
 
-   or for Windows:
-
-    ```sh
-    ./start-windows.sh
-    ```
-
-3. Clone the cockpit repository in the same parent directory where the tools repository is located:
-
-    ```sh
-    cd ..
-    git clone https://github.com/bunjo01/cockpit.git
-    ```
-
-4. Navigate to the cockpit project directory:
-
-    ```sh
-    cd cockpit
-    ```
-
-5. Build the CLI:
-
-    ```sh
-    go build -o cockpit
-    ```
-
-6. Add the executable to your PATH:
-  - On Linux/macOS:
-
-    ```sh
-    export PATH=$PATH:$(pwd)
-    ```
-
-  - On Windows (Command Prompt):
-
-    ```sh
-    set PATH=%PATH%;%cd%
-    ```
-
-  - On Windows (PowerShell):
-
-    ```sh
-    $env:PATH += ";$PWD"
-    ```
+```sh
+cd /path/to/c12s/cockpit && ~/.cache/c12s/cockpit login --username <user> --password <password>
+```
 
 ## Command Reference
 
@@ -115,23 +120,31 @@ Login with an existing user.
 - **Command**: cockpit login
 - **Options**:
   - --username: Username of the user.
+  - --password, -p: Password (optional; also read from `C12S_PASSWORD`,
+    otherwise prompted).
 - **Example**:
 
     ```sh
     cockpit login --username 'user'
+    C12S_PASSWORD=secret cockpit login --username 'user'
     ```
 
 ### Node Management
 
 #### List Nodes
-List all nodes.
+List all nodes. The table shows a `Liveness` column derived from the node's
+last heartbeat (`online` within 90 s, `stale` within 5 min, `offline` after
+that, `unknown` for records that never heartbeated; thresholds are Magnetar's
+`NODE_STALE_AFTER`/`NODE_OFFLINE_AFTER`).
 - **Command**: cockpit list nodes
 - **Options**:
   - --query: Query to filter nodes.
+  - --details: show liveness age and every label per node.
 - **Example**:
 
     ```sh
     cockpit list nodes
+    cockpit list nodes --details
     cockpit list nodes --query 'memory-totalGB > 2'
     ```
 
@@ -147,6 +160,31 @@ Claim nodes based on specific criteria.
     cockpit claim nodes --org 'c12s' --query 'memory-totalGB > 2'
     ```
 
+#### Delete a Node
+Remove a node record completely: the record, its label index, liveness state
+and desired OS image. Org-owned nodes are never removed automatically (the
+control-plane GC only reaps stale *pool* records), so this is the explicit
+path for them. Requires the `node.delete` permission on the node — create a
+policy first, like for `os.update`:
+
+```yaml
+objectScope: { id: "<node-id>", kind: "node" }
+permission:  { condition: { expression: "" }, kind: "ALLOW", name: "node.delete" }
+subjectScope: { id: "<user>", kind: "user" }
+```
+
+- **Command**: cockpit delete node
+- **Options**:
+  - --node-id: Node ID (required).
+- **Example**:
+
+    ```sh
+    cockpit delete node --node-id <id>
+    ```
+
+Deleting a host does not stop the VMs it declared: they keep running and keep
+their own node records.
+
 #### List Allocated Nodes
 List nodes allocated to an organization.
 - **Command**: cockpit list nodes allocated
@@ -159,6 +197,161 @@ List nodes allocated to an organization.
     cockpit list nodes allocated --org 'c12s'
     cockpit list nodes allocated --org 'c12s' --query 'memory-totalGB > 2'
     ```
+
+### OS Image Management (bootc)
+
+Nodes with the `os_update` capability run bootc; images are pinned by digest.
+Image refs may be short (`os/edge-base:v1.1`): the node completes them with
+`IMAGE_REGISTRY` from its image's `node.env`, so the control plane stores no
+registry address. A ref that names a host (`host:port/…`) overrides it.
+Updating a node needs `os.update` for the caller (`create policies`): on the
+node's org (`objectScope: {kind: org, id: <org>}`, covers every node claimed
+into it) or on the node itself (`{kind: node, id: <node-id>}`, also works for
+pool nodes). Apollo mints the permissions on every request, so a new policy
+applies immediately.
+
+#### Build an image
+```bash
+cockpit image build --name os/edge-base --tag v1.0 \
+  --context tools/bootc --containerfile Containerfile.bootc \
+  --build-arg OS_VERSION=v1.0 [--wait] [--timeout 30m]
+```
+Sends the build context to Supernova through the gateway, which builds, pushes
+and signs the image in Singularity and returns the digest. Without `--wait` it
+prints the job id; `cockpit image build status <job-id>` shows progress and
+`cockpit image build list` shows all jobs. The build needs an `image.build`
+policy on the image repo (`image.build|image|os/edge-base`), created with
+`create policies`; it applies on the next command (no re-login).
+
+#### Build a qcow2 provisioning disk
+```bash
+cockpit image build qcow2 --name edge-base-v1.0 \
+  --image-ref <registry>/os/edge-base:v1.0 [--target-arch x86_64] [--rootfs ext4]
+```
+Turns an already-built bootc image into a qcow2 disk, uploads it to the
+Singularity artifact server and prints the artifact name and checksum. Use the
+artifact name + checksum in `cockpit vms set`.
+
+#### Update one node
+```bash
+cockpit image update --node-id <id> --image-ref os/edge-base:v1.1 [--digest sha256:...]
+```
+Without `--digest` the tag is resolved to its current digest at command time
+(printed), and that digest is sent; the same holds for `image rollout`.
+The desired image is recorded in Magnetar first, then the node is notified.
+The node stages the image, reboots, and greenboot health-gates it; a failing
+image is rolled back automatically and reported as `rolled_back`. A node that
+is offline does not acknowledge, but the update is still recorded and the node
+applies it when it next pulls (every 30 s once it is back).
+
+#### Canary rollout
+```bash
+cockpit image rollout --org c12s --canary <node-id> \
+  --nodes <id1,id2> | --query 'labelKey = value' \
+  --image-ref <ref> --digest sha256:... [--soak 2m] [--timeout 15m] [--poll 10s] [--no-wait]
+```
+Updates the canary first; it must boot the digest, report `healthy`, and stay
+healthy for `--soak`. Only then are the targets (os_update-capable org nodes,
+canary excluded) updated and awaited. A canary rollback, leaving healthy
+during the soak, or a timeout stops the rollout with exit code 1 before any
+target is touched.
+
+#### Apply a fleet spec (declarative)
+```bash
+cockpit image apply --spec fleet.yaml --dry-run   # the plan
+cockpit image apply --spec fleet.yaml             # make it so
+```
+```yaml
+apiVersion: c12s/os.v1
+kind: HostImageSpec
+metadata: {org: c12s}
+spec:
+  images:
+    stable: {ref: os/edge-base:v1.1}   # short ref: nodes pull from their IMAGE_REGISTRY; digest optional
+  nodes:
+    - {id: <node-id>, name: edge-1, image: stable, canary: true}   # first; the rest wait for it
+    - id: <vm-host-id>
+      name: vmhost-1
+      image: stable
+      vms:                                  # the host's complete VM set
+        - {name: vm-1, disk: edge-base-v1.0.qcow2, vcpus: 1, memoryMb: 1024, image: stable}
+  rollout: {soak: 2m, timeout: 15m}
+```
+Before planning, the file is sent as written to Quasar and checked against
+the org's `host-image-spec` schema (`--schema-namespace default`,
+`--schema-version v1.0.0`; the schema is
+`tools/bootc/specs/host-image-spec.schema.yaml`, registered once with
+`cockpit create schema`). Every violation is listed and nothing is applied.
+cockpit then checks what the schema cannot (image names defined, one canary
+per group, unique ids, VMs only on `run_vms` hosts).
+
+Only the listed nodes are managed; removing a node from the file stops
+managing it (nothing is changed on it). `image` is optional on nodes and VMs
+(absent: OS not managed). `vms:` absent leaves a host's VMs alone, `vms: []`
+deletes them. A VM's `disk` (an artifact name, or a URL with `digest`) is used
+only to create it; its node id is derived from the host id and the VM name
+(UUIDv5), so it is known before the VM exists.
+
+Order: VM sets → wait for new VMs to enroll and claim them (label
+`vm-host = <host-id>`) → OS for plain nodes and VMs → OS for VM hosts. Per
+image group, the node marked `canary: true` goes first and must stay healthy
+for `rollout.soak` (as in `rollout`); a group without a canary is updated all
+at once. At most one canary per group. A rollback or timeout stops the run
+(exit 1); re-running continues. `--force`
+re-sends updates whose desired image already matches. Every node and VM with
+an `image` needs `os.update`: one policy on the org (`kind: org`) covers all
+its nodes, or one per node (`--dry-run` lists the ids).
+
+#### Status
+```bash
+cockpit image status --org c12s
+```
+Per node: liveness (`online`, or `stale`/`offline` with the age of the last
+report), phase (`healthy`, `switching`, `degraded`, `rolled_back`,
+`unmanaged`), version, BOOTED and DESIRED as `tag (short digest)` (DESIRED is
+the image recorded in Magnetar; `-` = none declared yet) and the last
+attempt. `--wide` prints full digests.
+
+#### List images
+```bash
+cockpit image list
+```
+Read-only view of the registry and the artifact server, through the gateway's
+`ListImages` route: every image tag with the digest it points to (the
+value `image update --digest` takes) and every qcow2 artifact with its sha256.
+It uses the same token as the other commands; `--output json` prints the raw
+response.
+
+#### Rollback
+```bash
+cockpit image rollback --org <org> --node-id <id>
+```
+Declares the node's previous deployment (the bootc rollback entry it
+reports) as its desired image: the node switches back through the normal
+update path (greenboot gate, attempt record) and stays managed. Refused when
+that deployment is the image greenboot rejected, during an update, or when
+the node reports no previous deployment.
+
+### VM Management
+
+#### Declare the desired VM set
+```bash
+cockpit vms set --org <org> --host <host-node-id> --spec '{"vms":[{"name":"vm-1","qcow2Url":"edge-base-v1.0.qcow2","digest":"sha256:...","vcpus":2,"memoryMb":2048}]}'
+```
+`--spec` accepts inline JSON or a path to a YAML/JSON file. The host must report
+`run_vms` (an empty list is always accepted, to clear a host). Each VM needs
+`name`, `qcow2Url` and a `sha256:<64 hex>` digest; `vcpus`/`memoryMb` are
+optional. `qcow2Url` may be a bare artifact name: the host downloads it from
+`DISK_REGISTRY_URL` (set in the node image's `node.env`). New VMs boot
+from the downloaded disk and enroll as c12s nodes with id
+UUIDv5(host id, VM name) and labels `vm-host`/`vm-name`. `image apply` does
+the same declaratively, together with the OS.
+
+#### Inspect
+```bash
+cockpit vms list --host <host-node-id>     # desired set (in Magnetar) + each VM's node id
+cockpit vms status --host <host-node-id> [--org <org>]   # observed state; with --org also each VM's booted OS
+```
 
 ### Relationship Management
 
@@ -253,9 +446,11 @@ Validate a schema.
 - **Options**:
   - --org: Organization.
   - --namespace: Namespace.
-  - --schema: Name of the schema.
+  - --schema-name: Name of the schema.
   - --version: Version of the schema.
-  - --path: Path to the validation file.
+  - --path: Path to the file to validate.
+- Prints every violation Quasar reports and exits 1 when the file is not
+  valid.
 - **Example**:
 
     ```sh
@@ -487,6 +682,9 @@ Retrieve metrics for a specific node.
     cockpit get node metrics --node-id 'nodeID'
     cockpit get node metrics --node-id 'nodeID' --all-services --sort 'memory'
     ```
+- Reads protostar's node-metrics API (`localhost:8086`), fed by starometry on
+  the node; bootc nodes report CPU, memory, disk and network (no per-service
+  rows: they have no cAdvisor).
 
 ## Contributing
 

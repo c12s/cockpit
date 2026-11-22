@@ -1,0 +1,11 @@
+objectScope:
+  id: "5bd63a97-27aa-473e-8376-59fa13130506"
+  kind: "node"
+permission:
+  condition:
+    expression: ""
+  kind: "ALLOW"
+  name: "os.update"
+subjectScope:
+  id: "e2e"
+  kind: "user"

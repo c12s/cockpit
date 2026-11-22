@@ -15,6 +15,8 @@ import (
 
 var tokenResponse model.TokenResponse
 
+var password string
+
 var LoginCmd = &cobra.Command{
 	Use:     "login",
 	Aliases: aliases.LoginAliases,
@@ -24,13 +26,20 @@ var LoginCmd = &cobra.Command{
 		return utils.ValidateRequiredFlags(cmd, []string{constants.UsernameFlag})
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		password, err := utils.PromptForPassword()
-		if err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(1)
+		pw := password
+		if pw == "" {
+			pw = os.Getenv("C12S_PASSWORD")
+		}
+		if pw == "" {
+			var err error
+			pw, err = utils.PromptForPassword()
+			if err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
 		}
 
-		err = login(username, password)
+		err := login(username, pw)
 		if err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
@@ -69,5 +78,6 @@ func login(username, password string) error {
 
 func init() {
 	LoginCmd.Flags().StringVarP(&username, constants.UsernameFlag, constants.UsernameShorthandFlag, "", "Username for login")
+	LoginCmd.Flags().StringVarP(&password, "password", "p", "", "Password (or set C12S_PASSWORD env var)")
 	LoginCmd.MarkFlagRequired(constants.UsernameFlag)
 }
